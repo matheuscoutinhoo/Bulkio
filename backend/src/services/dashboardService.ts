@@ -52,23 +52,37 @@ export const dashboardService = {
          muscleDistribution[group] = (muscleDistribution[group] || 0) + sets;
       }
 
-      // Calculate streak
+      // Calculate streak — deduplicate by calendar date first
       let currentStreak = 0;
       if (streak.length > 0) {
          const today = new Date();
          today.setHours(0, 0, 0, 0);
 
-         for (let i = 0; i < streak.length; i++) {
-            const workoutDate = new Date(streak[i].date);
-            workoutDate.setHours(0, 0, 0, 0);
+         const uniqueDates: number[] = [];
+         for (const s of streak) {
+            const d = new Date(s.date);
+            d.setHours(0, 0, 0, 0);
+            const t = d.getTime();
+            if (uniqueDates.length === 0 || uniqueDates[uniqueDates.length - 1] !== t) {
+               uniqueDates.push(t);
+            }
+         }
 
-            const expectedDate = new Date(today);
-            expectedDate.setDate(today.getDate() - i);
+         // Determine the anchor: today or yesterday
+         let anchor = today.getTime();
+         if (uniqueDates[0] !== anchor) {
+            const yesterday = today.getTime() - 86400000;
+            if (uniqueDates[0] === yesterday) {
+               anchor = yesterday;
+            } else {
+               // Most recent workout is older than yesterday — no streak
+               uniqueDates.length = 0;
+            }
+         }
 
-            if (workoutDate.getTime() === expectedDate.getTime()) {
-               currentStreak++;
-            } else if (i === 0 && workoutDate.getTime() === new Date(today.getTime() - 86400000).getTime()) {
-               // Allow yesterday as start of streak
+         for (let i = 0; i < uniqueDates.length; i++) {
+            const expectedDate = anchor - i * 86400000;
+            if (uniqueDates[i] === expectedDate) {
                currentStreak++;
             } else {
                break;
@@ -79,6 +93,10 @@ export const dashboardService = {
       // Calculate total volume
       const totalVolume = volumeData.reduce((sum, set) => sum + set.reps * set.weight, 0);
 
+      // bodyWeightHistory is ordered DESC — index 0 is the latest
+      const currentWeight = bodyWeightHistory.length > 0 ? bodyWeightHistory[0] : null;
+      const historyAsc = [...bodyWeightHistory].reverse();
+
       return {
          weeklyWorkouts: {
             current: thisWeekWorkouts,
@@ -88,8 +106,8 @@ export const dashboardService = {
          streak: currentStreak,
          totalVolume: Math.round(totalVolume),
          bodyWeight: {
-            history: bodyWeightHistory.reverse(),
-            current: bodyWeightHistory.length > 0 ? bodyWeightHistory[0] : null,
+            history: historyAsc,
+            current: currentWeight,
             goal: user?.goal || null,
             target: user?.targetWeight || null,
             initial: user?.initialWeight || null,
@@ -108,7 +126,7 @@ export const dashboardService = {
             reps: s.reps,
             weight: s.weight,
          })),
-         maxWeight: Math.max(...entry.sets.map((s) => s.weight)),
+         maxWeight: entry.sets.length > 0 ? Math.max(...entry.sets.map((s) => s.weight)) : 0,
          totalVolume: entry.sets.reduce((sum, s) => sum + s.reps * s.weight, 0),
       })).reverse();
    },

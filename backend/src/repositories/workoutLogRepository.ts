@@ -24,11 +24,16 @@ export const workoutLogRepository = {
 
       if (filters.workoutPlanId) where.workoutPlanId = filters.workoutPlanId;
 
-      if (filters.exerciseId) {
+      if (filters.exerciseId && filters.muscleGroup) {
+         where.exercises = {
+            some: {
+               exerciseId: filters.exerciseId,
+               exercise: { muscleGroup: filters.muscleGroup },
+            },
+         };
+      } else if (filters.exerciseId) {
          where.exercises = { some: { exerciseId: filters.exerciseId } };
-      }
-
-      if (filters.muscleGroup) {
+      } else if (filters.muscleGroup) {
          where.exercises = {
             some: { exercise: { muscleGroup: filters.muscleGroup } },
          };

@@ -218,6 +218,19 @@ function LogWorkoutDialog({
    const [isComplete, setIsComplete] = useState(true);
    const [submitting, setSubmitting] = useState(false);
 
+   const resetForm = () => {
+      setSelectedPlan('');
+      setExercises([]);
+      setSearchExercise('');
+      setNotes('');
+      setIsComplete(true);
+   };
+
+   const handleClose = () => {
+      resetForm();
+      onClose();
+   };
+
    useEffect(() => {
       if (open) {
          workoutPlanApi.getAll({ limit: 50 }).then((res) => setPlans(res.data.data));
@@ -319,7 +332,7 @@ function LogWorkoutDialog({
             workoutPlanId: selectedPlan || undefined,
             date: now,
             startTime: now,
-            endTime: now,
+            endTime: undefined,
             isComplete,
             notes: notes || undefined,
             exercises: exercises.map((ex, i) => ({
@@ -331,7 +344,7 @@ function LogWorkoutDialog({
          setExercises([]);
          setNotes('');
          setSelectedPlan('');
-         onClose();
+         handleClose();
          onCreated();
       } catch (err) {
          console.error(err);
@@ -345,7 +358,7 @@ function LogWorkoutDialog({
    );
 
    return (
-      <Dialog open={open} onClose={onClose} className="max-w-2xl">
+      <Dialog open={open} onClose={handleClose} className="max-w-2xl">
          <DialogHeader>
             <DialogTitle>Registrar Treino</DialogTitle>
          </DialogHeader>
@@ -452,7 +465,7 @@ function LogWorkoutDialog({
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-               <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+               <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={exercises.length === 0 || submitting}>
                   {submitting ? 'Salvando...' : 'Salvar Treino'}
                </Button>

@@ -53,7 +53,7 @@ export default function ExercisesPage() {
       } finally {
          setLoading(false);
       }
-   }, [filters, search]);
+   }, [filters]);
 
    useEffect(() => {
       fetchExercises();
@@ -61,6 +61,7 @@ export default function ExercisesPage() {
 
    const handleSearch = () => {
       setFilters((f) => ({ ...f, page: 1 }));
+      fetchExercises();
    };
 
    const handleCreateExercise = async (data: {
@@ -135,6 +136,12 @@ export default function ExercisesPage() {
          {loading ? (
             <div className="flex justify-center py-12">
                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+         ) : exercises.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+               <Dumbbell className="h-12 w-12 text-muted-foreground mb-4" />
+               <h3 className="text-lg font-medium">Nenhum exercício encontrado</h3>
+               <p className="text-muted-foreground text-sm mt-1">Tente alterar os filtros ou criar um novo exercício</p>
             </div>
          ) : (
             <>
@@ -217,14 +224,23 @@ function CreateExerciseDialog({
       description: '',
    });
 
-   const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onCreate(form);
+   const resetForm = () => {
       setForm({ name: '', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL', description: '' });
    };
 
+   const handleClose = () => {
+      resetForm();
+      onClose();
+   };
+
+   const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onCreate(form);
+      resetForm();
+   };
+
    return (
-      <Dialog open={open} onClose={onClose}>
+      <Dialog open={open} onClose={handleClose}>
          <DialogHeader>
             <DialogTitle>Novo Exercício</DialogTitle>
          </DialogHeader>
@@ -264,7 +280,7 @@ function CreateExerciseDialog({
                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2">
-               <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+               <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!form.name}>Criar</Button>
             </div>
          </form>

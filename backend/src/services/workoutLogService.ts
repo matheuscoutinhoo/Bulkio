@@ -30,12 +30,22 @@ export const workoutLogService = {
    },
 
    async create(userId: string, data: CreateWorkoutLogInput) {
+      // Validate workoutPlanId belongs to user and is not archived
+      if (data.workoutPlanId) {
+         const { workoutPlanRepository } = await import('../repositories/workoutPlanRepository');
+         const plan = await workoutPlanRepository.findById(data.workoutPlanId);
+         if (!plan) throw new NotFoundError('Workout plan');
+         if (plan.userId !== userId) throw new ForbiddenError('Workout plan does not belong to user');
+         if (plan.isArchived) throw new ForbiddenError('Cannot log from an archived workout plan');
+      }
+
       const log = await workoutLogRepository.create(userId, data);
 
-      // Check and update personal records
+      // Check and update personal records using the workout log's date
+      const logDate = data.date ? new Date(data.date) : new Date();
       for (const exercise of data.exercises) {
          for (const set of exercise.sets) {
-            await this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps);
+            await this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate);
          }
       }
 
@@ -56,14 +66,14 @@ export const workoutLogService = {
       return workoutLogRepository.delete(id);
    },
 
-   async checkAndUpdatePR(userId: string, exerciseId: string, weight: number, reps: number) {
+   async checkAndUpdatePR(userId: string, exerciseId: string, weight: number, reps: number, date?: Date) {
       if (weight <= 0) return;
 
       const currentPR = await personalRecordRepository.findByUserAndExercise(userId, exerciseId);
 
       // Update PR if new weight is higher, or same weight with more reps
       if (!currentPR || weight > currentPR.weight || (weight === currentPR.weight && reps > currentPR.reps)) {
-         await personalRecordRepository.upsert(userId, exerciseId, weight, reps, new Date());
+         await personalRecordRepository.upsert(userId, exerciseId, weight, reps, date ?? new Date());
       }
    },
 };

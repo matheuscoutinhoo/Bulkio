@@ -20,9 +20,12 @@ export const exerciseService = {
       };
    },
 
-   async findById(id: string) {
+   async findById(userId: string, id: string) {
       const exercise = await exerciseRepository.findById(id);
       if (!exercise) throw new NotFoundError('Exercise');
+      if (exercise.isCustom && exercise.userId !== userId) {
+         throw new ForbiddenError('Cannot view another user\'s custom exercise');
+      }
       return exercise;
    },
 

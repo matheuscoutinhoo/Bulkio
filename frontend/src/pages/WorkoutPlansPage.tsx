@@ -180,6 +180,18 @@ function CreateWorkoutPlanDialog({
    const [searchExercise, setSearchExercise] = useState('');
    const [submitting, setSubmitting] = useState(false);
 
+   const resetForm = () => {
+      setName('');
+      setDescription('');
+      setExercises([]);
+      setSearchExercise('');
+   };
+
+   const handleClose = () => {
+      resetForm();
+      onClose();
+   };
+
    useEffect(() => {
       if (open) {
          exerciseApi.getAll({ limit: 300 }).then((res) => setAllExercises(res.data.data));
@@ -233,7 +245,7 @@ function CreateWorkoutPlanDialog({
          setName('');
          setDescription('');
          setExercises([]);
-         onClose();
+         handleClose();
          onCreated();
       } catch (err) {
          console.error(err);
@@ -243,7 +255,7 @@ function CreateWorkoutPlanDialog({
    };
 
    return (
-      <Dialog open={open} onClose={onClose} className="max-w-2xl">
+      <Dialog open={open} onClose={handleClose} className="max-w-2xl">
          <DialogHeader>
             <DialogTitle>Nova Ficha de Treino</DialogTitle>
          </DialogHeader>
@@ -336,7 +348,7 @@ function CreateWorkoutPlanDialog({
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-               <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+               <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!name || submitting}>
                   {submitting ? 'Criando...' : 'Criar Ficha'}
                </Button>

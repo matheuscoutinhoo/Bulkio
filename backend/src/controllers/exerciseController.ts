@@ -27,7 +27,7 @@ export const exerciseController = {
 
    async findById(req: Request, res: Response, next: NextFunction) {
       try {
-         const exercise = await exerciseService.findById(req.params.id as string);
+         const exercise = await exerciseService.findById(req.user!.userId, req.params.id as string);
          res.json(createResponse(exercise));
       } catch (error) {
          next(error);

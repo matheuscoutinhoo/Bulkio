@@ -68,26 +68,36 @@ export const workoutPlanRepository = {
       const { exercises, ...planData } = data;
 
       if (exercises) {
-         await prisma.workoutPlanExercise.deleteMany({ where: { workoutPlanId: id } });
+         return prisma.$transaction(async (tx) => {
+            await tx.workoutPlanExercise.deleteMany({ where: { workoutPlanId: id } });
+            return tx.workoutPlan.update({
+               where: { id },
+               data: {
+                  ...planData,
+                  exercises: {
+                     create: exercises.map((e: any) => ({
+                        exerciseId: e.exerciseId,
+                        sets: e.sets,
+                        reps: e.reps,
+                        restSeconds: e.restSeconds,
+                        order: e.order,
+                        notes: e.notes,
+                     })),
+                  },
+               },
+               include: {
+                  exercises: {
+                     include: { exercise: true },
+                     orderBy: { order: 'asc' },
+                  },
+               },
+            });
+         });
       }
 
       return prisma.workoutPlan.update({
          where: { id },
-         data: {
-            ...planData,
-            exercises: exercises
-               ? {
-                  create: exercises.map((e: any) => ({
-                     exerciseId: e.exerciseId,
-                     sets: e.sets,
-                     reps: e.reps,
-                     restSeconds: e.restSeconds,
-                     order: e.order,
-                     notes: e.notes,
-                  })),
-               }
-               : undefined,
-         },
+         data: planData,
          include: {
             exercises: {
                include: { exercise: true },

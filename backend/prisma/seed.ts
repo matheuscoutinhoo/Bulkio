@@ -58,7 +58,7 @@ const exercises: ExerciseSeed[] = [
    { name: 'Neutral Grip Pull-Up', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'BODYWEIGHT', description: 'Pull-up with palms facing each other.' },
    { name: 'Machine Row', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'MACHINE', description: 'Chest-supported machine row.' },
    { name: 'Chest Supported Dumbbell Row', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'DUMBBELL', description: 'Row dumbbells while chest is supported on incline bench.' },
-   { name: 'Cable Face Pull', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'CABLE', description: 'Pull rope to face level with external rotation.' },
+
    { name: 'Straight Arm Pulldown', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'CABLE', description: 'Arms straight, pull bar down from overhead to thighs.' },
    { name: 'Meadows Row', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'BARBELL', description: 'One-arm landmine row from perpendicular stance.' },
    { name: 'Inverted Row', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'BODYWEIGHT', description: 'Pull body up to bar from underneath.' },
@@ -66,8 +66,7 @@ const exercises: ExerciseSeed[] = [
    { name: 'Good Morning', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'BARBELL', description: 'Bar on back, hinge forward at hips.' },
    { name: 'Hyperextension', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'BODYWEIGHT', description: 'Face down on hyperextension bench, extend torso up.' },
    { name: 'Reverse Hyperextension', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'MACHINE', description: 'Reverse hyper machine, extend legs behind.' },
-   { name: 'Dumbbell Shrug', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'DUMBBELL', description: 'Shrug shoulders up while holding dumbbells.' },
-   { name: 'Barbell Shrug', muscleGroup: 'BACK', type: 'ISOLATED', equipment: 'BARBELL', description: 'Shrug shoulders up while holding barbell.' },
+
    { name: 'Single Arm Cable Row', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'CABLE', description: 'One-arm cable row for unilateral back work.' },
 
    // ========== LEGS (35) ==========
@@ -163,7 +162,7 @@ const exercises: ExerciseSeed[] = [
    { name: 'Overhead Tricep Extension (Dumbbell)', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'DUMBBELL', description: 'Hold dumbbell overhead, lower behind head, extend.' },
    { name: 'Skull Crusher', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'BARBELL', description: 'Lie on bench, lower barbell to forehead, extend.' },
    { name: 'Dumbbell Skull Crusher', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'DUMBBELL', description: 'Skull crusher with dumbbells.' },
-   { name: 'Close-Grip Bench Press', muscleGroup: 'TRICEPS', type: 'COMPOUND', equipment: 'BARBELL', description: 'Bench press with narrow grip for triceps emphasis.' },
+
    { name: 'Dips (Triceps)', muscleGroup: 'TRICEPS', type: 'COMPOUND', equipment: 'BODYWEIGHT', description: 'Upright dips on parallel bars for triceps.' },
    { name: 'Bench Dips', muscleGroup: 'TRICEPS', type: 'COMPOUND', equipment: 'BODYWEIGHT', description: 'Dips using bench behind back.' },
    { name: 'Kickback', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'DUMBBELL', description: 'Bent over, extend dumbbell behind by straightening arm.' },
@@ -173,7 +172,7 @@ const exercises: ExerciseSeed[] = [
    { name: 'Tate Press', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'DUMBBELL', description: 'Lower dumbbells to chest with elbows out, press up.' },
    { name: 'French Press', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'BARBELL', description: 'Standing or seated overhead barbell tricep extension.' },
    { name: 'Machine Tricep Extension', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'MACHINE', description: 'Tricep extension on dedicated machine.' },
-   { name: 'Diamond Push-Up', muscleGroup: 'TRICEPS', type: 'COMPOUND', equipment: 'BODYWEIGHT', description: 'Push-up with hands together forming diamond for triceps.' },
+
    { name: 'Single Arm Tricep Pushdown', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'CABLE', description: 'One-arm cable pushdown for triceps.' },
    { name: 'Reverse Grip Tricep Pushdown', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'CABLE', description: 'Pushdown with underhand grip.' },
    { name: 'Band Tricep Pushdown', muscleGroup: 'TRICEPS', type: 'ISOLATED', equipment: 'BAND', description: 'Tricep pushdown using resistance band.' },
@@ -265,21 +264,29 @@ const exercises: ExerciseSeed[] = [
 async function main() {
    console.log('🌱 Seeding database...');
 
-   // Clear existing exercises (non-custom only)
-   await prisma.exercise.deleteMany({
-      where: { isCustom: false },
-   });
+   // Upsert exercises by name (safe to re-run without data loss)
+   let upserted = 0;
+   for (const e of exercises) {
+      await prisma.exercise.upsert({
+         where: {
+            name_isCustom: { name: e.name, isCustom: false },
+         },
+         update: {
+            muscleGroup: e.muscleGroup,
+            type: e.type,
+            equipment: e.equipment,
+            description: e.description,
+         },
+         create: {
+            ...e,
+            isCustom: false,
+            userId: null,
+         },
+      });
+      upserted++;
+   }
 
-   // Seed exercises
-   const created = await prisma.exercise.createMany({
-      data: exercises.map((e) => ({
-         ...e,
-         isCustom: false,
-         userId: null,
-      })),
-   });
-
-   console.log(`✅ Created ${created.count} exercises`);
+   console.log(`✅ Upserted ${upserted} exercises`);
    console.log('🌱 Seeding complete!');
 }
 

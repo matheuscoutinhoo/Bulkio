@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { workoutPlanController } from '../controllers/workoutPlanController';
 import { authenticate } from '../middlewares/auth';
-import { validate } from '../middlewares/errorHandler';
-import { createWorkoutPlanSchema, updateWorkoutPlanSchema } from '../models/schemas';
+import { validate, validateQuery } from '../middlewares/errorHandler';
+import { createWorkoutPlanSchema, updateWorkoutPlanSchema, workoutPlanQuerySchema } from '../models/schemas';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get('/', workoutPlanController.findAll);
+router.get('/', validateQuery(workoutPlanQuerySchema), workoutPlanController.findAll);
 router.get('/:id', workoutPlanController.findById);
 router.post('/', validate(createWorkoutPlanSchema), workoutPlanController.create);
 router.patch('/:id', validate(updateWorkoutPlanSchema), workoutPlanController.update);

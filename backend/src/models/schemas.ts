@@ -99,7 +99,15 @@ export const createWorkoutLogSchema = z.object({
    isComplete: z.boolean().default(false),
    notes: z.string().max(1000).optional(),
    exercises: z.array(workoutLogExerciseSchema),
-});
+}).refine(
+   (data) => {
+      if (data.startTime && data.endTime) {
+         return new Date(data.endTime) > new Date(data.startTime);
+      }
+      return true;
+   },
+   { message: 'endTime must be after startTime', path: ['endTime'] },
+);
 
 export const updateWorkoutLogSchema = z.object({
    isComplete: z.boolean().optional(),
@@ -117,6 +125,26 @@ export const createBodyWeightSchema = z.object({
 export const paginationSchema = z.object({
    page: z.coerce.number().int().min(1).default(1),
    limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+// ========== QUERY SCHEMAS (extend pagination with route-specific filters) ==========
+export const exerciseQuerySchema = paginationSchema.extend({
+   muscleGroup: z.string().optional(),
+   type: z.string().optional(),
+   equipment: z.string().optional(),
+   search: z.string().optional(),
+});
+
+export const workoutLogQuerySchema = paginationSchema.extend({
+   startDate: z.string().optional(),
+   endDate: z.string().optional(),
+   exerciseId: z.string().optional(),
+   muscleGroup: z.string().optional(),
+   workoutPlanId: z.string().optional(),
+});
+
+export const workoutPlanQuerySchema = paginationSchema.extend({
+   includeArchived: z.string().optional(),
 });
 
 // ========== TYPES ==========

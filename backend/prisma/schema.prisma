@@ -47,6 +47,7 @@ model Exercise {
   @@index([muscleGroup])
   @@index([userId])
   @@index([name])
+  @@unique([name, isCustom], name: "name_isCustom")
 }
 
 model WorkoutPlan {
