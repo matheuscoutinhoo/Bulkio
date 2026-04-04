@@ -1,0 +1,115 @@
+import { dashboardRepository } from '../repositories/dashboardRepository';
+import { personalRecordRepository } from '../repositories/personalRecordRepository';
+import { userRepository } from '../repositories/userRepository';
+
+function getWeekBounds(weeksAgo: number = 0): { start: Date; end: Date } {
+   const now = new Date();
+   const dayOfWeek = now.getDay();
+   const startOfWeek = new Date(now);
+   startOfWeek.setDate(now.getDate() - dayOfWeek - weeksAgo * 7);
+   startOfWeek.setHours(0, 0, 0, 0);
+
+   const endOfWeek = new Date(startOfWeek);
+   endOfWeek.setDate(startOfWeek.getDate() + 6);
+   endOfWeek.setHours(23, 59, 59, 999);
+
+   return { start: startOfWeek, end: endOfWeek };
+}
+
+export const dashboardService = {
+   async getStats(userId: string) {
+      const thisWeek = getWeekBounds(0);
+      const lastWeek = getWeekBounds(1);
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [
+         thisWeekWorkouts,
+         lastWeekWorkouts,
+         muscleGroupData,
+         streak,
+         volumeData,
+         bodyWeightHistory,
+         personalRecords,
+         user,
+      ] = await Promise.all([
+         dashboardRepository.getWeeklyWorkouts(userId, thisWeek.start, thisWeek.end),
+         dashboardRepository.getWeeklyWorkouts(userId, lastWeek.start, lastWeek.end),
+         dashboardRepository.getMuscleGroupVolume(userId, thirtyDaysAgo, new Date()),
+         dashboardRepository.getStreak(userId),
+         dashboardRepository.getTotalVolume(userId, thirtyDaysAgo, new Date()),
+         dashboardRepository.getBodyWeightHistory(userId, 30),
+         personalRecordRepository.findAllByUser(userId),
+         userRepository.findById(userId),
+      ]);
+
+      // Calculate muscle group distribution
+      const muscleDistribution: Record<string, number> = {};
+      for (const entry of muscleGroupData) {
+         const group = entry.exercise.muscleGroup;
+         const sets = entry.sets.length;
+         muscleDistribution[group] = (muscleDistribution[group] || 0) + sets;
+      }
+
+      // Calculate streak
+      let currentStreak = 0;
+      if (streak.length > 0) {
+         const today = new Date();
+         today.setHours(0, 0, 0, 0);
+
+         for (let i = 0; i < streak.length; i++) {
+            const workoutDate = new Date(streak[i].date);
+            workoutDate.setHours(0, 0, 0, 0);
+
+            const expectedDate = new Date(today);
+            expectedDate.setDate(today.getDate() - i);
+
+            if (workoutDate.getTime() === expectedDate.getTime()) {
+               currentStreak++;
+            } else if (i === 0 && workoutDate.getTime() === new Date(today.getTime() - 86400000).getTime()) {
+               // Allow yesterday as start of streak
+               currentStreak++;
+            } else {
+               break;
+            }
+         }
+      }
+
+      // Calculate total volume
+      const totalVolume = volumeData.reduce((sum, set) => sum + set.reps * set.weight, 0);
+
+      return {
+         weeklyWorkouts: {
+            current: thisWeekWorkouts,
+            previous: lastWeekWorkouts,
+         },
+         muscleDistribution,
+         streak: currentStreak,
+         totalVolume: Math.round(totalVolume),
+         bodyWeight: {
+            history: bodyWeightHistory.reverse(),
+            current: bodyWeightHistory.length > 0 ? bodyWeightHistory[0] : null,
+            goal: user?.goal || null,
+            target: user?.targetWeight || null,
+            initial: user?.initialWeight || null,
+         },
+         personalRecords: personalRecords.slice(0, 10),
+      };
+   },
+
+   async getExerciseProgression(userId: string, exerciseId: string) {
+      const history = await dashboardRepository.getExerciseHistory(userId, exerciseId, 30);
+
+      return history.map((entry) => ({
+         date: entry.workoutLog.date,
+         sets: entry.sets.map((s) => ({
+            setNumber: s.setNumber,
+            reps: s.reps,
+            weight: s.weight,
+         })),
+         maxWeight: Math.max(...entry.sets.map((s) => s.weight)),
+         totalVolume: entry.sets.reduce((sum, s) => sum + s.reps * s.weight, 0),
+      })).reverse();
+   },
+};

@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - backend-data:/app/prisma
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
