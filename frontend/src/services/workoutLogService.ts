@@ -19,6 +19,7 @@ export interface WorkoutLogExercise {
       muscleGroup: string;
       type: string;
       equipment: string;
+      videoUrl?: string | null;
    };
    sets: WorkoutLogSet[];
 }

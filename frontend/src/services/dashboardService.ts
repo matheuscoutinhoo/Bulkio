@@ -17,7 +17,7 @@ export interface DashboardStats {
       weight: number;
       reps: number;
       date: string;
-      exercise: { id: string; name: string; muscleGroup: string };
+      exercise: { id: string; name: string; muscleGroup: string; videoUrl?: string | null };
    }[];
 }
 

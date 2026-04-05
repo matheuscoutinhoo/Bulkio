@@ -14,6 +14,7 @@ export interface WorkoutPlanExercise {
       muscleGroup: string;
       type: string;
       equipment: string;
+      videoUrl?: string | null;
    };
 }
 

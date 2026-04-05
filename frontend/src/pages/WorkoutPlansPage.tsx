@@ -10,19 +10,15 @@ import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Copy, Archive, GripVertical, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-
-const muscleGroupLabels: Record<string, string> = {
-   CHEST: 'Peito', BACK: 'Costas', LEGS: 'Pernas', SHOULDERS: 'Ombros',
-   BICEPS: 'Bíceps', TRICEPS: 'Tríceps', ABS: 'Abdômen', CARDIO: 'Cardio',
-   GLUTES: 'Glúteos', FOREARMS: 'Antebraço', TRAPS: 'Trapézio', CALVES: 'Panturrilha',
-   FULL_BODY: 'Full Body',
-};
+import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
 export default function WorkoutPlansPage() {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
    const [loading, setLoading] = useState(true);
    const [showCreate, setShowCreate] = useState(false);
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+   const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
 
    const fetchPlans = useCallback(async () => {
       setLoading(true);
@@ -129,7 +125,7 @@ export default function WorkoutPlansPage() {
                                  >
                                     <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
                                     <div className="flex-1 min-w-0">
-                                       <p className="font-medium text-sm truncate">{pe.exercise.name}</p>
+                                       <p className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(pe.exercise)}>{pe.exercise.name}</p>
                                        <div className="flex gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           <span>• {pe.restSeconds}s descanso</span>
@@ -157,6 +153,12 @@ export default function WorkoutPlansPage() {
             open={showCreate}
             onClose={() => setShowCreate(false)}
             onCreated={fetchPlans}
+         />
+
+         <ExerciseDetailModal
+            exercise={selectedExercise}
+            open={!!selectedExercise}
+            onClose={() => setSelectedExercise(null)}
          />
       </div>
    );

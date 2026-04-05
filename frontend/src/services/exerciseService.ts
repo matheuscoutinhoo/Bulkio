@@ -7,6 +7,7 @@ export interface Exercise {
    type: string;
    equipment: string;
    description?: string;
+   videoUrl?: string | null;
    isCustom: boolean;
    userId?: string | null;
 }

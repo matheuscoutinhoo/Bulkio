@@ -36,6 +36,7 @@ model Exercise {
   type        String   // COMPOUND, ISOLATED, CARDIO
   equipment   String   // BARBELL, DUMBBELL, MACHINE, CABLE, BODYWEIGHT, KETTLEBELL, BAND, OTHER
   description String?
+  videoUrl    String?  // YouTube video URL demonstrating the exercise
   isCustom    Boolean  @default(false)
   userId      String?
   createdAt   DateTime @default(now())

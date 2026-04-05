@@ -8,27 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { Plus, Search, Dumbbell } from 'lucide-react';
-
-const muscleGroupLabels: Record<string, string> = {
-   CHEST: 'Peito', BACK: 'Costas', LEGS: 'Pernas', SHOULDERS: 'Ombros',
-   BICEPS: 'Bíceps', TRICEPS: 'Tríceps', ABS: 'Abdômen', CARDIO: 'Cardio',
-   GLUTES: 'Glúteos', FOREARMS: 'Antebraço', TRAPS: 'Trapézio', CALVES: 'Panturrilha',
-   FULL_BODY: 'Full Body',
-};
-
-const typeLabels: Record<string, string> = {
-   COMPOUND: 'Composto', ISOLATED: 'Isolado', CARDIO: 'Cardio',
-};
-
-const equipmentLabels: Record<string, string> = {
-   BARBELL: 'Barra', DUMBBELL: 'Halter', MACHINE: 'Máquina', CABLE: 'Cabo',
-   BODYWEIGHT: 'Peso Corp.', KETTLEBELL: 'Kettlebell', BAND: 'Elástico', OTHER: 'Outro',
-};
-
-const muscleGroups = ['CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS', 'ABS', 'CARDIO', 'GLUTES', 'FOREARMS', 'TRAPS', 'CALVES', 'FULL_BODY'];
-const types = ['COMPOUND', 'ISOLATED', 'CARDIO'];
-const equipments = ['BARBELL', 'DUMBBELL', 'MACHINE', 'CABLE', 'BODYWEIGHT', 'KETTLEBELL', 'BAND', 'OTHER'];
+import { muscleGroupLabels, typeLabels, equipmentLabels, muscleGroups, types, equipments } from '@/lib/exerciseLabels';
 
 export default function ExercisesPage() {
    const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -38,6 +20,7 @@ export default function ExercisesPage() {
    const [showCreate, setShowCreate] = useState(false);
    const [total, setTotal] = useState(0);
    const [totalPages, setTotalPages] = useState(1);
+   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
    const fetchExercises = useCallback(async () => {
       setLoading(true);
@@ -147,7 +130,7 @@ export default function ExercisesPage() {
             <>
                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {exercises.map((exercise) => (
-                     <Card key={exercise.id} className="hover:border-primary/50 transition-colors">
+                     <Card key={exercise.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setSelectedExercise(exercise)}>
                         <CardContent className="p-4">
                            <div className="flex items-start justify-between">
                               <div className="space-y-1 min-w-0">
@@ -202,6 +185,12 @@ export default function ExercisesPage() {
             open={showCreate}
             onClose={() => setShowCreate(false)}
             onCreate={handleCreateExercise}
+         />
+
+         <ExerciseDetailModal
+            exercise={selectedExercise}
+            open={!!selectedExercise}
+            onClose={() => setSelectedExercise(null)}
          />
       </div>
    );

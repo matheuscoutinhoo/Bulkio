@@ -11,15 +11,10 @@ import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock } from 'lucide-react';
+import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-const muscleGroupLabels: Record<string, string> = {
-   CHEST: 'Peito', BACK: 'Costas', LEGS: 'Pernas', SHOULDERS: 'Ombros',
-   BICEPS: 'Bíceps', TRICEPS: 'Tríceps', ABS: 'Abdômen', CARDIO: 'Cardio',
-   GLUTES: 'Glúteos', FOREARMS: 'Antebraço', TRAPS: 'Trapézio', CALVES: 'Panturrilha',
-   FULL_BODY: 'Full Body',
-};
+import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
 export default function WorkoutLogsPage() {
    const [logs, setLogs] = useState<WorkoutLog[]>([]);
@@ -28,6 +23,7 @@ export default function WorkoutLogsPage() {
    const [showCreate, setShowCreate] = useState(false);
    const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
+   const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
 
    const fetchLogs = useCallback(async () => {
       setLoading(true);
@@ -145,7 +141,7 @@ export default function WorkoutLogsPage() {
                                     <div key={logEx.id} className="p-3 rounded-lg bg-secondary/30">
                                        <div className="flex items-center justify-between mb-2">
                                           <div className="flex items-center gap-2">
-                                             <span className="font-medium text-sm">{logEx.exercise.name}</span>
+                                             <span className="font-medium text-sm cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(logEx.exercise)}>{logEx.exercise.name}</span>
                                              <Badge variant="outline" className="text-xs">
                                                 {muscleGroupLabels[logEx.exercise.muscleGroup]}
                                              </Badge>
@@ -190,6 +186,12 @@ export default function WorkoutLogsPage() {
          )}
 
          <LogWorkoutDialog open={showCreate} onClose={() => setShowCreate(false)} onCreated={fetchLogs} />
+
+         <ExerciseDetailModal
+            exercise={selectedExercise}
+            open={!!selectedExercise}
+            onClose={() => setSelectedExercise(null)}
+         />
       </div>
    );
 }

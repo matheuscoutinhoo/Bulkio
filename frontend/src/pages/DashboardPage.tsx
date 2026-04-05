@@ -7,19 +7,15 @@ import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
    LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
+import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
 const COLORS = ['#6d28d9', '#22c55e', '#eab308', '#dc2626', '#3b82f6', '#ec4899', '#f97316', '#14b8a6', '#8b5cf6', '#06b6d4', '#a855f7', '#f43f5e', '#10b981'];
-
-const muscleGroupLabels: Record<string, string> = {
-   CHEST: 'Peito', BACK: 'Costas', LEGS: 'Pernas', SHOULDERS: 'Ombros',
-   BICEPS: 'Bíceps', TRICEPS: 'Tríceps', ABS: 'Abdômen', CARDIO: 'Cardio',
-   GLUTES: 'Glúteos', FOREARMS: 'Antebraço', TRAPS: 'Trapézio', CALVES: 'Panturrilha',
-   FULL_BODY: 'Full Body',
-};
 
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
    const [loading, setLoading] = useState(true);
+   const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
 
    useEffect(() => {
       dashboardApi.getStats()
@@ -209,7 +205,7 @@ export default function DashboardPage() {
                      {stats.personalRecords.map((pr) => (
                         <div key={pr.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
                            <div>
-                              <p className="font-medium text-sm">{pr.exercise.name}</p>
+                              <p className="font-medium text-sm cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</p>
                               <Badge variant="secondary" className="mt-1">
                                  {muscleGroupLabels[pr.exercise.muscleGroup] || pr.exercise.muscleGroup}
                               </Badge>
@@ -224,6 +220,12 @@ export default function DashboardPage() {
                </CardContent>
             </Card>
          )}
+
+         <ExerciseDetailModal
+            exercise={selectedExercise}
+            open={!!selectedExercise}
+            onClose={() => setSelectedExercise(null)}
+         />
       </div>
    );
 }
