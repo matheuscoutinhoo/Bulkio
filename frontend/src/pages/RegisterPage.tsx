@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, Eye, EyeOff } from 'lucide-react';
 
 const registerSchema = z.object({
    username: z
@@ -31,6 +31,8 @@ export default function RegisterPage() {
    const navigate = useNavigate();
    const setAuth = useAuthStore((s) => s.setAuth);
    const [error, setError] = useState('');
+   const [showPassword, setShowPassword] = useState(false);
+   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
       resolver: zodResolver(registerSchema),
@@ -63,30 +65,50 @@ export default function RegisterPage() {
                <CardDescription>Comece a gerenciar seus treinos</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-               <CardContent className="space-y-4">
+               <CardContent className="space-y-5">
                   {error && (
                      <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                         {error}
                      </div>
                   )}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                      <Label htmlFor="username">Nome de usuário</Label>
-                     <Input id="username" placeholder="john_doe" {...register('username')} />
+                     <Input id="username" {...register('username')} />
                      {errors.username && <p className="text-destructive text-sm">{errors.username.message}</p>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                      <Label htmlFor="email">Email</Label>
-                     <Input id="email" type="email" placeholder="seu@email.com" {...register('email')} />
+                     <Input id="email" type="email" {...register('email')} />
                      {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                      <Label htmlFor="password">Senha</Label>
-                     <Input id="password" type="password" placeholder="Mínimo 8 caracteres" {...register('password')} />
+                     <div className="relative">
+                        <Input id="password" type={showPassword ? 'text' : 'password'} className="pr-10" {...register('password')} />
+                        <button
+                           type="button"
+                           onClick={() => setShowPassword(!showPassword)}
+                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                           tabIndex={-1}
+                        >
+                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                     </div>
                      {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                      <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                     <Input id="confirmPassword" type="password" placeholder="••••••••" {...register('confirmPassword')} />
+                     <div className="relative">
+                        <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} className="pr-10" {...register('confirmPassword')} />
+                        <button
+                           type="button"
+                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                           tabIndex={-1}
+                        >
+                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                     </div>
                      {errors.confirmPassword && <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>}
                   </div>
                </CardContent>
