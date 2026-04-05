@@ -49,6 +49,7 @@ export const createExerciseSchema = z.object({
    type: z.enum(exerciseTypes),
    equipment: z.enum(equipmentTypes),
    description: z.string().max(500).optional(),
+   videoUrl: z.string().url().max(500).optional().nullable(),
 });
 
 export const updateExerciseSchema = createExerciseSchema.partial();
