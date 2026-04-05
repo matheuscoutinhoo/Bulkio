@@ -92,6 +92,24 @@ describe('authService', () => {
 
          expect(result.user).not.toHaveProperty('password');
       });
+
+      it('should generate tokens containing correct userId and email', async () => {
+         mockUserRepo.findByEmail.mockResolvedValue(null);
+         mockUserRepo.findByUsername.mockResolvedValue(null);
+         mockBcrypt.hash.mockResolvedValue('hashed' as never);
+         const user = createMockUser({ email: validInput.email });
+         mockUserRepo.create.mockResolvedValue(user as any);
+
+         const result = await authService.register(validInput);
+
+         const accessPayload = jwt.decode(result.accessToken) as any;
+         expect(accessPayload.userId).toBe(user.id);
+         expect(accessPayload.email).toBe(validInput.email);
+
+         const refreshPayload = jwt.decode(result.refreshToken) as any;
+         expect(refreshPayload.userId).toBe(user.id);
+         expect(refreshPayload.email).toBe(validInput.email);
+      });
    });
 
    // ========== login ==========
@@ -140,6 +158,29 @@ describe('authService', () => {
          const err2 = await authService.login(validInput).catch((e) => e);
 
          expect(err1.message).toBe(err2.message);
+      });
+
+      it('should generate tokens containing correct userId and email', async () => {
+         const user = createMockUser();
+         mockUserRepo.findByEmail.mockResolvedValue(user as any);
+         mockBcrypt.compare.mockResolvedValue(true as never);
+
+         const result = await authService.login(validInput);
+
+         const payload = jwt.decode(result.accessToken) as any;
+         expect(payload.userId).toBe(user.id);
+         expect(payload.email).toBe(user.email);
+         expect(payload).toHaveProperty('exp');
+      });
+
+      it('should not expose password in the returned user object', async () => {
+         const user = createMockUser();
+         mockUserRepo.findByEmail.mockResolvedValue(user as any);
+         mockBcrypt.compare.mockResolvedValue(true as never);
+
+         const result = await authService.login(validInput);
+
+         expect(result.user).not.toHaveProperty('password');
       });
    });
 

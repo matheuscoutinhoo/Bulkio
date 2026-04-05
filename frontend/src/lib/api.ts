@@ -32,8 +32,14 @@ api.interceptors.response.use(
    (response) => response,
    async (error) => {
       const originalRequest = error.config;
+      const requestUrl = originalRequest?.url || '';
 
-      if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't intercept 401s from auth endpoints — let the caller handle them
+      const isAuthEndpoint = requestUrl.includes('/auth/login')
+         || requestUrl.includes('/auth/register')
+         || requestUrl.includes('/auth/refresh');
+
+      if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
          originalRequest._retry = true;
 
          if (isRefreshing) {

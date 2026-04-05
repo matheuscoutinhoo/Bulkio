@@ -142,13 +142,17 @@ describe('workoutLogService', () => {
       it('should call checkAndUpdatePR for every set of every exercise', async () => {
          const inputMulti = {
             exercises: [
-               { exerciseId: 'ex-1', order: 0, sets: [
-                  { setNumber: 1, reps: 10, weight: 60 },
-                  { setNumber: 2, reps: 8, weight: 70 },
-               ]},
-               { exerciseId: 'ex-2', order: 1, sets: [
-                  { setNumber: 1, reps: 12, weight: 50 },
-               ]},
+               {
+                  exerciseId: 'ex-1', order: 0, sets: [
+                     { setNumber: 1, reps: 10, weight: 60 },
+                     { setNumber: 2, reps: 8, weight: 70 },
+                  ]
+               },
+               {
+                  exerciseId: 'ex-2', order: 1, sets: [
+                     { setNumber: 1, reps: 12, weight: 50 },
+                  ]
+               },
             ],
          };
          mockLogRepo.create.mockResolvedValue(createMockWorkoutLog() as any);
