@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { userRepository } from '../repositories/userRepository';
+import { refreshTokenRepository } from '../repositories/refreshTokenRepository';
 import { ConflictError, UnauthorizedError } from '../utils/errors';
 import { RegisterInput, LoginInput, UpdateProfileInput } from '../models/schemas';
 import { AuthTokens, JwtPayload } from '../models/types';
@@ -14,6 +16,16 @@ function generateTokens(payload: JwtPayload): AuthTokens {
       expiresIn: config.jwtRefreshExpiry,
    });
    return { accessToken, refreshToken };
+}
+
+function hashToken(token: string): string {
+   return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+async function storeRefreshToken(refreshToken: string, userId: string): Promise<void> {
+   const tokenHash = hashToken(refreshToken);
+   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+   await refreshTokenRepository.create(tokenHash, userId, expiresAt);
 }
 
 export const authService = {
@@ -32,6 +44,7 @@ export const authService = {
       });
 
       const tokens = generateTokens({ userId: user.id, email: user.email });
+      await storeRefreshToken(tokens.refreshToken, user.id);
 
       return {
          user: {
@@ -52,6 +65,7 @@ export const authService = {
       if (!isValidPassword) throw new UnauthorizedError('Invalid email or password');
 
       const tokens = generateTokens({ userId: user.id, email: user.email });
+      await storeRefreshToken(tokens.refreshToken, user.id);
 
       return {
          user: {
@@ -66,15 +80,42 @@ export const authService = {
    },
 
    async refreshToken(refreshToken: string) {
+      // Verify the token exists in DB (not revoked)
+      const tokenHash = hashToken(refreshToken);
+      const stored = await refreshTokenRepository.findByHash(tokenHash);
+      if (!stored) throw new UnauthorizedError('Invalid refresh token');
+
+      // Check expiry
+      if (stored.expiresAt < new Date()) {
+         await refreshTokenRepository.deleteByHash(tokenHash);
+         throw new UnauthorizedError('Invalid refresh token');
+      }
+
       try {
          const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as JwtPayload;
          const user = await userRepository.findById(decoded.userId);
          if (!user) throw new UnauthorizedError('User not found');
 
-         return generateTokens({ userId: user.id, email: user.email });
-      } catch {
+         // Rotate: delete old token, issue and store new one
+         await refreshTokenRepository.deleteByHash(tokenHash);
+         const tokens = generateTokens({ userId: user.id, email: user.email });
+         await storeRefreshToken(tokens.refreshToken, user.id);
+
+         return tokens;
+      } catch (error) {
+         // If JWT verify fails, delete the stored token too
+         await refreshTokenRepository.deleteByHash(tokenHash);
          throw new UnauthorizedError('Invalid refresh token');
       }
+   },
+
+   async logout(refreshToken: string) {
+      const tokenHash = hashToken(refreshToken);
+      await refreshTokenRepository.deleteByHash(tokenHash);
+   },
+
+   async logoutAll(userId: string) {
+      await refreshTokenRepository.deleteAllByUser(userId);
    },
 
    async getProfile(userId: string) {

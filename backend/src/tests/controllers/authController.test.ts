@@ -8,6 +8,8 @@ vi.mock('../../services/authService', () => ({
       register: vi.fn(),
       login: vi.fn(),
       refreshToken: vi.fn(),
+      logout: vi.fn(),
+      logoutAll: vi.fn(),
       getProfile: vi.fn(),
       updateProfile: vi.fn(),
    },
@@ -209,12 +211,27 @@ describe('authController', () => {
 
    // ========== logout ==========
    describe('logout', () => {
-      it('should clear refreshToken cookie and return success', async () => {
-         const req = mockRequest();
+      it('should call authService.logout, clear cookie, and return success', async () => {
+         mockService.logout.mockResolvedValue(undefined as any);
+         const req = mockRequest({ cookies: { refreshToken: 'some-token' } });
          const res = mockResponse();
 
          await authController.logout(req, res);
 
+         expect(mockService.logout).toHaveBeenCalledWith('some-token');
+         expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
+         expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({ success: true, message: 'Logged out' }),
+         );
+      });
+
+      it('should still succeed when no refresh token cookie exists', async () => {
+         const req = mockRequest({ cookies: {} });
+         const res = mockResponse();
+
+         await authController.logout(req, res);
+
+         expect(mockService.logout).not.toHaveBeenCalled();
          expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
          expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({ success: true, message: 'Logged out' }),

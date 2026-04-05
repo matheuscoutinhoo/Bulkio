@@ -60,7 +60,11 @@ export const authController = {
       }
    },
 
-   async logout(_req: Request, res: Response) {
+   async logout(req: Request, res: Response) {
+      const refreshToken = req.cookies?.refreshToken;
+      if (refreshToken) {
+         await authService.logout(refreshToken);
+      }
       res.clearCookie('refreshToken');
       res.json(createResponse(null, 'Logged out'));
    },

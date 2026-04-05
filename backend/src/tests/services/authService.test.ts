@@ -22,14 +22,29 @@ vi.mock('bcrypt', () => ({
    },
 }));
 
+vi.mock('../../repositories/refreshTokenRepository', () => ({
+   refreshTokenRepository: {
+      create: vi.fn(),
+      findByHash: vi.fn(),
+      deleteByHash: vi.fn(),
+      deleteAllByUser: vi.fn(),
+      deleteExpired: vi.fn(),
+   },
+}));
+
 import { userRepository } from '../../repositories/userRepository';
+import { refreshTokenRepository } from '../../repositories/refreshTokenRepository';
 
 const mockUserRepo = vi.mocked(userRepository);
 const mockBcrypt = vi.mocked(bcrypt);
+const mockRefreshTokenRepo = vi.mocked(refreshTokenRepository);
 
 describe('authService', () => {
    beforeEach(() => {
       vi.clearAllMocks();
+      // Default: refresh token storage succeeds
+      mockRefreshTokenRepo.create.mockResolvedValue({} as any);
+      mockRefreshTokenRepo.deleteByHash.mockResolvedValue(null as any);
    });
 
    // ========== register ==========
@@ -196,13 +211,52 @@ describe('authService', () => {
             process.env.JWT_REFRESH_SECRET || 'dev-fallback-refresh-secret',
          );
 
+         // Mock: token exists in DB and is not expired
+         mockRefreshTokenRepo.findByHash.mockResolvedValue({
+            id: 'rt-1',
+            tokenHash: 'hash',
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 86400000),
+            createdAt: new Date(),
+         } as any);
+
          const result = await authService.refreshToken(token);
 
          expect(result.accessToken).toBeDefined();
          expect(result.refreshToken).toBeDefined();
+         // Should delete old token and create new one (rotation)
+         expect(mockRefreshTokenRepo.deleteByHash).toHaveBeenCalled();
+         expect(mockRefreshTokenRepo.create).toHaveBeenCalled();
       });
 
-      it('should throw UnauthorizedError when token is invalid', async () => {
+      it('should throw UnauthorizedError when token is not in DB (revoked)', async () => {
+         const token = jwt.sign(
+            { userId: 'user-1', email: 'a@b.com' },
+            process.env.JWT_REFRESH_SECRET || 'dev-fallback-refresh-secret',
+         );
+         mockRefreshTokenRepo.findByHash.mockResolvedValue(null);
+
+         await expect(authService.refreshToken(token)).rejects.toThrow('Invalid refresh token');
+      });
+
+      it('should throw UnauthorizedError when token is expired in DB', async () => {
+         const token = jwt.sign(
+            { userId: 'user-1', email: 'a@b.com' },
+            process.env.JWT_REFRESH_SECRET || 'dev-fallback-refresh-secret',
+         );
+         mockRefreshTokenRepo.findByHash.mockResolvedValue({
+            id: 'rt-1',
+            tokenHash: 'hash',
+            userId: 'user-1',
+            expiresAt: new Date(Date.now() - 86400000), // expired
+            createdAt: new Date(),
+         } as any);
+
+         await expect(authService.refreshToken(token)).rejects.toThrow('Invalid refresh token');
+         expect(mockRefreshTokenRepo.deleteByHash).toHaveBeenCalled();
+      });
+
+      it('should throw UnauthorizedError when JWT is invalid', async () => {
          await expect(authService.refreshToken('invalid-token')).rejects.toThrow('Invalid refresh token');
       });
 
@@ -211,9 +265,34 @@ describe('authService', () => {
             { userId: 'deleted-user', email: 'gone@test.com' },
             process.env.JWT_REFRESH_SECRET || 'dev-fallback-refresh-secret',
          );
+         mockRefreshTokenRepo.findByHash.mockResolvedValue({
+            id: 'rt-1',
+            tokenHash: 'hash',
+            userId: 'deleted-user',
+            expiresAt: new Date(Date.now() + 86400000),
+            createdAt: new Date(),
+         } as any);
          mockUserRepo.findById.mockResolvedValue(null);
 
          await expect(authService.refreshToken(token)).rejects.toThrow('Invalid refresh token');
+      });
+   });
+
+   // ========== logout ==========
+   describe('logout', () => {
+      it('should delete the refresh token from DB', async () => {
+         const token = 'some-refresh-token';
+         await authService.logout(token);
+         expect(mockRefreshTokenRepo.deleteByHash).toHaveBeenCalled();
+      });
+   });
+
+   // ========== logoutAll ==========
+   describe('logoutAll', () => {
+      it('should delete all refresh tokens for the user', async () => {
+         mockRefreshTokenRepo.deleteAllByUser.mockResolvedValue({ count: 3 } as any);
+         await authService.logoutAll('user-1');
+         expect(mockRefreshTokenRepo.deleteAllByUser).toHaveBeenCalledWith('user-1');
       });
    });
 

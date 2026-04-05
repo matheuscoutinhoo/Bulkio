@@ -23,6 +23,7 @@ model User {
   workoutLogs    WorkoutLog[]
   bodyWeights    BodyWeight[]
   personalRecords PersonalRecord[]
+  refreshTokens  RefreshToken[]
 
   @@index([email])
   @@index([username])
@@ -159,4 +160,17 @@ model PersonalRecord {
   @@index([userId])
   @@index([exerciseId])
   @@unique([userId, exerciseId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
