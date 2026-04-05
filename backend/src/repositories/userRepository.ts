@@ -2,11 +2,27 @@ import prisma from '../config/database';
 
 export const userRepository = {
    findByEmail(email: string) {
-      return prisma.user.findUnique({ where: { email } });
+      return prisma.user.findUnique({
+         where: { email },
+         select: {
+            id: true,
+            email: true,
+            username: true,
+            password: true,
+            goal: true,
+            createdAt: true,
+         },
+      });
    },
 
    findByUsername(username: string) {
-      return prisma.user.findUnique({ where: { username } });
+      return prisma.user.findUnique({
+         where: { username },
+         select: {
+            id: true,
+            username: true,
+         },
+      });
    },
 
    findById(id: string) {
