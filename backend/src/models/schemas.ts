@@ -43,17 +43,6 @@ export const equipmentTypes = [
    'BARBELL', 'DUMBBELL', 'MACHINE', 'CABLE', 'BODYWEIGHT', 'KETTLEBELL', 'BAND', 'OTHER',
 ] as const;
 
-export const createExerciseSchema = z.object({
-   name: z.string().min(1, 'Name is required').max(100),
-   muscleGroup: z.enum(muscleGroups),
-   type: z.enum(exerciseTypes),
-   equipment: z.enum(equipmentTypes),
-   description: z.string().max(500).optional(),
-   videoUrl: z.string().url().max(500).optional().nullable(),
-});
-
-export const updateExerciseSchema = createExerciseSchema.partial();
-
 // ========== WORKOUT PLAN ==========
 export const workoutPlanExerciseSchema = z.object({
    exerciseId: z.string().uuid(),
@@ -152,8 +141,6 @@ export const workoutPlanQuerySchema = paginationSchema.extend({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
-export type CreateExerciseInput = z.infer<typeof createExerciseSchema>;
-export type UpdateExerciseInput = z.infer<typeof updateExerciseSchema>;
 export type CreateWorkoutPlanInput = z.infer<typeof createWorkoutPlanSchema>;
 export type UpdateWorkoutPlanInput = z.infer<typeof updateWorkoutPlanSchema>;
 export type CreateWorkoutLogInput = z.infer<typeof createWorkoutLogSchema>;

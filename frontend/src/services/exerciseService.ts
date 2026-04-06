@@ -8,8 +8,6 @@ export interface Exercise {
    equipment: string;
    description?: string;
    videoUrl?: string | null;
-   isCustom: boolean;
-   userId?: string | null;
 }
 
 export interface ExerciseFilters {
@@ -21,21 +19,9 @@ export interface ExerciseFilters {
    search?: string;
 }
 
-export interface CreateExerciseData {
-   name: string;
-   muscleGroup: string;
-   type: string;
-   equipment: string;
-   description?: string;
-}
-
 export const exerciseApi = {
    getAll: (filters?: ExerciseFilters) =>
       api.get('/exercises', { params: filters }),
    getById: (id: string) => api.get(`/exercises/${id}`),
-   create: (data: CreateExerciseData) => api.post('/exercises', data),
-   update: (id: string, data: Partial<CreateExerciseData>) =>
-      api.patch(`/exercises/${id}`, data),
-   delete: (id: string) => api.delete(`/exercises/${id}`),
    getMuscleGroups: () => api.get('/exercises/muscle-groups'),
 };

@@ -268,7 +268,7 @@ async function main() {
    for (const e of exercises) {
       await prisma.exercise.upsert({
          where: {
-            name_isCustom: { name: e.name, isCustom: false },
+            name: e.name,
          },
          update: {
             muscleGroup: e.muscleGroup,
@@ -279,8 +279,6 @@ async function main() {
          },
          create: {
             ...e,
-            isCustom: false,
-            userId: null,
          },
       });
       upserted++;
@@ -293,7 +291,6 @@ async function main() {
    const seedNames = exercises.map(e => e.name);
    const stale = await prisma.exercise.findMany({
       where: {
-         isCustom: false,
          name: { notIn: seedNames },
       },
       include: {

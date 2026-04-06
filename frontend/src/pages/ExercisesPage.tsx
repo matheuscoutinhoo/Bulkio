@@ -5,11 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
-import { Plus, Search, Dumbbell } from 'lucide-react';
+import { Search, Dumbbell } from 'lucide-react';
 import { muscleGroupLabels, typeLabels, equipmentLabels, muscleGroups, types, equipments } from '@/lib/exerciseLabels';
 
 export default function ExercisesPage() {
@@ -17,7 +14,6 @@ export default function ExercisesPage() {
    const [loading, setLoading] = useState(true);
    const [filters, setFilters] = useState<ExerciseFilters>({ page: 1, limit: 50 });
    const [search, setSearch] = useState('');
-   const [showCreate, setShowCreate] = useState(false);
    const [total, setTotal] = useState(0);
    const [totalPages, setTotalPages] = useState(1);
    const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -47,28 +43,11 @@ export default function ExercisesPage() {
       fetchExercises();
    };
 
-   const handleCreateExercise = async (data: {
-      name: string; muscleGroup: string; type: string; equipment: string; description?: string;
-   }) => {
-      try {
-         await exerciseApi.create(data);
-         setShowCreate(false);
-         fetchExercises();
-      } catch (err) {
-         console.error(err);
-      }
-   };
-
    return (
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
-            <div>
-               <h1 className="text-3xl font-bold">Exercícios</h1>
-               <p className="text-muted-foreground">{total} exercícios disponíveis</p>
-            </div>
-            <Button onClick={() => setShowCreate(true)}>
-               <Plus className="h-4 w-4 mr-2" /> Novo Exercício
-            </Button>
+         <div>
+            <h1 className="text-3xl font-bold">Exercícios</h1>
+            <p className="text-muted-foreground">{total} exercícios disponíveis</p>
          </div>
 
          {/* Filters */}
@@ -124,7 +103,7 @@ export default function ExercisesPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
                <Dumbbell className="h-12 w-12 text-muted-foreground mb-4" />
                <h3 className="text-lg font-medium">Nenhum exercício encontrado</h3>
-               <p className="text-muted-foreground text-sm mt-1">Tente alterar os filtros ou criar um novo exercício</p>
+               <p className="text-muted-foreground text-sm mt-1">Tente alterar os filtros</p>
             </div>
          ) : (
             <>
@@ -132,8 +111,7 @@ export default function ExercisesPage() {
                   {exercises.map((exercise) => (
                      <Card key={exercise.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setSelectedExercise(exercise)}>
                         <CardContent className="p-4">
-                           <div className="flex items-start justify-between">
-                              <div className="space-y-1 min-w-0">
+                           <div className="space-y-1 min-w-0">
                                  <h3 className="font-medium text-sm truncate">{exercise.name}</h3>
                                  <div className="flex flex-wrap gap-1">
                                     <Badge variant="secondary" className="text-xs">{muscleGroupLabels[exercise.muscleGroup]}</Badge>
@@ -144,10 +122,6 @@ export default function ExercisesPage() {
                                     <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{exercise.description}</p>
                                  )}
                               </div>
-                              {exercise.isCustom && (
-                                 <Badge className="text-xs shrink-0 ml-2">Custom</Badge>
-                              )}
-                           </div>
                         </CardContent>
                      </Card>
                   ))}
@@ -180,99 +154,11 @@ export default function ExercisesPage() {
             </>
          )}
 
-         {/* Create Exercise Dialog */}
-         <CreateExerciseDialog
-            open={showCreate}
-            onClose={() => setShowCreate(false)}
-            onCreate={handleCreateExercise}
-         />
-
          <ExerciseDetailModal
             exercise={selectedExercise}
             open={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
          />
       </div>
-   );
-}
-
-function CreateExerciseDialog({
-   open,
-   onClose,
-   onCreate,
-}: {
-   open: boolean;
-   onClose: () => void;
-   onCreate: (data: any) => void;
-}) {
-   const [form, setForm] = useState({
-      name: '',
-      muscleGroup: 'CHEST',
-      type: 'COMPOUND',
-      equipment: 'BARBELL',
-      description: '',
-   });
-
-   const resetForm = () => {
-      setForm({ name: '', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL', description: '' });
-   };
-
-   const handleClose = () => {
-      resetForm();
-      onClose();
-   };
-
-   const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onCreate(form);
-      resetForm();
-   };
-
-   return (
-      <Dialog open={open} onClose={handleClose}>
-         <DialogHeader>
-            <DialogTitle>Novo Exercício</DialogTitle>
-         </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-               <Label>Nome</Label>
-               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-               <div className="space-y-2">
-                  <Label>Grupo Muscular</Label>
-                  <Select value={form.muscleGroup} onChange={(e) => setForm({ ...form, muscleGroup: e.target.value })}>
-                     {muscleGroups.map((g) => (
-                        <option key={g} value={g}>{muscleGroupLabels[g]}</option>
-                     ))}
-                  </Select>
-               </div>
-               <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                     {types.map((t) => (
-                        <option key={t} value={t}>{typeLabels[t]}</option>
-                     ))}
-                  </Select>
-               </div>
-               <div className="space-y-2">
-                  <Label>Equipamento</Label>
-                  <Select value={form.equipment} onChange={(e) => setForm({ ...form, equipment: e.target.value })}>
-                     {equipments.map((e) => (
-                        <option key={e} value={e}>{equipmentLabels[e]}</option>
-                     ))}
-                  </Select>
-               </div>
-            </div>
-            <div className="space-y-2">
-               <Label>Descrição (opcional)</Label>
-               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div className="flex justify-end gap-2">
-               <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
-               <Button type="submit" disabled={!form.name}>Criar</Button>
-            </div>
-         </form>
-      </Dialog>
    );
 }

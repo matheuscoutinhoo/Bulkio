@@ -1,7 +1,7 @@
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { muscleGroupLabels, typeLabels, equipmentLabels } from '@/lib/exerciseLabels';
-import { Dumbbell, User, Play } from 'lucide-react';
+import { Dumbbell, Play } from 'lucide-react';
 import { useState } from 'react';
 
 interface ExerciseInfo {
@@ -12,7 +12,6 @@ interface ExerciseInfo {
    equipment?: string;
    description?: string | null;
    videoUrl?: string | null;
-   isCustom?: boolean;
 }
 
 interface ExerciseDetailModalProps {
@@ -89,12 +88,6 @@ export function ExerciseDetailModal({ exercise, open, onClose }: ExerciseDetailM
                )}
                {exercise.equipment && (
                   <Badge variant="outline">{equipmentLabels[exercise.equipment] || exercise.equipment}</Badge>
-               )}
-               {exercise.isCustom && (
-                  <Badge className="gap-1">
-                     <User className="h-3 w-3" />
-                     Personalizado
-                  </Badge>
                )}
             </div>
 

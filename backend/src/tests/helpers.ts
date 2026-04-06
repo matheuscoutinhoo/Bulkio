@@ -25,8 +25,6 @@ export function createMockExercise(overrides: Record<string, unknown> = {}) {
       type: 'COMPOUND',
       equipment: 'BARBELL',
       description: 'Flat bench press',
-      isCustom: false,
-      userId: null,
       createdAt: new Date('2024-01-01'),
       ...overrides,
    };

@@ -1,5 +1,4 @@
 import prisma from '../config/database';
-import { CreateExerciseInput, UpdateExerciseInput } from '../models/schemas';
 
 export const exerciseRepository = {
    findAll(filters: {
@@ -7,13 +6,10 @@ export const exerciseRepository = {
       type?: string;
       equipment?: string;
       search?: string;
-      userId?: string;
       page: number;
       limit: number;
    }) {
-      const where: any = {
-         OR: [{ isCustom: false }, { userId: filters.userId }],
-      };
+      const where: any = {};
 
       if (filters.muscleGroup) where.muscleGroup = filters.muscleGroup;
       if (filters.type) where.type = filters.type;
@@ -35,18 +31,6 @@ export const exerciseRepository = {
 
    findById(id: string) {
       return prisma.exercise.findUnique({ where: { id } });
-   },
-
-   create(data: CreateExerciseInput & { userId: string; isCustom: boolean }) {
-      return prisma.exercise.create({ data });
-   },
-
-   update(id: string, data: UpdateExerciseInput) {
-      return prisma.exercise.update({ where: { id }, data });
-   },
-
-   delete(id: string) {
-      return prisma.exercise.delete({ where: { id } });
    },
 
    getMuscleGroups() {

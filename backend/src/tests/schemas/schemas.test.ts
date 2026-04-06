@@ -3,7 +3,6 @@ import {
    registerSchema,
    loginSchema,
    updateProfileSchema,
-   createExerciseSchema,
    workoutPlanExerciseSchema,
    createWorkoutPlanSchema,
    createWorkoutLogSchema,
@@ -116,42 +115,6 @@ describe('updateProfileSchema', () => {
 
    it('should accept nullable fields', () => {
       expect(updateProfileSchema.safeParse({ goal: null, initialWeight: null }).success).toBe(true);
-   });
-});
-
-describe('createExerciseSchema', () => {
-   const valid = { name: 'Bench Press', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL' };
-
-   it('should accept valid input', () => {
-      expect(createExerciseSchema.safeParse(valid).success).toBe(true);
-   });
-
-   it('should reject empty name', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, name: '' }).success).toBe(false);
-   });
-
-   it('should reject name > 100 chars', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, name: 'x'.repeat(101) }).success).toBe(false);
-   });
-
-   it('should reject invalid muscleGroup', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, muscleGroup: 'INVALID' }).success).toBe(false);
-   });
-
-   it('should reject invalid type', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, type: 'INVALID' }).success).toBe(false);
-   });
-
-   it('should reject invalid equipment', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, equipment: 'INVALID' }).success).toBe(false);
-   });
-
-   it('should accept optional description', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, description: 'A description' }).success).toBe(true);
-   });
-
-   it('should reject description > 500 chars', () => {
-      expect(createExerciseSchema.safeParse({ ...valid, description: 'x'.repeat(501) }).success).toBe(false);
    });
 });
 
