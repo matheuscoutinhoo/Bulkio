@@ -1,18 +1,17 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
-import { authApi } from '@/services/authService';
 import {
    LayoutDashboard,
    Dumbbell,
    ClipboardList,
    History,
    Scale,
-   LogOut,
    Menu,
    X,
    Sun,
    Moon,
+   UserCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -27,19 +26,9 @@ const navItems = [
 
 export function Sidebar() {
    const location = useLocation();
-   const navigate = useNavigate();
-   const { user, logout } = useAuthStore();
+   const { user } = useAuthStore();
    const { theme, toggleTheme } = useThemeStore();
    const [mobileOpen, setMobileOpen] = useState(false);
-
-   const handleLogout = async () => {
-      try {
-         await authApi.logout();
-      } finally {
-         logout();
-         navigate('/login');
-      }
-   };
 
    const navContent = (
       <>
@@ -71,26 +60,24 @@ export function Sidebar() {
 
          <div className="p-4 border-t">
             <div className="flex items-center justify-between">
-               <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{user?.username}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-               </div>
-               <div className="flex items-center gap-1">
-                  <button
-                     onClick={toggleTheme}
-                     className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-                     title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-                  >
-                     {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  </button>
-                  <button
-                     onClick={handleLogout}
-                     className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-                     title="Sair"
-                  >
-                     <LogOut className="h-4 w-4" />
-                  </button>
-               </div>
+               <Link
+                  to="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 min-w-0 flex-1 p-1 rounded-md hover:bg-accent transition-colors"
+               >
+                  <UserCircle className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                     <p className="text-sm font-medium truncate">{user?.username}</p>
+                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+               </Link>
+               <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                  title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+               >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+               </button>
             </div>
          </div>
       </>

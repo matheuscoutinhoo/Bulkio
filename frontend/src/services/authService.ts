@@ -24,4 +24,5 @@ export const authApi = {
    logout: () => api.post('/auth/logout'),
    getProfile: () => api.get('/auth/profile'),
    updateProfile: (data: UpdateProfileData) => api.patch('/auth/profile', data),
+   deleteAccount: () => api.delete('/auth/account'),
 };

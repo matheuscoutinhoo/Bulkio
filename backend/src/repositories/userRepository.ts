@@ -61,4 +61,8 @@ export const userRepository = {
          },
       });
    },
+
+   delete(id: string) {
+      return prisma.user.delete({ where: { id } });
+   },
 };

@@ -11,6 +11,7 @@ vi.mock('../../services/authService', () => ({
       logout: vi.fn(),
       getProfile: vi.fn(),
       updateProfile: vi.fn(),
+      deleteAccount: vi.fn(),
    },
 }));
 
@@ -310,6 +311,42 @@ describe('authController', () => {
 
          expect(next).toHaveBeenCalledTimes(1);
          expect(next.mock.calls[0][0].message).toBe('Username already taken');
+      });
+   });
+
+   // ========== deleteAccount ==========
+   describe('deleteAccount', () => {
+      it('should delete account, clear cookie, and return success', async () => {
+         mockService.deleteAccount.mockResolvedValue(undefined as any);
+
+         const req = mockRequest({ user: { userId: 'u1', email: 'a@b.com' } });
+         const res = mockResponse();
+         const next = mockNext();
+
+         await authController.deleteAccount(req, res, next);
+
+         expect(mockService.deleteAccount).toHaveBeenCalledWith('u1');
+         expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
+         expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+               success: true,
+               data: null,
+               message: 'Account deleted',
+            }),
+         );
+      });
+
+      it('should call next(error) when deleteAccount fails', async () => {
+         mockService.deleteAccount.mockRejectedValue(new UnauthorizedError('User not found'));
+
+         const req = mockRequest({ user: { userId: 'gone', email: 'x@x.com' } });
+         const res = mockResponse();
+         const next = mockNext();
+
+         await authController.deleteAccount(req, res, next);
+
+         expect(next).toHaveBeenCalledTimes(1);
+         expect(next.mock.calls[0][0].message).toBe('User not found');
       });
    });
 });

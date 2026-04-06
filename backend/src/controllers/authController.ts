@@ -60,4 +60,10 @@ export const authController = {
       const user = await authService.updateProfile(req.user!.userId, req.body);
       res.json(createResponse(user, 'Profile updated'));
    }),
+
+   deleteAccount: asyncHandler(async (req: Request, res: Response) => {
+      await authService.deleteAccount(req.user!.userId);
+      res.clearCookie('refreshToken');
+      res.json(createResponse(null, 'Account deleted'));
+   }),
 };

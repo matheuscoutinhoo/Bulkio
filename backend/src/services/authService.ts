@@ -129,4 +129,10 @@ export const authService = {
       }
       return userRepository.update(userId, data);
    },
+
+   async deleteAccount(userId: string) {
+      const user = await userRepository.findById(userId);
+      if (!user) throw new UnauthorizedError('User not found');
+      await userRepository.delete(userId);
+   },
 };

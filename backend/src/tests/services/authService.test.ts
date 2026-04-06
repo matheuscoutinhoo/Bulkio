@@ -12,6 +12,7 @@ vi.mock('../../repositories/userRepository', () => ({
       findById: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
    },
 }));
 
@@ -351,6 +352,27 @@ describe('authService', () => {
 
          expect(mockUserRepo.update).toHaveBeenCalledWith('user-1', { goal: 'CUT' });
          expect(result.goal).toBe('CUT');
+      });
+   });
+
+   // ========== deleteAccount ==========
+   describe('deleteAccount', () => {
+      it('should delete the user when they exist', async () => {
+         const user = createMockUser();
+         mockUserRepo.findById.mockResolvedValue(user as any);
+         mockUserRepo.delete.mockResolvedValue(user as any);
+
+         await authService.deleteAccount('user-1');
+
+         expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
+         expect(mockUserRepo.delete).toHaveBeenCalledWith('user-1');
+      });
+
+      it('should throw UnauthorizedError when user does not exist', async () => {
+         mockUserRepo.findById.mockResolvedValue(null);
+
+         await expect(authService.deleteAccount('nonexistent')).rejects.toThrow('User not found');
+         expect(mockUserRepo.delete).not.toHaveBeenCalled();
       });
    });
 });
