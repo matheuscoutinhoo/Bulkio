@@ -22,6 +22,4 @@ export interface ExerciseFilters {
 export const exerciseApi = {
    getAll: (filters?: ExerciseFilters) =>
       api.get('/exercises', { params: filters }),
-   getById: (id: string) => api.get(`/exercises/${id}`),
-   getMuscleGroups: () => api.get('/exercises/muscle-groups'),
 };

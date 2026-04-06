@@ -1,26 +1,19 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { dashboardService } from '../services/dashboardService';
 import { createResponse } from '../models/types';
+import { asyncHandler } from '../utils/asyncHandler';
 
 export const dashboardController = {
-   async getStats(req: Request, res: Response, next: NextFunction) {
-      try {
-         const stats = await dashboardService.getStats(req.user!.userId);
-         res.json(createResponse(stats));
-      } catch (error) {
-         next(error);
-      }
-   },
+   getStats: asyncHandler(async (req: Request, res: Response) => {
+      const stats = await dashboardService.getStats(req.user!.userId);
+      res.json(createResponse(stats));
+   }),
 
-   async getExerciseProgression(req: Request, res: Response, next: NextFunction) {
-      try {
-         const progression = await dashboardService.getExerciseProgression(
-            req.user!.userId,
-            req.params.exerciseId as string,
-         );
-         res.json(createResponse(progression));
-      } catch (error) {
-         next(error);
-      }
-   },
+   getExerciseProgression: asyncHandler(async (req: Request, res: Response) => {
+      const progression = await dashboardService.getExerciseProgression(
+         req.user!.userId,
+         req.params.exerciseId as string,
+      );
+      res.json(createResponse(progression));
+   }),
 };

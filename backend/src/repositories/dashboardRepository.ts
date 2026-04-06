@@ -25,24 +25,6 @@ export const dashboardRepository = {
       });
    },
 
-   getCardioSessions(userId: string, startDate: Date, endDate: Date) {
-      return prisma.workoutLog.findMany({
-         where: {
-            userId,
-            date: { gte: startDate, lte: endDate },
-            exercises: {
-               some: { exercise: { muscleGroup: 'CARDIO' } },
-            },
-         },
-         include: {
-            exercises: {
-               where: { exercise: { muscleGroup: 'CARDIO' } },
-               include: { exercise: true, sets: true },
-            },
-         },
-      });
-   },
-
    getExerciseHistory(userId: string, exerciseId: string, limit: number = 20) {
       return prisma.workoutLogExercise.findMany({
          where: {

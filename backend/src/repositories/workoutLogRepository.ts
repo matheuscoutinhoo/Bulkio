@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { Prisma } from '@prisma/client';
 import { CreateWorkoutLogInput } from '../models/schemas';
 
 export const workoutLogRepository = {
@@ -14,7 +15,7 @@ export const workoutLogRepository = {
          workoutPlanId?: string;
       },
    ) {
-      const where: any = { userId };
+      const where: Prisma.WorkoutLogWhereInput = { userId };
 
       if (filters.startDate || filters.endDate) {
          where.date = {};

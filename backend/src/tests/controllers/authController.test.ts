@@ -9,7 +9,6 @@ vi.mock('../../services/authService', () => ({
       login: vi.fn(),
       refreshToken: vi.fn(),
       logout: vi.fn(),
-      logoutAll: vi.fn(),
       getProfile: vi.fn(),
       updateProfile: vi.fn(),
    },
@@ -215,8 +214,9 @@ describe('authController', () => {
          mockService.logout.mockResolvedValue(undefined as any);
          const req = mockRequest({ cookies: { refreshToken: 'some-token' } });
          const res = mockResponse();
+         const next = mockNext();
 
-         await authController.logout(req, res);
+         await authController.logout(req, res, next);
 
          expect(mockService.logout).toHaveBeenCalledWith('some-token');
          expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
@@ -228,8 +228,9 @@ describe('authController', () => {
       it('should still succeed when no refresh token cookie exists', async () => {
          const req = mockRequest({ cookies: {} });
          const res = mockResponse();
+         const next = mockNext();
 
-         await authController.logout(req, res);
+         await authController.logout(req, res, next);
 
          expect(mockService.logout).not.toHaveBeenCalled();
          expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');

@@ -81,24 +81,4 @@ describe('bodyWeightService', () => {
          await expect(bodyWeightService.delete('user-1', 'bw-1')).rejects.toThrow('Forbidden');
       });
    });
-
-   // ========== getLatest ==========
-   describe('getLatest', () => {
-      it('should return the most recent body weight record', async () => {
-         const record = createMockBodyWeight({ weight: 85 });
-         mockRepo.getLatest.mockResolvedValue(record as any);
-
-         const result = await bodyWeightService.getLatest('user-1');
-
-         expect(result?.weight).toBe(85);
-      });
-
-      it('should return null when no records exist', async () => {
-         mockRepo.getLatest.mockResolvedValue(null);
-
-         const result = await bodyWeightService.getLatest('user-1');
-
-         expect(result).toBeNull();
-      });
-   });
 });

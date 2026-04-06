@@ -2,6 +2,13 @@ import { bodyWeightRepository } from '../repositories/bodyWeightRepository';
 import { CreateBodyWeightInput } from '../models/schemas';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
 
+async function assertRecordOwnership(userId: string, recordId: string) {
+   const record = await bodyWeightRepository.findById(recordId);
+   if (!record) throw new NotFoundError('Body weight record');
+   if (record.userId !== userId) throw new ForbiddenError();
+   return record;
+}
+
 export const bodyWeightService = {
    async findAll(userId: string, page: number, limit: number) {
       const [records, total] = await bodyWeightRepository.findAllByUser(userId, page, limit);
@@ -18,13 +25,7 @@ export const bodyWeightService = {
    },
 
    async delete(userId: string, id: string) {
-      const record = await bodyWeightRepository.findById(id);
-      if (!record) throw new NotFoundError('Body weight record');
-      if (record.userId !== userId) throw new ForbiddenError();
+      await assertRecordOwnership(userId, id);
       return bodyWeightRepository.delete(id);
-   },
-
-   async getLatest(userId: string) {
-      return bodyWeightRepository.getLatest(userId);
    },
 };

@@ -114,10 +114,6 @@ export const authService = {
       await refreshTokenRepository.deleteByHash(tokenHash);
    },
 
-   async logoutAll(userId: string) {
-      await refreshTokenRepository.deleteAllByUser(userId);
-   },
-
    async getProfile(userId: string) {
       const user = await userRepository.findById(userId);
       if (!user) throw new UnauthorizedError('User not found');

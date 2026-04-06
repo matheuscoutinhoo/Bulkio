@@ -287,15 +287,6 @@ describe('authService', () => {
       });
    });
 
-   // ========== logoutAll ==========
-   describe('logoutAll', () => {
-      it('should delete all refresh tokens for the user', async () => {
-         mockRefreshTokenRepo.deleteAllByUser.mockResolvedValue({ count: 3 } as any);
-         await authService.logoutAll('user-1');
-         expect(mockRefreshTokenRepo.deleteAllByUser).toHaveBeenCalledWith('user-1');
-      });
-   });
-
    // ========== getProfile ==========
    describe('getProfile', () => {
       it('should return user profile for valid userId', async () => {

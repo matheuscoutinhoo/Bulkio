@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { exerciseApi, type Exercise, type ExerciseFilters } from '@/services/exerciseService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

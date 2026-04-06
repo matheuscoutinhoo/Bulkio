@@ -2,6 +2,13 @@ import { workoutPlanRepository } from '../repositories/workoutPlanRepository';
 import { CreateWorkoutPlanInput, UpdateWorkoutPlanInput } from '../models/schemas';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
 
+async function assertPlanOwnership(userId: string, planId: string) {
+   const plan = await workoutPlanRepository.findById(planId);
+   if (!plan) throw new NotFoundError('Workout plan');
+   if (plan.userId !== userId) throw new ForbiddenError();
+   return plan;
+}
+
 export const workoutPlanService = {
    async findAll(userId: string, includeArchived: boolean, page: number, limit: number) {
       const [plans, total] = await workoutPlanRepository.findAllByUser(userId, includeArchived, page, limit);
@@ -14,10 +21,7 @@ export const workoutPlanService = {
    },
 
    async findById(userId: string, id: string) {
-      const plan = await workoutPlanRepository.findById(id);
-      if (!plan) throw new NotFoundError('Workout plan');
-      if (plan.userId !== userId) throw new ForbiddenError();
-      return plan;
+      return assertPlanOwnership(userId, id);
    },
 
    async create(userId: string, data: CreateWorkoutPlanInput) {
@@ -25,23 +29,17 @@ export const workoutPlanService = {
    },
 
    async update(userId: string, id: string, data: UpdateWorkoutPlanInput) {
-      const plan = await workoutPlanRepository.findById(id);
-      if (!plan) throw new NotFoundError('Workout plan');
-      if (plan.userId !== userId) throw new ForbiddenError();
+      await assertPlanOwnership(userId, id);
       return workoutPlanRepository.update(id, data);
    },
 
    async duplicate(userId: string, id: string) {
-      const plan = await workoutPlanRepository.findById(id);
-      if (!plan) throw new NotFoundError('Workout plan');
-      if (plan.userId !== userId) throw new ForbiddenError();
+      await assertPlanOwnership(userId, id);
       return workoutPlanRepository.duplicate(id, userId);
    },
 
    async archive(userId: string, id: string) {
-      const plan = await workoutPlanRepository.findById(id);
-      if (!plan) throw new NotFoundError('Workout plan');
-      if (plan.userId !== userId) throw new ForbiddenError();
+      await assertPlanOwnership(userId, id);
       return workoutPlanRepository.delete(id);
    },
 };

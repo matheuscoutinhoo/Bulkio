@@ -128,7 +128,7 @@ describe('workoutPlanService', () => {
 
          const result = await workoutPlanService.duplicate('user-1', 'plan-1');
 
-         expect(result.name).toBe('Push Day (Copy)');
+         expect(result!.name).toBe('Push Day (Copy)');
       });
 
       it('should throw NotFoundError when plan does not exist', async () => {

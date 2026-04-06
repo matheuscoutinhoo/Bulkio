@@ -2,11 +2,11 @@ export interface ApiResponse<T = unknown> {
    success: boolean;
    data: T;
    message?: string;
-   errors?: ValidationError[];
+   errors?: FieldError[];
    pagination?: PaginationMeta;
 }
 
-export interface ValidationError {
+export interface FieldError {
    field: string;
    message: string;
 }
@@ -40,6 +40,6 @@ export function createPaginatedResponse<T>(
    return { success: true, data, message, pagination };
 }
 
-export function createErrorResponse(message: string, errors?: ValidationError[]): ApiResponse<null> {
+export function createErrorResponse(message: string, errors?: FieldError[]): ApiResponse<null> {
    return { success: false, data: null, message, errors };
 }

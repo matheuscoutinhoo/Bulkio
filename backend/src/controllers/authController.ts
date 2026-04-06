@@ -1,89 +1,63 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { authService } from '../services/authService';
-import { createResponse } from '../models/types';
+import { createResponse, createErrorResponse } from '../models/types';
 import { config } from '../config';
+import { asyncHandler } from '../utils/asyncHandler';
+import { CookieOptions } from 'express';
+
+const REFRESH_COOKIE_OPTIONS: CookieOptions = {
+   httpOnly: true,
+   secure: config.nodeEnv === 'production',
+   sameSite: 'strict',
+   maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 export const authController = {
-   async register(req: Request, res: Response, next: NextFunction) {
-      try {
-         const result = await authService.register(req.body);
-         res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: config.nodeEnv === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-         });
-         res.status(201).json(createResponse({
-            user: result.user,
-            accessToken: result.accessToken,
-         }, 'Registration successful'));
-      } catch (error) {
-         next(error);
-      }
-   },
+   register: asyncHandler(async (req: Request, res: Response) => {
+      const result = await authService.register(req.body);
+      res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.status(201).json(createResponse({
+         user: result.user,
+         accessToken: result.accessToken,
+      }, 'Registration successful'));
+   }),
 
-   async login(req: Request, res: Response, next: NextFunction) {
-      try {
-         const result = await authService.login(req.body);
-         res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: config.nodeEnv === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-         });
-         res.json(createResponse({
-            user: result.user,
-            accessToken: result.accessToken,
-         }, 'Login successful'));
-      } catch (error) {
-         next(error);
-      }
-   },
+   login: asyncHandler(async (req: Request, res: Response) => {
+      const result = await authService.login(req.body);
+      res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.json(createResponse({
+         user: result.user,
+         accessToken: result.accessToken,
+      }, 'Login successful'));
+   }),
 
-   async refresh(req: Request, res: Response, next: NextFunction) {
-      try {
-         const refreshToken = req.cookies?.refreshToken;
-         if (!refreshToken) {
-            res.status(401).json({ success: false, data: null, message: 'No refresh token' });
-            return;
-         }
-         const tokens = await authService.refreshToken(refreshToken);
-         res.cookie('refreshToken', tokens.refreshToken, {
-            httpOnly: true,
-            secure: config.nodeEnv === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-         });
-         res.json(createResponse({ accessToken: tokens.accessToken }));
-      } catch (error) {
-         next(error);
+   refresh: asyncHandler(async (req: Request, res: Response) => {
+      const refreshToken = req.cookies?.refreshToken;
+      if (!refreshToken) {
+         res.status(401).json(createErrorResponse('No refresh token'));
+         return;
       }
-   },
+      const tokens = await authService.refreshToken(refreshToken);
+      res.cookie('refreshToken', tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.json(createResponse({ accessToken: tokens.accessToken }));
+   }),
 
-   async logout(req: Request, res: Response) {
+   logout: asyncHandler(async (req: Request, res: Response) => {
       const refreshToken = req.cookies?.refreshToken;
       if (refreshToken) {
          await authService.logout(refreshToken);
       }
       res.clearCookie('refreshToken');
       res.json(createResponse(null, 'Logged out'));
-   },
+   }),
 
-   async getProfile(req: Request, res: Response, next: NextFunction) {
-      try {
-         const user = await authService.getProfile(req.user!.userId);
-         res.json(createResponse(user));
-      } catch (error) {
-         next(error);
-      }
-   },
+   getProfile: asyncHandler(async (req: Request, res: Response) => {
+      const user = await authService.getProfile(req.user!.userId);
+      res.json(createResponse(user));
+   }),
 
-   async updateProfile(req: Request, res: Response, next: NextFunction) {
-      try {
-         const user = await authService.updateProfile(req.user!.userId, req.body);
-         res.json(createResponse(user, 'Profile updated'));
-      } catch (error) {
-         next(error);
-      }
-   },
+   updateProfile: asyncHandler(async (req: Request, res: Response) => {
+      const user = await authService.updateProfile(req.user!.userId, req.body);
+      res.json(createResponse(user, 'Profile updated'));
+   }),
 };

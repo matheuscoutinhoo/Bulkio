@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { Prisma } from '@prisma/client';
 
 export const exerciseRepository = {
    findAll(filters: {
@@ -9,13 +10,13 @@ export const exerciseRepository = {
       page: number;
       limit: number;
    }) {
-      const where: any = {};
+      const where: Prisma.ExerciseWhereInput = {};
 
       if (filters.muscleGroup) where.muscleGroup = filters.muscleGroup;
       if (filters.type) where.type = filters.type;
       if (filters.equipment) where.equipment = filters.equipment;
       if (filters.search) {
-         where.name = { contains: filters.search, mode: 'insensitive' };
+         (where as Record<string, unknown>).name = { contains: filters.search, mode: 'insensitive' };
       }
 
       return Promise.all([

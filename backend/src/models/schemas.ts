@@ -31,18 +31,6 @@ export const updateProfileSchema = z.object({
    targetWeight: z.number().positive().optional().nullable(),
 });
 
-// ========== EXERCISE ==========
-export const muscleGroups = [
-   'CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS',
-   'ABS', 'CARDIO', 'GLUTES', 'FOREARMS', 'TRAPS', 'CALVES', 'FULL_BODY',
-] as const;
-
-export const exerciseTypes = ['COMPOUND', 'ISOLATED', 'CARDIO'] as const;
-
-export const equipmentTypes = [
-   'BARBELL', 'DUMBBELL', 'MACHINE', 'CABLE', 'BODYWEIGHT', 'KETTLEBELL', 'BAND', 'OTHER',
-] as const;
-
 // ========== WORKOUT PLAN ==========
 export const workoutPlanExerciseSchema = z.object({
    exerciseId: z.string().uuid(),

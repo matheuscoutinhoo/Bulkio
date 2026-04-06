@@ -1,7 +1,15 @@
 import { workoutLogRepository } from '../repositories/workoutLogRepository';
+import { workoutPlanRepository } from '../repositories/workoutPlanRepository';
 import { personalRecordRepository } from '../repositories/personalRecordRepository';
 import { CreateWorkoutLogInput, UpdateWorkoutLogInput } from '../models/schemas';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
+
+async function assertLogOwnership(userId: string, logId: string) {
+   const log = await workoutLogRepository.findById(logId);
+   if (!log) throw new NotFoundError('Workout log');
+   if (log.userId !== userId) throw new ForbiddenError();
+   return log;
+}
 
 export const workoutLogService = {
    async findAll(userId: string, filters: {
@@ -23,16 +31,11 @@ export const workoutLogService = {
    },
 
    async findById(userId: string, id: string) {
-      const log = await workoutLogRepository.findById(id);
-      if (!log) throw new NotFoundError('Workout log');
-      if (log.userId !== userId) throw new ForbiddenError();
-      return log;
+      return assertLogOwnership(userId, id);
    },
 
    async create(userId: string, data: CreateWorkoutLogInput) {
-      // Validate workoutPlanId belongs to user and is not archived
       if (data.workoutPlanId) {
-         const { workoutPlanRepository } = await import('../repositories/workoutPlanRepository');
          const plan = await workoutPlanRepository.findById(data.workoutPlanId);
          if (!plan) throw new NotFoundError('Workout plan');
          if (plan.userId !== userId) throw new ForbiddenError('Workout plan does not belong to user');
@@ -41,28 +44,24 @@ export const workoutLogService = {
 
       const log = await workoutLogRepository.create(userId, data);
 
-      // Check and update personal records using the workout log's date
       const logDate = data.date ? new Date(data.date) : new Date();
-      for (const exercise of data.exercises) {
-         for (const set of exercise.sets) {
-            await this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate);
-         }
-      }
+      const prPromises = data.exercises.flatMap((exercise) =>
+         exercise.sets.map((set) =>
+            this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate),
+         ),
+      );
+      await Promise.all(prPromises);
 
       return log;
    },
 
    async update(userId: string, id: string, data: UpdateWorkoutLogInput) {
-      const log = await workoutLogRepository.findById(id);
-      if (!log) throw new NotFoundError('Workout log');
-      if (log.userId !== userId) throw new ForbiddenError();
+      await assertLogOwnership(userId, id);
       return workoutLogRepository.update(id, data);
    },
 
    async delete(userId: string, id: string) {
-      const log = await workoutLogRepository.findById(id);
-      if (!log) throw new NotFoundError('Workout log');
-      if (log.userId !== userId) throw new ForbiddenError();
+      await assertLogOwnership(userId, id);
       return workoutLogRepository.delete(id);
    },
 

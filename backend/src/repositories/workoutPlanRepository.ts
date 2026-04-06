@@ -1,9 +1,10 @@
 import prisma from '../config/database';
-import { CreateWorkoutPlanInput } from '../models/schemas';
+import { Prisma } from '@prisma/client';
+import { CreateWorkoutPlanInput, UpdateWorkoutPlanInput } from '../models/schemas';
 
 export const workoutPlanRepository = {
    findAllByUser(userId: string, includeArchived: boolean, page: number, limit: number) {
-      const where: any = { userId };
+      const where: Prisma.WorkoutPlanWhereInput = { userId };
       if (!includeArchived) where.isArchived = false;
 
       return Promise.all([
@@ -64,7 +65,7 @@ export const workoutPlanRepository = {
       });
    },
 
-   async update(id: string, data: any) {
+   async update(id: string, data: UpdateWorkoutPlanInput) {
       const { exercises, ...planData } = data;
 
       if (exercises) {
@@ -75,7 +76,7 @@ export const workoutPlanRepository = {
                data: {
                   ...planData,
                   exercises: {
-                     create: exercises.map((e: any) => ({
+                     create: exercises.map((e) => ({
                         exerciseId: e.exerciseId,
                         sets: e.sets,
                         reps: e.reps,
