@@ -380,7 +380,7 @@ function LogWorkoutDialog({
          <DialogHeader>
             <DialogTitle>Registrar Treino</DialogTitle>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1">
+         <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
             {/* Plan selection */}
             <div className="space-y-2">
                <Label>Carregar de ficha (opcional)</Label>
@@ -392,7 +392,7 @@ function LogWorkoutDialog({
                </Select>
             </div>
 
-            {/* Add exercise */}
+            {/* Add exercise - outside scrollable area so dropdown isn't clipped */}
             <div className="space-y-2">
                <Label>Adicionar Exercício</Label>
                <div className="relative" ref={dropdownRef}>
@@ -422,6 +422,8 @@ function LogWorkoutDialog({
                </div>
             </div>
 
+            {/* Scrollable area for exercises and options */}
+            <div className="overflow-y-auto max-h-[40vh] pr-1 space-y-4">
             {/* Exercise entries */}
             {exercises.map((ex, ei) => (
                <div key={ei} className="p-3 rounded-lg border space-y-2">
@@ -484,6 +486,7 @@ function LogWorkoutDialog({
                   className="rounded"
                />
                <Label htmlFor="isComplete">Marcar como completo</Label>
+            </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">

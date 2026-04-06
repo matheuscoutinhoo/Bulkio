@@ -277,7 +277,7 @@ function CreateWorkoutPlanDialog({
          <DialogHeader>
             <DialogTitle>Nova Ficha de Treino</DialogTitle>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1">
+         <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
             <div className="grid grid-cols-2 gap-3">
                <div className="space-y-2">
                   <Label>Nome da Ficha</Label>
@@ -298,7 +298,7 @@ function CreateWorkoutPlanDialog({
                </div>
             </div>
 
-            {/* Exercise selector */}
+            {/* Exercise selector - outside scrollable area so dropdown isn't clipped */}
             <div className="space-y-2">
                <Label>Adicionar Exercícios</Label>
                <div className="relative" ref={dropdownRef}>
@@ -331,9 +331,9 @@ function CreateWorkoutPlanDialog({
                </div>
             </div>
 
-            {/* Selected exercises */}
+            {/* Scrollable area for selected exercises */}
             {exercises.length > 0 && (
-               <div className="space-y-2">
+               <div className="space-y-2 overflow-y-auto max-h-[40vh] pr-1">
                   {exercises.map((ex, i) => (
                      <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30">
                         <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>

@@ -28,7 +28,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
          <div className="fixed inset-0 bg-black/80" onClick={onClose} />
          <div
             className={cn(
-               'relative z-50 max-h-[90vh] w-full max-w-lg overflow-hidden rounded-lg border bg-background p-6 shadow-lg flex flex-col',
+               'relative z-50 max-h-[90vh] w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg flex flex-col',
                className,
             )}
          >
