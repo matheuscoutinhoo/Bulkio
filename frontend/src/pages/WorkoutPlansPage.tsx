@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { workoutPlanApi, type WorkoutPlan, type CreateWorkoutPlanData } from '@/services/workoutPlanService';
 import { exerciseApi, type Exercise } from '@/services/exerciseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -180,13 +180,16 @@ function CreateWorkoutPlanDialog({
    >([]);
    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
    const [searchExercise, setSearchExercise] = useState('');
+   const [showDropdown, setShowDropdown] = useState(false);
    const [submitting, setSubmitting] = useState(false);
+   const dropdownRef = useRef<HTMLDivElement>(null);
 
    const resetForm = () => {
       setName('');
       setDescription('');
       setExercises([]);
       setSearchExercise('');
+      setShowDropdown(false);
    };
 
    const handleClose = () => {
@@ -196,9 +199,21 @@ function CreateWorkoutPlanDialog({
 
    useEffect(() => {
       if (open) {
-         exerciseApi.getAll({ limit: 300 }).then((res) => setAllExercises(res.data.data));
+         exerciseApi.getAll({ limit: 300 })
+            .then((res) => setAllExercises(res.data.data))
+            .catch((err) => console.error('Failed to load exercises:', err));
       }
    }, [open]);
+
+   useEffect(() => {
+      function handleClickOutside(e: MouseEvent) {
+         if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+            setShowDropdown(false);
+         }
+      }
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+   }, []);
 
    const filteredExercises = allExercises.filter(
       (e) => e.name.toLowerCase().includes(searchExercise.toLowerCase()),
@@ -216,6 +231,7 @@ function CreateWorkoutPlanDialog({
          },
       ]);
       setSearchExercise('');
+      setShowDropdown(false);
    };
 
    const removeExercise = (index: number) => {
@@ -285,13 +301,14 @@ function CreateWorkoutPlanDialog({
             {/* Exercise selector */}
             <div className="space-y-2">
                <Label>Adicionar Exercícios</Label>
-               <div className="relative">
+               <div className="relative" ref={dropdownRef}>
                   <Input
                      placeholder="Buscar exercício..."
                      value={searchExercise}
-                     onChange={(e) => setSearchExercise(e.target.value)}
+                     onChange={(e) => { setSearchExercise(e.target.value); setShowDropdown(true); }}
+                     onFocus={() => searchExercise && setShowDropdown(true)}
                   />
-                  {searchExercise && (
+                  {showDropdown && searchExercise && (
                      <div className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto rounded-md border bg-background shadow-lg">
                         {filteredExercises.slice(0, 10).map((ex) => (
                            <button

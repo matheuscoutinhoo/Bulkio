@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { workoutLogApi, type WorkoutLog, type CreateWorkoutLogData } from '@/services/workoutLogService';
 import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService';
 import { exerciseApi, type Exercise } from '@/services/exerciseService';
@@ -216,14 +216,17 @@ function LogWorkoutDialog({
    const [exercises, setExercises] = useState<LogExercise[]>([]);
    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
    const [searchExercise, setSearchExercise] = useState('');
+   const [showDropdown, setShowDropdown] = useState(false);
    const [notes, setNotes] = useState('');
    const [isComplete, setIsComplete] = useState(true);
    const [submitting, setSubmitting] = useState(false);
+   const dropdownRef = useRef<HTMLDivElement>(null);
 
    const resetForm = () => {
       setSelectedPlan('');
       setExercises([]);
       setSearchExercise('');
+      setShowDropdown(false);
       setNotes('');
       setIsComplete(true);
    };
@@ -235,10 +238,22 @@ function LogWorkoutDialog({
 
    useEffect(() => {
       if (open) {
-         workoutPlanApi.getAll({ limit: 50 }).then((res) => setPlans(res.data.data));
-         exerciseApi.getAll({ limit: 300 }).then((res) => setAllExercises(res.data.data));
+         workoutPlanApi.getAll({ limit: 50 }).then((res) => setPlans(res.data.data)).catch(console.error);
+         exerciseApi.getAll({ limit: 300 })
+            .then((res) => setAllExercises(res.data.data))
+            .catch((err) => console.error('Failed to load exercises:', err));
       }
    }, [open]);
+
+   useEffect(() => {
+      function handleClickOutside(e: MouseEvent) {
+         if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+            setShowDropdown(false);
+         }
+      }
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+   }, []);
 
    const loadFromPlan = (planId: string) => {
       setSelectedPlan(planId);
@@ -268,6 +283,7 @@ function LogWorkoutDialog({
          },
       ]);
       setSearchExercise('');
+      setShowDropdown(false);
    };
 
    const removeExercise = (index: number) => {
@@ -379,13 +395,14 @@ function LogWorkoutDialog({
             {/* Add exercise */}
             <div className="space-y-2">
                <Label>Adicionar Exercício</Label>
-               <div className="relative">
+               <div className="relative" ref={dropdownRef}>
                   <Input
                      placeholder="Buscar exercício..."
                      value={searchExercise}
-                     onChange={(e) => setSearchExercise(e.target.value)}
+                     onChange={(e) => { setSearchExercise(e.target.value); setShowDropdown(true); }}
+                     onFocus={() => searchExercise && setShowDropdown(true)}
                   />
-                  {searchExercise && (
+                  {showDropdown && searchExercise && (
                      <div className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto rounded-md border bg-background shadow-lg">
                         {filteredExercises.slice(0, 8).map((ex) => (
                            <button
