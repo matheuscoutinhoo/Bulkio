@@ -15,7 +15,7 @@ export const exerciseRepository = {
       if (filters.type) where.type = filters.type;
       if (filters.equipment) where.equipment = filters.equipment;
       if (filters.search) {
-         where.name = { contains: filters.search };
+         where.name = { contains: filters.search, mode: 'insensitive' };
       }
 
       return Promise.all([

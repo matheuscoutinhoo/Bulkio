@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { exerciseApi, type Exercise, type ExerciseFilters } from '@/services/exerciseService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,15 +14,24 @@ export default function ExercisesPage() {
    const [loading, setLoading] = useState(true);
    const [filters, setFilters] = useState<ExerciseFilters>({ page: 1, limit: 50 });
    const [search, setSearch] = useState('');
+   const [debouncedSearch, setDebouncedSearch] = useState('');
    const [total, setTotal] = useState(0);
    const [totalPages, setTotalPages] = useState(1);
    const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+
+   useEffect(() => {
+      const timer = setTimeout(() => {
+         setDebouncedSearch(search);
+         setFilters((f) => (f.page !== 1 ? { ...f, page: 1 } : f));
+      }, 300);
+      return () => clearTimeout(timer);
+   }, [search]);
 
    const fetchExercises = useCallback(async () => {
       setLoading(true);
       try {
          const params: ExerciseFilters = { ...filters };
-         if (search) params.search = search;
+         if (debouncedSearch) params.search = debouncedSearch;
          const res = await exerciseApi.getAll(params);
          setExercises(res.data.data);
          setTotal(res.data.pagination.total);
@@ -32,16 +41,11 @@ export default function ExercisesPage() {
       } finally {
          setLoading(false);
       }
-   }, [filters]);
+   }, [filters, debouncedSearch]);
 
    useEffect(() => {
       fetchExercises();
    }, [fetchExercises]);
-
-   const handleSearch = () => {
-      setFilters((f) => ({ ...f, page: 1 }));
-      fetchExercises();
-   };
 
    return (
       <div className="space-y-6">
@@ -58,7 +62,6 @@ export default function ExercisesPage() {
                   placeholder="Buscar exercício..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-9"
                />
             </div>
@@ -112,16 +115,16 @@ export default function ExercisesPage() {
                      <Card key={exercise.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setSelectedExercise(exercise)}>
                         <CardContent className="p-4">
                            <div className="space-y-1 min-w-0">
-                                 <h3 className="font-medium text-sm truncate">{exercise.name}</h3>
-                                 <div className="flex flex-wrap gap-1">
-                                    <Badge variant="secondary" className="text-xs">{muscleGroupLabels[exercise.muscleGroup]}</Badge>
-                                    <Badge variant="outline" className="text-xs">{typeLabels[exercise.type]}</Badge>
-                                    <Badge variant="outline" className="text-xs">{equipmentLabels[exercise.equipment]}</Badge>
-                                 </div>
-                                 {exercise.description && (
-                                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{exercise.description}</p>
-                                 )}
+                              <h3 className="font-medium text-sm truncate">{exercise.name}</h3>
+                              <div className="flex flex-wrap gap-1">
+                                 <Badge variant="secondary" className="text-xs">{muscleGroupLabels[exercise.muscleGroup]}</Badge>
+                                 <Badge variant="outline" className="text-xs">{typeLabels[exercise.type]}</Badge>
+                                 <Badge variant="outline" className="text-xs">{equipmentLabels[exercise.equipment]}</Badge>
                               </div>
+                              {exercise.description && (
+                                 <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{exercise.description}</p>
+                              )}
+                           </div>
                         </CardContent>
                      </Card>
                   ))}
