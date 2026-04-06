@@ -288,8 +288,8 @@ describe('paginationSchema', () => {
       expect(paginationSchema.safeParse({ page: '0' }).success).toBe(false);
    });
 
-   it('should reject limit > 100', () => {
-      expect(paginationSchema.safeParse({ limit: '101' }).success).toBe(false);
+   it('should reject limit > 300', () => {
+      expect(paginationSchema.safeParse({ limit: '301' }).success).toBe(false);
    });
 
    it('should reject limit < 1', () => {

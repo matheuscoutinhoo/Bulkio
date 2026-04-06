@@ -397,6 +397,9 @@ function LogWorkoutDialog({
                               {ex.name}
                            </button>
                         ))}
+                        {filteredExercises.length === 0 && (
+                           <p className="px-3 py-2 text-sm text-muted-foreground">Nenhum encontrado</p>
+                        )}
                      </div>
                   )}
                </div>
