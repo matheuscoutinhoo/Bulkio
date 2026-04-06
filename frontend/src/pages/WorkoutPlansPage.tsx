@@ -277,7 +277,7 @@ function CreateWorkoutPlanDialog({
          <DialogHeader>
             <DialogTitle>Nova Ficha de Treino</DialogTitle>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4">
+         <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-3">
                <div className="space-y-2">
                   <Label>Nome da Ficha</Label>

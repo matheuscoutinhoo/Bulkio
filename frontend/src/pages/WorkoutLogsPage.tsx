@@ -380,7 +380,7 @@ function LogWorkoutDialog({
          <DialogHeader>
             <DialogTitle>Registrar Treino</DialogTitle>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+         <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-1">
             {/* Plan selection */}
             <div className="space-y-2">
                <Label>Carregar de ficha (opcional)</Label>
