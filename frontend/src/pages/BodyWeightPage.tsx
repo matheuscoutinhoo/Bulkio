@@ -15,6 +15,7 @@ import {
    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
    ResponsiveContainer, ReferenceLine,
 } from 'recharts';
+import { useChartColors } from '@/lib/useChartColors';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -24,6 +25,7 @@ const goalLabels: Record<string, string> = {
 
 export default function BodyWeightPage() {
    const { user, setUser } = useAuthStore();
+   const chart = useChartColors();
    const [records, setRecords] = useState<BodyWeightRecord[]>([]);
    const [loading, setLoading] = useState(true);
    const [newWeight, setNewWeight] = useState('');
@@ -178,11 +180,11 @@ export default function BodyWeightPage() {
                <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                        <XAxis dataKey="date" stroke="#a1a1aa" fontSize={12} />
-                        <YAxis stroke="#a1a1aa" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
-                        <Tooltip contentStyle={{ backgroundColor: '#0a0a0c', border: '1px solid #27272a' }} />
-                        <Line type="monotone" dataKey="weight" stroke="#6d28d9" strokeWidth={2} dot={{ fill: '#6d28d9' }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                        <XAxis dataKey="date" stroke={chart.axis} fontSize={12} />
+                        <YAxis stroke={chart.axis} fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
+                        <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                        <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
                         {user?.targetWeight && (
                            <ReferenceLine
                               y={user.targetWeight}

@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
+import { useChartColors } from '@/lib/useChartColors';
 
 const COLORS = ['#6d28d9', '#22c55e', '#eab308', '#dc2626', '#3b82f6', '#ec4899', '#f97316', '#14b8a6', '#8b5cf6', '#06b6d4', '#a855f7', '#f43f5e', '#10b981'];
 
@@ -16,6 +17,7 @@ export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
    const [loading, setLoading] = useState(true);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
+   const chart = useChartColors();
 
    useEffect(() => {
       dashboardApi.getStats()
@@ -155,13 +157,13 @@ export default function DashboardPage() {
                   {bodyWeightData.length > 0 ? (
                      <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={bodyWeightData}>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                           <XAxis dataKey="date" stroke="#a1a1aa" fontSize={12} />
-                           <YAxis stroke="#a1a1aa" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
+                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                           <XAxis dataKey="date" stroke={chart.axis} fontSize={12} />
+                           <YAxis stroke={chart.axis} fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
                            <Tooltip
-                              contentStyle={{ backgroundColor: '#0a0a0c', border: '1px solid #27272a' }}
+                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }}
                            />
-                           <Line type="monotone" dataKey="weight" stroke="#6d28d9" strokeWidth={2} dot={{ fill: '#6d28d9' }} />
+                           <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
                         </LineChart>
                      </ResponsiveContainer>
                   ) : (
@@ -180,11 +182,11 @@ export default function DashboardPage() {
                <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                      <BarChart data={muscleData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                        <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} />
-                        <YAxis stroke="#a1a1aa" fontSize={12} />
-                        <Tooltip contentStyle={{ backgroundColor: '#0a0a0c', border: '1px solid #27272a' }} />
-                        <Bar dataKey="sets" fill="#6d28d9" radius={[4, 4, 0, 0]} />
+                        <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                        <XAxis dataKey="name" stroke={chart.axis} fontSize={12} />
+                        <YAxis stroke={chart.axis} fontSize={12} />
+                        <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                        <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} />
                      </BarChart>
                   </ResponsiveContainer>
                </CardContent>

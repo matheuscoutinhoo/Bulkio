@@ -1,6 +1,40 @@
 ﻿@import "tailwindcss";
 
 @theme {
+  /* Light mode (default) — warm lavender palette */
+  --color-background: #f5f3f7;
+  --color-foreground: #1c1527;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1527;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1c1527;
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #faf5ff;
+  --color-secondary: #ece8f4;
+  --color-secondary-foreground: #1c1527;
+  --color-muted: #e8e4f0;
+  --color-muted-foreground: #65607a;
+  --color-accent: #ece8f4;
+  --color-accent-foreground: #1c1527;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fafafa;
+  --color-border: #ddd8e8;
+  --color-input: #ddd8e8;
+  --color-ring: #7c3aed;
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-chart-grid: #ddd8e8;
+  --color-chart-axis: #65607a;
+  --color-chart-tooltip-bg: #ffffff;
+  --color-chart-tooltip-border: #ddd8e8;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+/* Dark mode overrides */
+.dark {
   --color-background: #09090b;
   --color-foreground: #fafafa;
   --color-card: #0a0a0c;
@@ -22,10 +56,10 @@
   --color-ring: #6d28d9;
   --color-success: #22c55e;
   --color-warning: #eab308;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --color-chart-grid: #27272a;
+  --color-chart-axis: #a1a1aa;
+  --color-chart-tooltip-bg: #0a0a0c;
+  --color-chart-tooltip-border: #27272a;
 }
 
 * {

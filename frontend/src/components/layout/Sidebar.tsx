@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { authApi } from '@/services/authService';
 import {
    LayoutDashboard,
@@ -10,6 +11,8 @@ import {
    LogOut,
    Menu,
    X,
+   Sun,
+   Moon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -26,6 +29,7 @@ export function Sidebar() {
    const location = useLocation();
    const navigate = useNavigate();
    const { user, logout } = useAuthStore();
+   const { theme, toggleTheme } = useThemeStore();
    const [mobileOpen, setMobileOpen] = useState(false);
 
    const handleLogout = async () => {
@@ -71,13 +75,22 @@ export function Sidebar() {
                   <p className="text-sm font-medium truncate">{user?.username}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                </div>
-               <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-                  title="Sair"
-               >
-                  <LogOut className="h-4 w-4" />
-               </button>
+               <div className="flex items-center gap-1">
+                  <button
+                     onClick={toggleTheme}
+                     className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                     title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+                  >
+                     {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </button>
+                  <button
+                     onClick={handleLogout}
+                     className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                     title="Sair"
+                  >
+                     <LogOut className="h-4 w-4" />
+                  </button>
+               </div>
             </div>
          </div>
       </>
