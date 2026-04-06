@@ -423,55 +423,59 @@ function LogWorkoutDialog({
             </div>
 
             {/* Scrollable area for exercises and options */}
+            {exercises.length > 0 && (
             <div className="overflow-y-auto max-h-[40vh] pr-1 space-y-4">
-            {/* Exercise entries */}
-            {exercises.map((ex, ei) => (
-               <div key={ei} className="p-3 rounded-lg border space-y-2">
-                  <div className="flex items-center justify-between">
-                     <span className="font-medium text-sm">{ex.exerciseName}</span>
-                     <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeExercise(ei)}>
-                        <Trash2 className="h-3 w-3" />
-                     </Button>
-                  </div>
-                  <div className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 text-xs text-muted-foreground font-medium">
-                     <span>Série</span><span>Reps</span><span>Carga (kg)</span><span></span>
-                  </div>
-                  {ex.sets.map((set, si) => (
-                     <div key={si} className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 items-center">
-                        <span className="text-sm text-center text-muted-foreground">{set.setNumber}</span>
-                        <Input
-                           type="number"
-                           className="h-8 text-sm"
-                           value={set.reps}
-                           onChange={(e) => updateSet(ei, si, 'reps', parseInt(e.target.value) || 0)}
-                           min={0}
-                        />
-                        <Input
-                           type="number"
-                           className="h-8 text-sm"
-                           value={set.weight}
-                           onChange={(e) => updateSet(ei, si, 'weight', parseFloat(e.target.value) || 0)}
-                           min={0}
-                           step={0.5}
-                        />
-                        <Button
-                           type="button"
-                           variant="ghost"
-                           size="icon"
-                           className="h-7 w-7"
-                           onClick={() => removeSet(ei, si)}
-                           disabled={ex.sets.length <= 1}
-                        >
+               {/* Exercise entries */}
+               {exercises.map((ex, ei) => (
+                  <div key={ei} className="p-3 rounded-lg border space-y-2">
+                     <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{ex.exerciseName}</span>
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeExercise(ei)}>
                            <Trash2 className="h-3 w-3" />
                         </Button>
                      </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => addSet(ei)}>
-                     + Série
-                  </Button>
-               </div>
-            ))}
+                     <div className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 text-xs text-muted-foreground font-medium">
+                        <span>Série</span><span>Reps</span><span>Carga (kg)</span><span></span>
+                     </div>
+                     {ex.sets.map((set, si) => (
+                        <div key={si} className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 items-center">
+                           <span className="text-sm text-center text-muted-foreground">{set.setNumber}</span>
+                           <Input
+                              type="number"
+                              className="h-8 text-sm"
+                              value={set.reps}
+                              onChange={(e) => updateSet(ei, si, 'reps', parseInt(e.target.value) || 0)}
+                              min={0}
+                           />
+                           <Input
+                              type="number"
+                              className="h-8 text-sm"
+                              value={set.weight}
+                              onChange={(e) => updateSet(ei, si, 'weight', parseFloat(e.target.value) || 0)}
+                              min={0}
+                              step={0.5}
+                           />
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => removeSet(ei, si)}
+                              disabled={ex.sets.length <= 1}
+                           >
+                              <Trash2 className="h-3 w-3" />
+                           </Button>
+                        </div>
+                     ))}
+                     <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => addSet(ei)}>
+                        + Série
+                     </Button>
+                  </div>
+               ))}
+            </div>
+            )}
 
+            {/* Notes and complete - always visible */}
             <div className="space-y-2">
                <Label>Observações (opcional)</Label>
                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anotações do treino..." />
@@ -486,7 +490,6 @@ function LogWorkoutDialog({
                   className="rounded"
                />
                <Label htmlFor="isComplete">Marcar como completo</Label>
-            </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
