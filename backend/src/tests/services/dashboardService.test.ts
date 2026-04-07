@@ -10,6 +10,7 @@ vi.mock('../../repositories/dashboardRepository', () => ({
       getTotalVolume: vi.fn(),
       getBodyWeightHistory: vi.fn(),
       getExerciseHistory: vi.fn(),
+      getYearlyWorkoutDays: vi.fn(),
    },
 }));
 
@@ -39,6 +40,7 @@ function setupDefaultMocks() {
    mockDashRepo.getStreak.mockResolvedValue([] as any);
    mockDashRepo.getTotalVolume.mockResolvedValue([] as any);
    mockDashRepo.getBodyWeightHistory.mockResolvedValue([] as any);
+   mockDashRepo.getYearlyWorkoutDays.mockResolvedValue([] as any);
    mockPRRepo.findAllByUser.mockResolvedValue([] as any);
    mockUserRepo.findById.mockResolvedValue(createMockUser() as any);
 }

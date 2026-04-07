@@ -19,6 +19,7 @@ export interface DashboardStats {
       date: string;
       exercise: { id: string; name: string; muscleGroup: string; videoUrl?: string | null };
    }[];
+   yearlyActivity: Record<string, number>;
 }
 
 export interface ExerciseProgression {

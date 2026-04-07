@@ -33,6 +33,7 @@ export const dashboardService = {
          bodyWeightHistory,
          personalRecords,
          user,
+         yearlyWorkouts,
       ] = await Promise.all([
          dashboardRepository.getWeeklyWorkouts(userId, thisWeek.start, thisWeek.end),
          dashboardRepository.getWeeklyWorkouts(userId, lastWeek.start, lastWeek.end),
@@ -42,6 +43,7 @@ export const dashboardService = {
          dashboardRepository.getBodyWeightHistory(userId, 30),
          personalRecordRepository.findAllByUser(userId),
          userRepository.findById(userId),
+         dashboardRepository.getYearlyWorkoutDays(userId, new Date().getFullYear()),
       ]);
 
       // Calculate muscle group distribution
@@ -97,6 +99,13 @@ export const dashboardService = {
       const currentWeight = bodyWeightHistory.length > 0 ? bodyWeightHistory[0] : null;
       const historyAsc = [...bodyWeightHistory].reverse();
 
+      // Build yearly activity map: { 'YYYY-MM-DD': count }
+      const yearlyActivity: Record<string, number> = {};
+      for (const log of yearlyWorkouts) {
+         const key = new Date(log.date).toISOString().split('T')[0];
+         yearlyActivity[key] = (yearlyActivity[key] || 0) + 1;
+      }
+
       return {
          weeklyWorkouts: {
             current: thisWeekWorkouts,
@@ -113,6 +122,7 @@ export const dashboardService = {
             initial: user?.initialWeight || null,
          },
          personalRecords: personalRecords.slice(0, 10),
+         yearlyActivity,
       };
    },
 

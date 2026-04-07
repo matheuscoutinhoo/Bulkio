@@ -8,6 +8,7 @@ import {
    LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
 
@@ -114,6 +115,9 @@ export default function DashboardPage() {
                </CardContent>
             </Card>
          </div>
+
+         {/* Activity Heatmap */}
+         <ActivityHeatmap yearlyActivity={stats.yearlyActivity} />
 
          {/* Charts */}
          <div className="grid gap-6 lg:grid-cols-2">

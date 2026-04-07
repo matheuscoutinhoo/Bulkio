@@ -69,4 +69,16 @@ export const dashboardRepository = {
          take: limit,
       });
    },
+
+   getYearlyWorkoutDays(userId: string, year: number) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+      return prisma.workoutLog.findMany({
+         where: {
+            userId,
+            date: { gte: startDate, lte: endDate },
+         },
+         select: { date: true },
+      });
+   },
 };
