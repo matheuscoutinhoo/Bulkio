@@ -52,19 +52,19 @@ export default function DashboardPage() {
    return (
       <div className="space-y-6">
          <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Visão geral do seu progresso</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Visão geral do seu progresso</p>
          </div>
 
          {/* Stats cards */}
          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Treinos na Semana</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground hidden sm:block" />
                </CardHeader>
                <CardContent>
-                  <div className="text-2xl font-bold">{stats.weeklyWorkouts.current}</div>
+                  <div className="text-xl sm:text-2xl font-bold">{stats.weeklyWorkouts.current}</div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                      {weekDiff >= 0 ? (
                         <TrendingUp className="h-3 w-3 text-success" />
@@ -78,33 +78,33 @@ export default function DashboardPage() {
 
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Streak</CardTitle>
-                  <Flame className="h-4 w-4 text-orange-500" />
+                  <CardTitle className="text-xs sm:text-sm font-medium">Streak</CardTitle>
+                  <Flame className="h-4 w-4 text-orange-500 hidden sm:block" />
                </CardHeader>
                <CardContent>
-                  <div className="text-2xl font-bold">{stats.streak}</div>
+                  <div className="text-xl sm:text-2xl font-bold">{stats.streak}</div>
                   <p className="text-xs text-muted-foreground">dias consecutivos</p>
                </CardContent>
             </Card>
 
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Volume Total (30d)</CardTitle>
-                  <Weight className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-xs sm:text-sm font-medium">Volume Total (30d)</CardTitle>
+                  <Weight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                </CardHeader>
                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalVolume.toLocaleString('pt-BR')}kg</div>
+                  <div className="text-xl sm:text-2xl font-bold">{stats.totalVolume.toLocaleString('pt-BR')}kg</div>
                   <p className="text-xs text-muted-foreground">peso total levantado</p>
                </CardContent>
             </Card>
 
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Peso Atual</CardTitle>
-                  <Weight className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
+                  <Weight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                </CardHeader>
                <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl sm:text-2xl font-bold">
                      {stats.bodyWeight.current ? `${stats.bodyWeight.current.weight}kg` : '-'}
                   </div>
                   {stats.bodyWeight.target && (
@@ -120,7 +120,7 @@ export default function DashboardPage() {
          <ActivityHeatmap yearlyActivity={stats.yearlyActivity} />
 
          {/* Charts */}
-         <div className="grid gap-6 lg:grid-cols-2">
+         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             {/* Muscle distribution */}
             <Card>
                <CardHeader>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
                </CardHeader>
                <CardContent>
                   {muscleData.length > 0 ? (
-                     <ResponsiveContainer width="100%" height={300}>
+                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
                            <Pie
                               data={muscleData}
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                              outerRadius={100}
+                              outerRadius={80}
                               dataKey="sets"
                            >
                               {muscleData.map((_entry, index) => (

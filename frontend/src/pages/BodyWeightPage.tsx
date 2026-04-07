@@ -100,10 +100,10 @@ export default function BodyWeightPage() {
 
    return (
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-               <h1 className="text-3xl font-bold">Peso Corporal</h1>
-               <p className="text-muted-foreground">Acompanhe sua evolução</p>
+               <h1 className="text-2xl sm:text-3xl font-bold">Peso Corporal</h1>
+               <p className="text-muted-foreground text-sm sm:text-base">Acompanhe sua evolução</p>
             </div>
             <Button variant="outline" onClick={() => setShowGoals(true)}>
                <Target className="h-4 w-4 mr-2" /> Definir Meta
@@ -115,13 +115,13 @@ export default function BodyWeightPage() {
             <Card>
                <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Peso Atual</p>
-                  <p className="text-2xl font-bold">{latestWeight ? `${latestWeight}kg` : '-'}</p>
+                  <p className="text-xl sm:text-2xl font-bold">{latestWeight ? `${latestWeight}kg` : '-'}</p>
                </CardContent>
             </Card>
             <Card>
                <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Variação</p>
-                  <p className="text-2xl font-bold flex items-center gap-1">
+                  <p className="text-xl sm:text-2xl font-bold flex items-center gap-1">
                      {diff !== 0 && (
                         diff > 0
                            ? <TrendingUp className="h-5 w-5 text-success" />
@@ -134,7 +134,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Objetivo</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                      {user?.goal ? goalLabels[user.goal] || user.goal : '-'}
                   </p>
                </CardContent>
@@ -142,7 +142,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Meta</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xl sm:text-2xl font-bold">
                      {user?.targetWeight ? `${user.targetWeight}kg` : '-'}
                   </p>
                </CardContent>
@@ -218,9 +218,9 @@ export default function BodyWeightPage() {
                            key={record.id}
                            className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/30 transition-colors"
                         >
-                           <div>
+                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                               <span className="font-medium">{record.weight}kg</span>
-                              <span className="text-sm text-muted-foreground ml-3">
+                              <span className="text-sm text-muted-foreground sm:ml-3">
                                  {format(new Date(record.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                               </span>
                            </div>
@@ -238,7 +238,7 @@ export default function BodyWeightPage() {
          {showGoals && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                <div className="fixed inset-0 bg-black/80" onClick={() => setShowGoals(false)} />
-               <div className="relative z-50 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
+               <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto">
                   <h2 className="text-lg font-semibold mb-4">Definir Meta</h2>
                   <form onSubmit={handleSaveGoals} className="space-y-4">
                      <div className="space-y-2">
@@ -250,7 +250,7 @@ export default function BodyWeightPage() {
                            <option value="MAINTAIN">Manutenção</option>
                         </Select>
                      </div>
-                     <div className="grid grid-cols-2 gap-3">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-2">
                            <Label>Peso Inicial (kg)</Label>
                            <Input

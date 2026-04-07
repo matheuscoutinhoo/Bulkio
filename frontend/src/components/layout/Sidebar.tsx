@@ -105,7 +105,7 @@ export function Sidebar() {
          )}
          <div
             className={cn(
-               'lg:hidden fixed top-14 left-0 bottom-0 z-30 w-64 bg-background border-r flex flex-col transition-transform',
+               'lg:hidden fixed top-14 left-0 bottom-0 z-30 w-64 max-w-[80vw] bg-background border-r flex flex-col transition-transform',
                mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
          >

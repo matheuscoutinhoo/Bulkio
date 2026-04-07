@@ -133,8 +133,8 @@ export default function ProfilePage() {
    return (
       <div className="space-y-6 max-w-2xl mx-auto">
          <div>
-            <h1 className="text-3xl font-bold">Perfil</h1>
-            <p className="text-muted-foreground">Gerencie suas informações</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Perfil</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas informações</p>
          </div>
 
          {/* User info card */}
@@ -199,9 +199,9 @@ export default function ProfilePage() {
                {/* Email */}
                <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs uppercase tracking-wide">Email</Label>
-                  <div className="flex items-center gap-2">
-                     <Mail className="h-4 w-4 text-muted-foreground" />
-                     <p className="text-base">{user?.email}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                     <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                     <p className="text-sm sm:text-base truncate">{user?.email}</p>
                   </div>
                </div>
 

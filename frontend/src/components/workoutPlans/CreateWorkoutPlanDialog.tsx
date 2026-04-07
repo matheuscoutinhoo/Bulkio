@@ -92,12 +92,12 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
    };
 
    return (
-      <Dialog open={open} onClose={handleClose} className="max-w-2xl">
+      <Dialog open={open} onClose={handleClose} className="sm:max-w-2xl">
          <DialogHeader>
             <DialogTitle>Nova Ficha de Treino</DialogTitle>
          </DialogHeader>
          <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <div className="space-y-2">
                   <Label>Nome da Ficha</Label>
                   <Input
@@ -127,19 +127,20 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
             {exercises.length > 0 && (
                <div className="space-y-2 overflow-y-auto max-h-[40vh] pr-1">
                   {exercises.map((ex, i) => (
-                     <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30">
+                     <div key={i} className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-secondary/30">
                         <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
-                        <span className="flex-1 text-sm font-medium truncate">{ex.exerciseName}</span>
+                        <span className="flex-1 text-sm font-medium truncate min-w-0">{ex.exerciseName}</span>
+                        <div className="flex items-center gap-2">
                         <Input
                            type="number"
-                           className="w-16 h-8 text-xs"
+                           className="w-14 sm:w-16 h-8 text-xs"
                            value={ex.sets}
                            onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
                            min={1}
                         />
                         <span className="text-xs text-muted-foreground">×</span>
                         <Input
-                           className="w-20 h-8 text-xs"
+                           className="w-16 sm:w-20 h-8 text-xs"
                            value={ex.reps}
                            onChange={(e) => updateExercise(i, 'reps', e.target.value)}
                            placeholder="10"
@@ -153,6 +154,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
                         >
                            <Trash2 className="h-3 w-3" />
                         </Button>
+                        </div>
                      </div>
                   ))}
                </div>

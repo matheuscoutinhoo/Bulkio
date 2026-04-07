@@ -45,10 +45,10 @@ export default function WorkoutLogsPage() {
 
    return (
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-               <h1 className="text-3xl font-bold">Histórico de Treinos</h1>
-               <p className="text-muted-foreground">Todos os treinos realizados</p>
+               <h1 className="text-2xl sm:text-3xl font-bold">Histórico de Treinos</h1>
+               <p className="text-muted-foreground text-sm sm:text-base">Todos os treinos realizados</p>
             </div>
             <Button onClick={() => setShowCreate(true)}>
                <Plus className="h-4 w-4 mr-2" /> Registrar Treino
@@ -85,8 +85,8 @@ export default function WorkoutLogsPage() {
                                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                  )}
                                  <div>
-                                    <div className="flex items-center gap-2">
-                                       <CardTitle className="text-base">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                       <CardTitle className="text-sm sm:text-base">
                                           {format(new Date(log.date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
                                        </CardTitle>
                                        {log.isComplete ? (
@@ -97,7 +97,7 @@ export default function WorkoutLogsPage() {
                                           <Badge variant="outline" className="text-xs">Incompleto</Badge>
                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                                        {log.workoutPlan && (
                                           <span>{log.workoutPlan.name}</span>
                                        )}

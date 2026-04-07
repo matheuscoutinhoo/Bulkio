@@ -50,13 +50,13 @@ export default function ExercisesPage() {
    return (
       <div className="space-y-6">
          <div>
-            <h1 className="text-3xl font-bold">Exercícios</h1>
-            <p className="text-muted-foreground">{total} exercícios disponíveis</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Exercícios</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">{total} exercícios disponíveis</p>
          </div>
 
          {/* Filters */}
          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative flex-1 min-w-45 sm:min-w-50">
                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                <Input
                   placeholder="Buscar exercício..."
@@ -68,7 +68,7 @@ export default function ExercisesPage() {
             <Select
                value={filters.muscleGroup || ''}
                onChange={(e) => setFilters((f) => ({ ...f, muscleGroup: e.target.value || undefined, page: 1 }))}
-               className="w-40"
+               className="w-full sm:w-40"
             >
                <option value="">Grupo Muscular</option>
                {muscleGroups.map((g) => (
@@ -78,7 +78,7 @@ export default function ExercisesPage() {
             <Select
                value={filters.type || ''}
                onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value || undefined, page: 1 }))}
-               className="w-36"
+               className="w-[calc(50%-6px)] sm:w-36"
             >
                <option value="">Tipo</option>
                {types.map((t) => (
@@ -88,7 +88,7 @@ export default function ExercisesPage() {
             <Select
                value={filters.equipment || ''}
                onChange={(e) => setFilters((f) => ({ ...f, equipment: e.target.value || undefined, page: 1 }))}
-               className="w-36"
+               className="w-[calc(50%-6px)] sm:w-36"
             >
                <option value="">Equipamento</option>
                {equipments.map((e) => (

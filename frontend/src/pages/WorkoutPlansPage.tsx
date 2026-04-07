@@ -49,10 +49,10 @@ export default function WorkoutPlansPage() {
 
    return (
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-               <h1 className="text-3xl font-bold">Fichas de Treino</h1>
-               <p className="text-muted-foreground">{plans.length} fichas ativas</p>
+               <h1 className="text-2xl sm:text-3xl font-bold">Fichas de Treino</h1>
+               <p className="text-muted-foreground text-sm sm:text-base">{plans.length} fichas ativas</p>
             </div>
             <Button onClick={() => setShowCreate(true)}>
                <Plus className="h-4 w-4 mr-2" /> Nova Ficha
@@ -79,7 +79,7 @@ export default function WorkoutPlansPage() {
                      <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                            <div
-                              className="flex items-center gap-2 cursor-pointer flex-1"
+                              className="flex flex-wrap items-center gap-2 cursor-pointer flex-1"
                               onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
                            >
                               {expandedPlan === plan.id ? (
@@ -87,7 +87,7 @@ export default function WorkoutPlansPage() {
                               ) : (
                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                               )}
-                              <CardTitle className="text-lg">{plan.name}</CardTitle>
+                              <CardTitle className="text-base sm:text-lg">{plan.name}</CardTitle>
                               <Badge variant="secondary" className="text-xs">
                                  {plan.exercises.length} exercícios
                               </Badge>
@@ -116,17 +116,17 @@ export default function WorkoutPlansPage() {
                               {plan.exercises.map((pe, i) => (
                                  <div
                                     key={pe.id}
-                                    className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30"
+                                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg bg-secondary/30"
                                  >
-                                    <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
+                                    <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
                                     <div className="flex-1 min-w-0">
                                        <p className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(pe.exercise)}>{pe.exercise.name}</p>
-                                       <div className="flex gap-2 text-xs text-muted-foreground">
+                                       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           <span>• {pe.restSeconds}s descanso</span>
                                        </div>
                                     </div>
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge variant="outline" className="text-xs w-fit">
                                        {muscleGroupLabels[pe.exercise.muscleGroup]}
                                     </Badge>
                                  </div>

@@ -165,7 +165,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
    };
 
    return (
-      <Dialog open={open} onClose={handleClose} className="max-w-2xl">
+      <Dialog open={open} onClose={handleClose} className="sm:max-w-2xl">
          <DialogHeader>
             <DialogTitle>Registrar Treino</DialogTitle>
          </DialogHeader>
@@ -197,11 +197,11 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
                               <Trash2 className="h-3 w-3" />
                            </Button>
                         </div>
-                        <div className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 text-xs text-muted-foreground font-medium">
+                        <div className="grid grid-cols-[32px_1fr_1fr_32px] sm:grid-cols-[40px_1fr_1fr_40px] gap-1 text-xs text-muted-foreground font-medium">
                            <span>Série</span><span>Reps</span><span>Carga (kg)</span><span></span>
                         </div>
                         {ex.sets.map((set, si) => (
-                           <div key={si} className="grid grid-cols-[40px_1fr_1fr_40px] gap-1 items-center">
+                           <div key={si} className="grid grid-cols-[32px_1fr_1fr_32px] sm:grid-cols-[40px_1fr_1fr_40px] gap-1 items-center">
                               <span className="text-sm text-center text-muted-foreground">{set.setNumber}</span>
                               <Input
                                  type="number"
