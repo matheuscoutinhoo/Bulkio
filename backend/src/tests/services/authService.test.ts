@@ -144,6 +144,8 @@ describe('authService', () => {
             email: user.email,
             username: user.username,
             goal: user.goal,
+            initialWeight: user.initialWeight,
+            targetWeight: user.targetWeight,
             createdAt: user.createdAt,
          });
          expect(result.accessToken).toBeDefined();

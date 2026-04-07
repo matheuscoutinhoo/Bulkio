@@ -11,12 +11,12 @@ const router = Router();
 const authLimiter = process.env.NODE_ENV === 'test'
    ? (_req: any, _res: any, next: any) => next()
    : rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 10, // 10 attempts per window
-        standardHeaders: true,
-        legacyHeaders: false,
-        message: { success: false, data: null, message: 'Too many attempts, please try again later' },
-     });
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 10, // 10 attempts per window
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { success: false, data: null, message: 'Too many attempts, please try again later' },
+   });
 
 router.post('/register', authLimiter, validate(registerSchema), authController.register);
 router.post('/login', authLimiter, validate(loginSchema), authController.login);

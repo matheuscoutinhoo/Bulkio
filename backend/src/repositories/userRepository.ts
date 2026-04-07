@@ -10,6 +10,8 @@ export const userRepository = {
             username: true,
             password: true,
             goal: true,
+            initialWeight: true,
+            targetWeight: true,
             createdAt: true,
          },
       });
