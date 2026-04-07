@@ -151,41 +151,47 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                   ))}
                </div>
 
-               {/* Grid of weeks */}
+               {/* Grid of weeks — single flat grid for perfect alignment */}
                <div
                   className="grid gap-[3px]"
-                  style={{ gridTemplateColumns: `repeat(${totalWeeks}, 1fr)` }}
+                  style={{
+                     gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
+                     gridTemplateRows: 'repeat(7, 1fr)',
+                  }}
                >
-                  {weeks.map((week, wi) => (
-                     <div key={wi} className="grid grid-rows-7 gap-[3px]">
-                        {Array.from({ length: 7 }).map((_, ri) => {
-                           const day = week[ri];
-                           if (!day) return <div key={ri} className="aspect-square w-full" />;
+                  {/* Render column by column (week by week), row by row (day by day) */}
+                  {Array.from({ length: 7 }).map((_, row) =>
+                     weeks.map((week, col) => {
+                        const day = week[row];
+                        if (!day || day.date === '') {
                            return (
                               <div
-                                 key={ri}
-                                 className={`aspect-square w-full rounded-[3px] transition-colors ${
-                                    day.date === ''
-                                       ? 'bg-transparent'
-                                       : getIntensity(day.count)
-                                 }`}
-                                 onMouseEnter={(e) => {
-                                    if (!day.date) return;
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const parentRect = e.currentTarget.closest('.relative')!.getBoundingClientRect();
-                                    setHoveredDay({
-                                       date: day.date,
-                                       count: day.count,
-                                       x: rect.left - parentRect.left + rect.width / 2,
-                                       y: rect.top - parentRect.top - 4,
-                                    });
-                                 }}
-                                 onMouseLeave={() => setHoveredDay(null)}
+                                 key={`${row}-${col}`}
+                                 className="aspect-square w-full"
+                                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
                               />
                            );
-                        })}
-                     </div>
-                  ))}
+                        }
+                        return (
+                           <div
+                              key={`${row}-${col}`}
+                              className={`aspect-square w-full rounded-[3px] transition-colors ${getIntensity(day.count)}`}
+                              style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                              onMouseEnter={(e) => {
+                                 const rect = e.currentTarget.getBoundingClientRect();
+                                 const parentRect = e.currentTarget.closest('.relative')!.getBoundingClientRect();
+                                 setHoveredDay({
+                                    date: day.date,
+                                    count: day.count,
+                                    x: rect.left - parentRect.left + rect.width / 2,
+                                    y: rect.top - parentRect.top - 4,
+                                 });
+                              }}
+                              onMouseLeave={() => setHoveredDay(null)}
+                           />
+                        );
+                     }),
+                  )}
                </div>
 
                {/* Tooltip */}
