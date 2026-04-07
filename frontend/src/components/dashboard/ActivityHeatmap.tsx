@@ -20,7 +20,7 @@ interface Props {
 }
 
 function getIntensity(count: number): string {
-   if (count === 0) return 'bg-muted/50';
+   if (count === 0) return 'bg-muted-foreground/15';
    if (count === 1) return 'bg-primary/30';
    if (count === 2) return 'bg-primary/55';
    return 'bg-primary/85';
@@ -157,34 +157,33 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                   style={{ gridTemplateColumns: `repeat(${totalWeeks}, 1fr)` }}
                >
                   {weeks.map((week, wi) => (
-                     <div key={wi} className="flex flex-col gap-[3px]">
-                        {week.map((day, di) => (
-                           <div
-                              key={di}
-                              className={`aspect-square w-full rounded-[3px] transition-colors ${
-                                 day.date === ''
-                                    ? 'bg-transparent'
-                                    : day.future
-                                       ? 'bg-muted/20'
+                     <div key={wi} className="grid grid-rows-7 gap-[3px]">
+                        {Array.from({ length: 7 }).map((_, ri) => {
+                           const day = week[ri];
+                           if (!day) return <div key={ri} className="aspect-square w-full" />;
+                           return (
+                              <div
+                                 key={ri}
+                                 className={`aspect-square w-full rounded-[3px] transition-colors ${
+                                    day.date === ''
+                                       ? 'bg-transparent'
                                        : getIntensity(day.count)
-                              }`}
-                              onMouseEnter={(e) => {
-                                 if (!day.date) return;
-                                 const rect = e.currentTarget.getBoundingClientRect();
-                                 const parentRect = e.currentTarget.closest('.relative')!.getBoundingClientRect();
-                                 setHoveredDay({
-                                    date: day.date,
-                                    count: day.count,
-                                    x: rect.left - parentRect.left + rect.width / 2,
-                                    y: rect.top - parentRect.top - 4,
-                                 });
-                              }}
-                              onMouseLeave={() => setHoveredDay(null)}
-                           />
-                        ))}
-                        {week.length < 7 && Array.from({ length: 7 - week.length }).map((_, i) => (
-                           <div key={`pad-${i}`} className="aspect-square w-full" />
-                        ))}
+                                 }`}
+                                 onMouseEnter={(e) => {
+                                    if (!day.date) return;
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const parentRect = e.currentTarget.closest('.relative')!.getBoundingClientRect();
+                                    setHoveredDay({
+                                       date: day.date,
+                                       count: day.count,
+                                       x: rect.left - parentRect.left + rect.width / 2,
+                                       y: rect.top - parentRect.top - 4,
+                                    });
+                                 }}
+                                 onMouseLeave={() => setHoveredDay(null)}
+                              />
+                           );
+                        })}
                      </div>
                   ))}
                </div>
@@ -202,7 +201,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                {/* Legend */}
                <div className="flex items-center justify-end gap-1 mt-2">
                   <span className="text-[10px] text-muted-foreground mr-1">Menos</span>
-                  <div className="h-[10px] w-[10px] rounded-[2px] bg-muted/50" />
+                  <div className="h-[10px] w-[10px] rounded-[2px] bg-muted-foreground/15" />
                   <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/30" />
                   <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/55" />
                   <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/85" />
