@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Target, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -99,7 +99,7 @@ export default function BodyWeightPage() {
    const diff = latestWeight && previousWeight ? latestWeight - previousWeight : 0;
 
    return (
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                <h1 className="text-2xl sm:text-3xl font-bold">Peso Corporal</h1>
@@ -111,40 +111,56 @@ export default function BodyWeightPage() {
          </div>
 
          {/* Stats */}
-         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
-               <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground">Peso Atual</p>
-                  <p className="text-xl sm:text-2xl font-bold">{latestWeight ? `${latestWeight}kg` : '-'}</p>
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
+                  <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
+               </CardHeader>
+               <CardContent>
+                  <div className="text-xl sm:text-2xl font-bold">{latestWeight ? `${latestWeight}kg` : '-'}</div>
+                  <p className="text-xs text-muted-foreground">último registro</p>
                </CardContent>
             </Card>
             <Card>
-               <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground">Variação</p>
-                  <p className="text-xl sm:text-2xl font-bold flex items-center gap-1">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Variação</CardTitle>
+                  <ArrowUpDown className="h-4 w-4 text-blue-500 hidden sm:block" />
+               </CardHeader>
+               <CardContent>
+                  <div className="text-xl sm:text-2xl font-bold flex items-center gap-1">
                      {diff !== 0 && (
                         diff > 0
-                           ? <TrendingUp className="h-5 w-5 text-success" />
-                           : <TrendingDown className="h-5 w-5 text-destructive" />
+                           ? <TrendingUp className="h-4 w-4 text-success" />
+                           : <TrendingDown className="h-4 w-4 text-destructive" />
                      )}
                      {diff !== 0 ? `${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg` : '-'}
-                  </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">vs registro anterior</p>
                </CardContent>
             </Card>
             <Card>
-               <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground">Objetivo</p>
-                  <p className="text-lg sm:text-2xl font-bold">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Objetivo</CardTitle>
+                  <Goal className="h-4 w-4 text-orange-500 hidden sm:block" />
+               </CardHeader>
+               <CardContent>
+                  <div className="text-xl sm:text-2xl font-bold">
                      {user?.goal ? goalLabels[user.goal] || user.goal : '-'}
-                  </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">estratégia atual</p>
                </CardContent>
             </Card>
             <Card>
-               <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground">Meta</p>
-                  <p className="text-xl sm:text-2xl font-bold">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Meta</CardTitle>
+                  <Crosshair className="h-4 w-4 text-purple-500 hidden sm:block" />
+               </CardHeader>
+               <CardContent>
+                  <div className="text-xl sm:text-2xl font-bold">
                      {user?.targetWeight ? `${user.targetWeight}kg` : '-'}
-                  </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">peso alvo</p>
                </CardContent>
             </Card>
          </div>
@@ -175,7 +191,7 @@ export default function BodyWeightPage() {
          {chartData.length > 1 && (
             <Card>
                <CardHeader>
-                  <CardTitle className="text-lg">Evolução do Peso</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Evolução do Peso</CardTitle>
                </CardHeader>
                <CardContent>
                   <div className="w-full aspect-video min-h-45 max-h-75">
@@ -204,7 +220,7 @@ export default function BodyWeightPage() {
          {/* History */}
          <Card>
             <CardHeader>
-               <CardTitle className="text-lg">Histórico</CardTitle>
+               <CardTitle className="text-base sm:text-lg">Histórico</CardTitle>
             </CardHeader>
             <CardContent>
                {loading ? (

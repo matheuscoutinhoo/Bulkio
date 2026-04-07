@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { dashboardApi, type DashboardStats } from '@/services/dashboardService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Flame, Trophy, Weight, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Flame, Trophy, Dumbbell, Activity, Scale } from 'lucide-react';
 import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
    LineChart, Line, PieChart, Pie, Cell, Legend,
@@ -61,7 +61,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                  <Activity className="h-4 w-4 text-blue-500 hidden sm:block" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{stats.weeklyWorkouts.current}</div>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xs sm:text-sm font-medium">Volume Total (30d)</CardTitle>
-                  <Weight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                  <Dumbbell className="h-4 w-4 text-purple-500 hidden sm:block" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{stats.totalVolume.toLocaleString('pt-BR')}kg</div>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
-                  <Weight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                  <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">
