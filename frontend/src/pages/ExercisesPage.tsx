@@ -12,7 +12,7 @@ import { muscleGroupLabels, typeLabels, equipmentLabels, muscleGroups, types, eq
 export default function ExercisesPage() {
    const [exercises, setExercises] = useState<Exercise[]>([]);
    const [loading, setLoading] = useState(true);
-   const [filters, setFilters] = useState<ExerciseFilters>({ page: 1, limit: 50 });
+   const [filters, setFilters] = useState<ExerciseFilters>({ page: 1, limit: 51 });
    const [search, setSearch] = useState('');
    const [debouncedSearch, setDebouncedSearch] = useState('');
    const [total, setTotal] = useState(0);
@@ -28,7 +28,7 @@ export default function ExercisesPage() {
    }, [search]);
 
    const fetchExercises = useCallback(async () => {
-      setLoading(true);
+      if (exercises.length === 0) setLoading(true);
       try {
          const params: ExerciseFilters = { ...filters };
          if (debouncedSearch) params.search = debouncedSearch;
