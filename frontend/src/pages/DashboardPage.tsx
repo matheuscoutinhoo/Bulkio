@@ -92,7 +92,7 @@ export default function DashboardPage() {
                   <Weight className="h-4 w-4 text-muted-foreground" />
                </CardHeader>
                <CardContent>
-                  <div className="text-2xl font-bold">{(stats.totalVolume / 1000).toFixed(1)}t</div>
+                  <div className="text-2xl font-bold">{stats.totalVolume.toLocaleString('pt-BR')}kg</div>
                   <p className="text-xs text-muted-foreground">peso total levantado</p>
                </CardContent>
             </Card>
