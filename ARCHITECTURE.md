@@ -104,6 +104,15 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 - **Consequências (-)**: Recharts não suporta CSS vars nativamente, necessitando hook JS para cores.
 - **Status**: Ativa.
 
+### ADR-008: Testes de Integração com SQLite real + supertest
+- **Contexto**: Testes unitários não cobrem fluxo real HTTP → controller → service → repository → DB. Necessidade de validar roteamento, middlewares, serialização e queries reais.
+- **Decisão**: Testes de integração usando supertest + SQLite em arquivo temporário (`prisma/test.db`). Config separada (`vitest.integration.config.ts`). Script dedicado: `npm run test:integration`. Rate limiting desabilitado em `NODE_ENV=test`.
+- **Motivo**: Supertest já era devDependency. SQLite file DB elimina necessidade de serviço externo. Vitest config separada isola testes de integração dos unitários.
+- **Consequências (+)**: 87 testes de integração cobrindo todos os 28 endpoints (auth, exercises, workouts, workout-logs, body-weight, dashboard). Valida ownership, validação Zod, status codes e fluxo real.
+- **Consequências (-)**: Testes mais lentos (~53s vs ~3s dos unitários). Necessidade de gerenciar ciclo de vida do banco de teste (setup/teardown).
+- **Estrutura**: `src/tests/integration/setup.ts` (helpers), `*.integration.test.ts` (6 suites).
+- **Status**: Ativa.
+
 ---
 
 ## 4. Estilo Arquitetural e Estrutura do Sistema
@@ -294,13 +303,15 @@ index.css       # Theme (custom properties via @theme)
 | Unitário (controllers) | SIM | Mapeamento HTTP correto, status codes, resposta | Vitest |
 | Unitário (middlewares) | SIM | Auth, error handling, validation | Vitest |
 | Unitário (schemas) | SIM | Validação Zod correta para inputs válidos e inválidos | Vitest |
-| Integração | NÃO (pode ser adicionado) | Fluxo end-to-end com DB real | - |
+| Integração | SIM | Fluxo HTTP real com DB SQLite (supertest) | Vitest |
 | E2E | NÃO (pode ser adicionado) | Fluxos de usuário completos | - |
 
 - Cobertura mínima configurada: **80%** (statements, branches, functions, lines).
 - Testes DEVEM usar factories de `tests/helpers.ts` para criar mocks.
-- Testes DEVEM rodar sem banco de dados real (mocks via `vi.mock`).
-- Testes DEVEM ser executados com `npm run test:backend` ANTES de cada commit na branch `release`.
+- Testes unitários DEVEM rodar sem banco de dados real (mocks via `vi.mock`).
+- Testes de integração DEVEM usar `vitest.integration.config.ts` e SQLite temporário (`prisma/test.db`).
+- Testes unitários DEVEM ser executados com `npm run test:backend` ANTES de cada commit na branch `release`.
+- Testes de integração DEVEM ser executados com `cd backend && npm run test:integration`.
 
 ### Observabilidade
 | Aspecto | Implementação |

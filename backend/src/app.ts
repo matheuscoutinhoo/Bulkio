@@ -17,15 +17,17 @@ app.use(cors({
    credentials: true,
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-   windowMs: config.rateLimitWindowMs,
-   max: config.rateLimitMax,
-   standardHeaders: true,
-   legacyHeaders: false,
-   message: { success: false, data: null, message: 'Too many requests, please try again later' },
-});
-app.use(limiter);
+// Rate limiting (disabled in test environment)
+if (process.env.NODE_ENV !== 'test') {
+   const limiter = rateLimit({
+      windowMs: config.rateLimitWindowMs,
+      max: config.rateLimitMax,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { success: false, data: null, message: 'Too many requests, please try again later' },
+   });
+   app.use(limiter);
+}
 
 // Parsing
 app.use(express.json({ limit: '1mb' }));

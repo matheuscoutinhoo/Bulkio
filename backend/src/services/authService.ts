@@ -9,10 +9,10 @@ import { RegisterInput, LoginInput, UpdateProfileInput } from '../models/schemas
 import { AuthTokens, JwtPayload } from '../models/types';
 
 function generateTokens(payload: JwtPayload): AuthTokens {
-   const accessToken = jwt.sign(payload, config.jwtSecret, {
+   const accessToken = jwt.sign({ ...payload, jti: crypto.randomUUID() }, config.jwtSecret, {
       expiresIn: config.jwtAccessExpiry,
    });
-   const refreshToken = jwt.sign(payload, config.jwtRefreshSecret, {
+   const refreshToken = jwt.sign({ ...payload, jti: crypto.randomUUID() }, config.jwtRefreshSecret, {
       expiresIn: config.jwtRefreshExpiry,
    });
    return { accessToken, refreshToken };
@@ -63,6 +63,9 @@ export const authService = {
 
       const isValidPassword = await bcrypt.compare(data.password, user.password);
       if (!isValidPassword) throw new UnauthorizedError('Invalid email or password');
+
+      // Clean up old refresh tokens for this user
+      await refreshTokenRepository.deleteAllByUser(user.id);
 
       const tokens = generateTokens({ userId: user.id, email: user.email });
       await storeRefreshToken(tokens.refreshToken, user.id);

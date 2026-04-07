@@ -8,13 +8,15 @@ import { registerSchema, loginSchema, updateProfileSchema } from '../models/sche
 const router = Router();
 
 // Stricter rate limit for auth endpoints to prevent brute-force attacks
-const authLimiter = rateLimit({
-   windowMs: 15 * 60 * 1000, // 15 minutes
-   max: 10, // 10 attempts per window
-   standardHeaders: true,
-   legacyHeaders: false,
-   message: { success: false, data: null, message: 'Too many attempts, please try again later' },
-});
+const authLimiter = process.env.NODE_ENV === 'test'
+   ? (_req: any, _res: any, next: any) => next()
+   : rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 10, // 10 attempts per window
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { success: false, data: null, message: 'Too many attempts, please try again later' },
+     });
 
 router.post('/register', authLimiter, validate(registerSchema), authController.register);
 router.post('/login', authLimiter, validate(loginSchema), authController.login);

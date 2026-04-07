@@ -16,7 +16,7 @@ export const exerciseRepository = {
       if (filters.type) where.type = filters.type;
       if (filters.equipment) where.equipment = filters.equipment;
       if (filters.search) {
-         (where as Record<string, unknown>).name = { contains: filters.search, mode: 'insensitive' };
+         (where as Record<string, unknown>).name = { contains: filters.search };
       }
 
       return Promise.all([
