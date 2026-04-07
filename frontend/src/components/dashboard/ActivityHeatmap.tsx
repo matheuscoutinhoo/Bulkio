@@ -134,7 +134,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
             )}
 
             {/* Heatmap grid */}
-            <div className="relative">
+            <div className="relative overflow-x-auto">
                {/* Month labels */}
                <div
                   className="grid mb-1"
@@ -207,10 +207,10 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                {/* Legend */}
                <div className="flex items-center justify-end gap-1 mt-2">
                   <span className="text-[10px] text-muted-foreground mr-1">Menos</span>
-                  <div className="h-[10px] w-[10px] rounded-[2px] bg-muted-foreground/15" />
-                  <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/30" />
-                  <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/55" />
-                  <div className="h-[10px] w-[10px] rounded-[2px] bg-primary/85" />
+                  <div className="h-2.5 w-2.5 rounded-xs bg-muted-foreground/15" />
+                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/30" />
+                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/55" />
+                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/85" />
                   <span className="text-[10px] text-muted-foreground ml-1">Mais</span>
                </div>
             </div>

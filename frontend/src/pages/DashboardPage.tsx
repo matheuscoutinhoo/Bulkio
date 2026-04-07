@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Flame, Trophy, Weight, Activity } from 'lucide-react';
 import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-   LineChart, Line, PieChart, Pie, Cell,
+   LineChart, Line, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
@@ -50,14 +50,14 @@ export default function DashboardPage() {
    const weekDiff = stats.weeklyWorkouts.current - stats.weeklyWorkouts.previous;
 
    return (
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
          <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground text-sm sm:text-base">Visão geral do seu progresso</p>
          </div>
 
          {/* Stats cards */}
-         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
@@ -124,28 +124,30 @@ export default function DashboardPage() {
             {/* Muscle distribution */}
             <Card>
                <CardHeader>
-                  <CardTitle className="text-lg">Distribuição Muscular (30d)</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Distribuição Muscular (30d)</CardTitle>
                </CardHeader>
                <CardContent>
                   {muscleData.length > 0 ? (
-                     <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                           <Pie
-                              data={muscleData}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                              outerRadius={80}
-                              dataKey="sets"
-                           >
-                              {muscleData.map((_entry, index) => (
-                                 <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                           </Pie>
-                           <Tooltip />
-                        </PieChart>
-                     </ResponsiveContainer>
+                     <div className="w-full aspect-4/3 min-h-50 max-h-70">
+                        <ResponsiveContainer width="100%" height="100%">
+                           <PieChart>
+                              <Pie
+                                 data={muscleData}
+                                 cx="50%"
+                                 cy="50%"
+                                 outerRadius="70%"
+                                 dataKey="sets"
+                                 nameKey="name"
+                              >
+                                 {muscleData.map((_entry, index) => (
+                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                 ))}
+                              </Pie>
+                              <Tooltip />
+                              <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
+                           </PieChart>
+                        </ResponsiveContainer>
+                     </div>
                   ) : (
                      <p className="text-muted-foreground text-sm text-center py-12">Nenhum treino registrado</p>
                   )}
@@ -155,21 +157,23 @@ export default function DashboardPage() {
             {/* Body weight chart */}
             <Card>
                <CardHeader>
-                  <CardTitle className="text-lg">Evolução do Peso Corporal</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Evolução do Peso Corporal</CardTitle>
                </CardHeader>
                <CardContent>
                   {bodyWeightData.length > 0 ? (
-                     <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={bodyWeightData}>
-                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                           <XAxis dataKey="date" stroke={chart.axis} fontSize={12} />
-                           <YAxis stroke={chart.axis} fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
-                           <Tooltip
-                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }}
-                           />
-                           <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
-                        </LineChart>
-                     </ResponsiveContainer>
+                     <div className="w-full aspect-video min-h-45 max-h-75">
+                        <ResponsiveContainer width="100%" height="100%">
+                           <LineChart data={bodyWeightData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                              <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
+                              <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                              <Tooltip
+                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }}
+                              />
+                              <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
+                           </LineChart>
+                        </ResponsiveContainer>
+                     </div>
                   ) : (
                      <p className="text-muted-foreground text-sm text-center py-12">Nenhum registro de peso</p>
                   )}
@@ -181,18 +185,20 @@ export default function DashboardPage() {
          {muscleData.length > 0 && (
             <Card>
                <CardHeader>
-                  <CardTitle className="text-lg">Volume por Grupo Muscular (séries nos últimos 30d)</CardTitle>
+                  <CardTitle className="text-sm sm:text-lg">Volume por Grupo Muscular (séries nos últimos 30d)</CardTitle>
                </CardHeader>
                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                     <BarChart data={muscleData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                        <XAxis dataKey="name" stroke={chart.axis} fontSize={12} />
-                        <YAxis stroke={chart.axis} fontSize={12} />
-                        <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
-                        <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} />
-                     </BarChart>
-                  </ResponsiveContainer>
+                  <div className="w-full aspect-5/2 min-h-45 max-h-75">
+                     <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={muscleData}>
+                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                           <XAxis dataKey="name" stroke={chart.axis} fontSize={11} angle={-35} textAnchor="end" height={60} />
+                           <YAxis stroke={chart.axis} fontSize={11} />
+                           <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                           <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                     </ResponsiveContainer>
+                  </div>
                </CardContent>
             </Card>
          )}
@@ -201,7 +207,7 @@ export default function DashboardPage() {
          {stats.personalRecords.length > 0 && (
             <Card>
                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                      <Trophy className="h-5 w-5 text-yellow-500" />
                      Records Pessoais
                   </CardTitle>

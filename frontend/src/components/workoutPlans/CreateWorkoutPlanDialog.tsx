@@ -131,29 +131,29 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
                         <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
                         <span className="flex-1 text-sm font-medium truncate min-w-0">{ex.exerciseName}</span>
                         <div className="flex items-center gap-2">
-                        <Input
-                           type="number"
-                           className="w-14 sm:w-16 h-8 text-xs"
-                           value={ex.sets}
-                           onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
-                           min={1}
-                        />
-                        <span className="text-xs text-muted-foreground">×</span>
-                        <Input
-                           className="w-16 sm:w-20 h-8 text-xs"
-                           value={ex.reps}
-                           onChange={(e) => updateExercise(i, 'reps', e.target.value)}
-                           placeholder="10"
-                        />
-                        <Button
-                           type="button"
-                           variant="ghost"
-                           size="icon"
-                           className="h-8 w-8"
-                           onClick={() => removeExercise(i)}
-                        >
-                           <Trash2 className="h-3 w-3" />
-                        </Button>
+                           <Input
+                              type="number"
+                              className="w-14 sm:w-16 h-8 text-xs"
+                              value={ex.sets}
+                              onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
+                              min={1}
+                           />
+                           <span className="text-xs text-muted-foreground">×</span>
+                           <Input
+                              className="w-16 sm:w-20 h-8 text-xs"
+                              value={ex.reps}
+                              onChange={(e) => updateExercise(i, 'reps', e.target.value)}
+                              placeholder="10"
+                           />
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => removeExercise(i)}
+                           >
+                              <Trash2 className="h-3 w-3" />
+                           </Button>
                         </div>
                      </div>
                   ))}

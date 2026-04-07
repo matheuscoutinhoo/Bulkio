@@ -152,7 +152,7 @@ export default function BodyWeightPage() {
          {/* Add weight form */}
          <Card>
             <CardContent className="pt-6">
-               <form onSubmit={handleAddWeight} className="flex gap-3 items-end">
+               <form onSubmit={handleAddWeight} className="flex flex-col sm:flex-row gap-3 sm:items-end">
                   <div className="flex-1 space-y-2">
                      <Label>Registrar Peso (kg)</Label>
                      <Input
@@ -178,23 +178,25 @@ export default function BodyWeightPage() {
                   <CardTitle className="text-lg">Evolução do Peso</CardTitle>
                </CardHeader>
                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                     <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                        <XAxis dataKey="date" stroke={chart.axis} fontSize={12} />
-                        <YAxis stroke={chart.axis} fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
-                        <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
-                        <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
-                        {user?.targetWeight && (
-                           <ReferenceLine
-                              y={user.targetWeight}
-                              stroke="#22c55e"
-                              strokeDasharray="3 3"
-                              label={{ value: 'Meta', fill: '#22c55e', fontSize: 12 }}
-                           />
-                        )}
-                     </LineChart>
-                  </ResponsiveContainer>
+                  <div className="w-full aspect-video min-h-45 max-h-75">
+                     <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                           <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
+                           <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                           <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                           <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
+                           {user?.targetWeight && (
+                              <ReferenceLine
+                                 y={user.targetWeight}
+                                 stroke="#22c55e"
+                                 strokeDasharray="3 3"
+                                 label={{ value: 'Meta', fill: '#22c55e', fontSize: 12 }}
+                              />
+                           )}
+                        </LineChart>
+                     </ResponsiveContainer>
+                  </div>
                </CardContent>
             </Card>
          )}
