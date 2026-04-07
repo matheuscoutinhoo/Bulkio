@@ -95,8 +95,8 @@ export default function BodyWeightPage() {
       }));
 
    const latestWeight = records[0]?.weight;
-   const previousWeight = records[1]?.weight;
-   const diff = latestWeight && previousWeight ? latestWeight - previousWeight : 0;
+   const oldestWeight = records[records.length - 1]?.weight;
+   const diff = latestWeight && oldestWeight && records.length > 1 ? latestWeight - oldestWeight : 0;
 
    return (
       <div className="space-y-3 sm:space-y-6">
@@ -113,7 +113,7 @@ export default function BodyWeightPage() {
          {/* Stats */}
          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
                   <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
                </CardHeader>
@@ -123,7 +123,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Variação</CardTitle>
                   <ArrowUpDown className="h-4 w-4 text-blue-500 hidden sm:block" />
                </CardHeader>
@@ -136,11 +136,11 @@ export default function BodyWeightPage() {
                      )}
                      {diff !== 0 ? `${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg` : '-'}
                   </div>
-                  <p className="text-xs text-muted-foreground">vs registro anterior</p>
+                  <p className="text-xs text-muted-foreground">desde o primeiro registro</p>
                </CardContent>
             </Card>
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Objetivo</CardTitle>
                   <Goal className="h-4 w-4 text-orange-500 hidden sm:block" />
                </CardHeader>
@@ -152,7 +152,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Meta</CardTitle>
                   <Crosshair className="h-4 w-4 text-purple-500 hidden sm:block" />
                </CardHeader>

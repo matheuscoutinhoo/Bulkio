@@ -59,7 +59,7 @@ export default function DashboardPage() {
          {/* Stats cards */}
          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
                   <Activity className="h-4 w-4 text-blue-500 hidden sm:block" />
                </CardHeader>
@@ -77,7 +77,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Streak</CardTitle>
                   <Flame className="h-4 w-4 text-orange-500 hidden sm:block" />
                </CardHeader>
@@ -88,7 +88,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Volume Total (30d)</CardTitle>
                   <Dumbbell className="h-4 w-4 text-purple-500 hidden sm:block" />
                </CardHeader>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
                   <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
                </CardHeader>

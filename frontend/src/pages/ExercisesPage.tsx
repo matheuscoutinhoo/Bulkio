@@ -113,16 +113,16 @@ export default function ExercisesPage() {
                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {exercises.map((exercise) => (
                      <Card key={exercise.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setSelectedExercise(exercise)}>
-                        <CardContent className="p-4">
-                           <div className="space-y-1 min-w-0">
-                              <h3 className="font-medium text-sm truncate">{exercise.name}</h3>
-                              <div className="flex flex-wrap gap-1">
+                        <CardContent className="p-4 sm:p-5">
+                           <div className="space-y-2 min-w-0">
+                              <h3 className="font-medium text-sm sm:text-base truncate">{exercise.name}</h3>
+                              <div className="flex flex-wrap gap-1.5">
                                  <Badge variant="secondary" className="text-xs">{muscleGroupLabels[exercise.muscleGroup]}</Badge>
                                  <Badge variant="outline" className="text-xs">{typeLabels[exercise.type]}</Badge>
                                  <Badge variant="outline" className="text-xs">{equipmentLabels[exercise.equipment]}</Badge>
                               </div>
                               {exercise.description && (
-                                 <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{exercise.description}</p>
+                                 <p className="text-xs text-muted-foreground line-clamp-2">{exercise.description}</p>
                               )}
                            </div>
                         </CardContent>

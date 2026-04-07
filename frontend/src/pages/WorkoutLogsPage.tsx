@@ -61,7 +61,7 @@ export default function WorkoutLogsPage() {
             </div>
          ) : logs.length === 0 ? (
             <Card>
-               <CardContent className="py-12 text-center">
+               <CardContent className="p-5 sm:p-6 py-12 text-center">
                   <p className="text-muted-foreground">Nenhum treino registrado ainda.</p>
                   <Button className="mt-4" onClick={() => setShowCreate(true)}>
                      Registrar Primeiro Treino
