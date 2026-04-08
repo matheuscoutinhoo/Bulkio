@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { workoutPlanApi } from '@/services/workoutPlanService';
+import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService';
 import { exerciseApi, type Exercise } from '@/services/exerciseService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,9 +13,10 @@ interface CreateWorkoutPlanDialogProps {
    open: boolean;
    onClose: () => void;
    onCreated: () => void;
+   editPlan?: WorkoutPlan | null;
 }
 
-export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWorkoutPlanDialogProps) {
+export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: CreateWorkoutPlanDialogProps) {
    const [name, setName] = useState('');
    const [description, setDescription] = useState('');
    const [exercises, setExercises] = useState<
@@ -23,6 +24,8 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
    >([]);
    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
    const [submitting, setSubmitting] = useState(false);
+
+   const isEdit = !!editPlan;
 
    const resetForm = () => {
       setName('');
@@ -42,6 +45,22 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
             .catch((err) => console.error('Failed to load exercises:', err));
       }
    }, [open]);
+
+   useEffect(() => {
+      if (open && editPlan) {
+         setName(editPlan.name);
+         setDescription(editPlan.description || '');
+         setExercises(
+            editPlan.exercises.map((pe) => ({
+               exerciseId: pe.exerciseId,
+               exerciseName: pe.exercise.name,
+               sets: pe.sets,
+               reps: pe.reps,
+               restSeconds: pe.restSeconds,
+            })),
+         );
+      }
+   }, [open, editPlan]);
 
    const addExercise = (exercise: Exercise) => {
       setExercises((prev) => [
@@ -71,17 +90,27 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
       if (!name) return;
       setSubmitting(true);
       try {
-         await workoutPlanApi.create({
-            name,
-            description: description || undefined,
-            exercises: exercises.map((e, i) => ({
-               exerciseId: e.exerciseId,
-               sets: e.sets,
-               reps: e.reps,
-               restSeconds: e.restSeconds,
-               order: i,
-            })),
-         });
+         const exercisePayload = exercises.map((e, i) => ({
+            exerciseId: e.exerciseId,
+            sets: e.sets,
+            reps: e.reps,
+            restSeconds: e.restSeconds,
+            order: i,
+         }));
+
+         if (isEdit && editPlan) {
+            await workoutPlanApi.update(editPlan.id, {
+               name,
+               description: description || undefined,
+               exercises: exercisePayload,
+            });
+         } else {
+            await workoutPlanApi.create({
+               name,
+               description: description || undefined,
+               exercises: exercisePayload,
+            });
+         }
          handleClose();
          onCreated();
       } catch (err) {
@@ -94,7 +123,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
    return (
       <Dialog open={open} onClose={handleClose} className="sm:max-w-2xl">
          <DialogHeader>
-            <DialogTitle>Nova Ficha de Treino</DialogTitle>
+            <DialogTitle>{isEdit ? 'Editar Ficha de Treino' : 'Nova Ficha de Treino'}</DialogTitle>
          </DialogHeader>
          <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -163,7 +192,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated }: CreateWork
             <div className="flex justify-end gap-2 pt-2">
                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!name || submitting}>
-                  {submitting ? 'Criando...' : 'Criar Ficha'}
+                  {submitting ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Ficha'}
                </Button>
             </div>
          </form>

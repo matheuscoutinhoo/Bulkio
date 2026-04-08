@@ -3,7 +3,7 @@ import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Archive, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -12,6 +12,7 @@ export default function WorkoutPlansPage() {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
    const [loading, setLoading] = useState(true);
    const [showCreate, setShowCreate] = useState(false);
+   const [editPlan, setEditPlan] = useState<WorkoutPlan | null>(null);
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
 
@@ -98,6 +99,9 @@ export default function WorkoutPlansPage() {
                               )}
                            </div>
                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar">
+                                 <Pencil className="h-4 w-4" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar">
                                  <Copy className="h-4 w-4" />
                               </Button>
@@ -145,9 +149,10 @@ export default function WorkoutPlansPage() {
          )}
 
          <CreateWorkoutPlanDialog
-            open={showCreate}
-            onClose={() => setShowCreate(false)}
+            open={showCreate || !!editPlan}
+            onClose={() => { setShowCreate(false); setEditPlan(null); }}
             onCreated={fetchPlans}
+            editPlan={editPlan}
          />
 
          <ExerciseDetailModal
