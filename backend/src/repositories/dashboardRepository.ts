@@ -5,6 +5,7 @@ export const dashboardRepository = {
       return prisma.workoutLog.count({
          where: {
             userId,
+            isComplete: true,
             date: { gte: startDate, lte: endDate },
          },
       });
@@ -15,6 +16,7 @@ export const dashboardRepository = {
          where: {
             workoutLog: {
                userId,
+               isComplete: true,
                date: { gte: startDate, lte: endDate },
             },
          },
@@ -29,7 +31,7 @@ export const dashboardRepository = {
       return prisma.workoutLogExercise.findMany({
          where: {
             exerciseId,
-            workoutLog: { userId },
+            workoutLog: { userId, isComplete: true },
          },
          include: {
             sets: { orderBy: { setNumber: 'asc' } },
@@ -42,7 +44,7 @@ export const dashboardRepository = {
 
    getStreak(userId: string) {
       return prisma.workoutLog.findMany({
-         where: { userId },
+         where: { userId, isComplete: true },
          select: { date: true },
          orderBy: { date: 'desc' },
          distinct: ['date'],
@@ -55,6 +57,7 @@ export const dashboardRepository = {
             workoutLogExercise: {
                workoutLog: {
                   userId,
+                  isComplete: true,
                   date: { gte: startDate, lte: endDate },
                },
             },
@@ -76,6 +79,7 @@ export const dashboardRepository = {
       return prisma.workoutLog.findMany({
          where: {
             userId,
+            isComplete: true,
             date: { gte: startDate, lte: endDate },
          },
          select: { date: true },

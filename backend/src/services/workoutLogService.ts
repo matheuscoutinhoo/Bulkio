@@ -44,13 +44,15 @@ export const workoutLogService = {
 
       const log = await workoutLogRepository.create(userId, data);
 
-      const logDate = data.date ? new Date(data.date) : new Date();
-      const prPromises = data.exercises.flatMap((exercise) =>
-         exercise.sets.map((set) =>
-            this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate),
-         ),
-      );
-      await Promise.all(prPromises);
+      if (data.isComplete !== false) {
+         const logDate = data.date ? new Date(data.date) : new Date();
+         const prPromises = data.exercises.flatMap((exercise) =>
+            exercise.sets.map((set) =>
+               this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate),
+            ),
+         );
+         await Promise.all(prPromises);
+      }
 
       return log;
    },
@@ -59,13 +61,15 @@ export const workoutLogService = {
       await assertLogOwnership(userId, id);
       const log = await workoutLogRepository.update(id, data);
 
-      if (data.exercises) {
-         const logDate = data.date ? new Date(data.date) : new Date(log.date);
-         const prPromises = data.exercises.flatMap((exercise) =>
-            exercise.sets.map((set) =>
-               this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate),
-            ),
-         );
+      if (log.isComplete && (data.exercises || data.isComplete === true)) {
+         const logDate = new Date(log.date);
+         const exercises = data.exercises ?? log.exercises;
+         const prPromises = exercises.flatMap((exercise) => {
+            const exerciseId = 'exerciseId' in exercise ? exercise.exerciseId : exercise.exercise.id;
+            return exercise.sets.map((set) =>
+               this.checkAndUpdatePR(userId, exerciseId, set.weight, set.reps, logDate),
+            );
+         });
          await Promise.all(prPromises);
       }
 
