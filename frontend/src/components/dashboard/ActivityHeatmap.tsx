@@ -21,9 +21,7 @@ interface Props {
 
 function getIntensity(count: number): string {
    if (count === 0) return 'bg-muted-foreground/15';
-   if (count === 1) return 'bg-primary/30';
-   if (count === 2) return 'bg-primary/55';
-   return 'bg-primary/85';
+   return 'bg-primary/60 ring-1 ring-primary/30';
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -203,16 +201,6 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                      {formatDateLabel(hoveredDay.date)} — {hoveredDay.count} treino{hoveredDay.count !== 1 ? 's' : ''}
                   </div>
                )}
-
-               {/* Legend */}
-               <div className="flex items-center justify-end gap-1 mt-2">
-                  <span className="text-[10px] text-muted-foreground mr-1">Menos</span>
-                  <div className="h-2.5 w-2.5 rounded-xs bg-muted-foreground/15" />
-                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/30" />
-                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/55" />
-                  <div className="h-2.5 w-2.5 rounded-xs bg-primary/85" />
-                  <span className="text-[10px] text-muted-foreground ml-1">Mais</span>
-               </div>
             </div>
          </CardContent>
       </Card>

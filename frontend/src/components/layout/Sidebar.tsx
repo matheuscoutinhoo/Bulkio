@@ -18,7 +18,6 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-   { to: '/exercises', label: 'Exercícios', icon: Dumbbell },
    { to: '/workouts', label: 'Fichas', icon: ClipboardList },
    { to: '/logs', label: 'Histórico', icon: History },
    { to: '/body-weight', label: 'Peso', icon: Scale },
