@@ -183,7 +183,7 @@ export default function ProfilePage() {
                            <p className="text-base font-medium">{user?.username}</p>
                            <button
                               onClick={handleStartEditing}
-                              className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                              className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
                               title="Editar nome de usuário"
                            >
                               <Pencil className="h-3.5 w-3.5" />

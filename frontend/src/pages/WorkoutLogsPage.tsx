@@ -119,14 +119,15 @@ export default function WorkoutLogsPage() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => setEditLog(log)}
+                                    className="hover:text-primary"
                                  >
-                                    <Pencil className="h-4 w-4 text-blue-500" />
+                                    <Pencil className="h-4 w-4" />
                                  </Button>
                                  <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleDelete(log.id)}
-                                    className="text-destructive hover:text-destructive"
+                                    className="hover:text-primary"
                                  >
                                     <Trash2 className="h-4 w-4" />
                                  </Button>

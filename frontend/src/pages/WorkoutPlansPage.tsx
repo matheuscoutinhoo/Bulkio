@@ -99,14 +99,14 @@ export default function WorkoutPlansPage() {
                               )}
                            </div>
                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar">
-                                 <Pencil className="h-4 w-4 text-blue-500" />
+                              <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar" className="hover:text-primary">
+                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar">
-                                 <Copy className="h-4 w-4 text-emerald-500" />
+                              <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar" className="hover:text-primary">
+                                 <Copy className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleArchive(plan.id)} title="Arquivar">
-                                 <Archive className="h-4 w-4 text-orange-500" />
+                              <Button variant="ghost" size="icon" onClick={() => handleArchive(plan.id)} title="Arquivar" className="hover:text-primary">
+                                 <Archive className="h-4 w-4" />
                               </Button>
                            </div>
                         </div>

@@ -37,7 +37,7 @@
 .dark {
   --color-background: #09090b;
   --color-foreground: #fafafa;
-  --color-card: #0a0a0c;
+  --color-card: #141416;
   --color-card-foreground: #fafafa;
   --color-popover: #09090b;
   --color-popover-foreground: #fafafa;
@@ -58,7 +58,7 @@
   --color-warning: #eab308;
   --color-chart-grid: #27272a;
   --color-chart-axis: #a1a1aa;
-  --color-chart-tooltip-bg: #0a0a0c;
+  --color-chart-tooltip-bg: #141416;
   --color-chart-tooltip-border: #27272a;
 }
 

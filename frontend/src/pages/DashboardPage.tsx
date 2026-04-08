@@ -12,7 +12,18 @@ import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
 
-const COLORS = ['#6d28d9', '#22c55e', '#eab308', '#dc2626', '#3b82f6', '#ec4899', '#f97316', '#14b8a6', '#8b5cf6', '#06b6d4', '#a855f7', '#f43f5e', '#10b981'];
+// Purple shades: darkest → lightest (readable in both themes)
+const PURPLE_SHADES = [
+   '#4c1d95', '#5b21b6', '#6d28d9', '#7c3aed',
+   '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe',
+];
+
+function getShadeByPercent(percent: number, maxPercent: number): string {
+   if (maxPercent === 0) return PURPLE_SHADES[Math.floor(PURPLE_SHADES.length / 2)];
+   const ratio = percent / maxPercent;
+   const index = Math.round((1 - ratio) * (PURPLE_SHADES.length - 1));
+   return PURPLE_SHADES[index];
+}
 
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -37,10 +48,18 @@ export default function DashboardPage() {
 
    if (!stats) return <p className="text-muted-foreground">Erro ao carregar dashboard.</p>;
 
-   const muscleData = Object.entries(stats.muscleDistribution).map(([key, value]) => ({
+   const muscleDataRaw = Object.entries(stats.muscleDistribution).map(([key, value]) => ({
       name: muscleGroupLabels[key] || key,
       sets: value,
    }));
+   const totalSets = muscleDataRaw.reduce((sum, d) => sum + d.sets, 0);
+   const muscleData = muscleDataRaw
+      .map((d) => ({
+         ...d,
+         percent: totalSets > 0 ? Math.round((d.sets / totalSets) * 100) : 0,
+      }))
+      .sort((a, b) => b.percent - a.percent);
+   const maxPercent = muscleData.length > 0 ? muscleData[0].percent : 0;
 
    const bodyWeightData = stats.bodyWeight.history.map((bw) => ({
       date: new Date(bw.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
@@ -139,12 +158,26 @@ export default function DashboardPage() {
                                  dataKey="sets"
                                  nameKey="name"
                               >
-                                 {muscleData.map((_entry, index) => (
-                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                 {muscleData.map((entry, index) => (
+                                    <Cell key={index} fill={getShadeByPercent(entry.percent, maxPercent)} />
                                  ))}
                               </Pie>
-                              <Tooltip />
-                              <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
+                              <Tooltip content={({ active, payload }) => {
+                                 if (!active || !payload?.length) return null;
+                                 const d = payload[0].payload;
+                                 return (
+                                    <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
+                                       <p className="font-medium">{d.name}</p>
+                                       <p className="text-muted-foreground">{d.sets} séries · {d.percent}%</p>
+                                    </div>
+                                 );
+                              }} />
+                              <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }}
+                                 formatter={(value: string) => {
+                                    const item = muscleData.find((d) => d.name === value);
+                                    return <span className="text-foreground">{item ? `${value} (${item.percent}%)` : value}</span>;
+                                 }}
+                              />
                            </PieChart>
                         </ResponsiveContainer>
                      </div>

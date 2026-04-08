@@ -242,7 +242,7 @@ export default function BodyWeightPage() {
                                  {format(new Date(record.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                               </span>
                            </div>
-                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(record.id)}>
+                           <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleDelete(record.id)}>
                               <Trash2 className="h-3 w-3" />
                            </Button>
                         </div>
