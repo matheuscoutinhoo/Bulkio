@@ -196,12 +196,13 @@ export default function DashboardPage() {
                   {bodyWeightData.length > 0 ? (
                      <div className="w-full aspect-video min-h-45 max-h-75">
                         <ResponsiveContainer width="100%" height="100%">
-                           <LineChart data={bodyWeightData}>
+                           <LineChart data={bodyWeightData} accessibilityLayer>
                               <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                               <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
                               <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
                               <Tooltip
-                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }}
+                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                                 formatter={(value) => [`${value}kg`, 'Peso']}
                               />
                               <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
                            </LineChart>
@@ -223,11 +224,14 @@ export default function DashboardPage() {
                <CardContent>
                   <div className="w-full aspect-5/2 min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={muscleData}>
+                        <BarChart data={muscleData} accessibilityLayer>
                            <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                            <XAxis dataKey="name" stroke={chart.axis} fontSize={11} angle={-35} textAnchor="end" height={60} />
                            <YAxis stroke={chart.axis} fontSize={11} />
-                           <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                           <Tooltip
+                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                              formatter={(value) => [`${value} séries`, 'Volume']}
+                           />
                            <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} />
                         </BarChart>
                      </ResponsiveContainer>

@@ -196,11 +196,14 @@ export default function BodyWeightPage() {
                <CardContent>
                   <div className="w-full aspect-video min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
+                        <LineChart data={chartData} accessibilityLayer>
                            <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                            <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
                            <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
-                           <Tooltip contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}` }} />
+                           <Tooltip
+                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                              formatter={(value) => [`${value}kg`, 'Peso']}
+                           />
                            <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
                            {user?.targetWeight && (
                               <ReferenceLine
