@@ -3,7 +3,7 @@ import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -124,7 +124,7 @@ export default function WorkoutPlansPage() {
                                  >
                                     <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
                                     <div className="flex-1 min-w-0">
-                                       <p className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(pe.exercise)}>{pe.exercise.name}</p>
+                                       <p className="font-medium text-sm truncate">{pe.exercise.name}</p>
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           <span>• {pe.restSeconds}s descanso</span>
@@ -133,6 +133,14 @@ export default function WorkoutPlansPage() {
                                     <Badge variant="outline" className="text-xs w-fit">
                                        {muscleGroupLabels[pe.exercise.muscleGroup]}
                                     </Badge>
+                                    <Button
+                                       variant="ghost"
+                                       size="icon"
+                                       className="h-7 w-7 shrink-0 hover:text-primary"
+                                       onClick={() => setSelectedExercise(pe.exercise)}
+                                    >
+                                       <HelpCircle className="h-4 w-4" />
+                                    </Button>
                                  </div>
                               ))}
                               {plan.exercises.length === 0 && (

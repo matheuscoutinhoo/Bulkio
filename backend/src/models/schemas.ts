@@ -76,7 +76,7 @@ export const createWorkoutLogSchema = z.object({
    endTime: z.string().datetime().optional().nullable(),
    isComplete: z.boolean().default(false),
    notes: z.string().max(1000).optional(),
-   exercises: z.array(workoutLogExerciseSchema),
+   exercises: z.array(workoutLogExerciseSchema).default([]),
 }).refine(
    (data) => {
       if (data.startTime && data.endTime) {

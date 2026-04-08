@@ -174,6 +174,16 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               onChange={(e) => updateExercise(i, 'reps', e.target.value)}
                               placeholder="10"
                            />
+                           <span className="text-xs text-muted-foreground">•</span>
+                           <Input
+                              type="number"
+                              className="w-14 sm:w-16 h-8 text-xs"
+                              value={ex.restSeconds}
+                              onChange={(e) => updateExercise(i, 'restSeconds', parseInt(e.target.value) || 0)}
+                              min={0}
+                              max={600}
+                           />
+                           <span className="text-xs text-muted-foreground">s</span>
                            <Button
                               type="button"
                               variant="ghost"

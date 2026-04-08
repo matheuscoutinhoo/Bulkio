@@ -44,7 +44,7 @@ export const workoutLogService = {
 
       const log = await workoutLogRepository.create(userId, data);
 
-      if (data.isComplete !== false) {
+      if (data.isComplete !== false && data.exercises.length > 0) {
          const logDate = data.date ? new Date(data.date) : new Date();
          const prPromises = data.exercises.flatMap((exercise) =>
             exercise.sets.map((set) =>
