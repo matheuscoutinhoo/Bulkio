@@ -200,7 +200,7 @@ export default function ProfilePage() {
                <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs uppercase tracking-wide">Email</Label>
                   <div className="flex items-center gap-2 min-w-0">
-                     <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                     <Mail className="h-4 w-4 text-blue-500 shrink-0" />
                      <p className="text-sm sm:text-base truncate">{user?.email}</p>
                   </div>
                </div>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs uppercase tracking-wide">Membro desde</Label>
                   <div className="flex items-center gap-2">
-                     <Calendar className="h-4 w-4 text-muted-foreground" />
+                     <Calendar className="h-4 w-4 text-purple-500" />
                      <p className="text-base">{createdAt}</p>
                   </div>
                </div>
@@ -235,7 +235,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-3">
                <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 mr-2 text-orange-500" />
                   Sair da conta
                </Button>
                <Button
