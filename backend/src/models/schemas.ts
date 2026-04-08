@@ -91,6 +91,20 @@ export const updateWorkoutLogSchema = z.object({
    isComplete: z.boolean().optional(),
    notes: z.string().max(1000).optional().nullable(),
    endTime: z.string().datetime().optional().nullable(),
+   startTime: z.string().datetime().optional().nullable(),
+   date: z.string().datetime().optional(),
+   workoutPlanId: z.string().uuid().optional().nullable(),
+   exercises: z.array(z.object({
+      exerciseId: z.string().uuid(),
+      order: z.number().int().min(0),
+      notes: z.string().max(500).optional(),
+      sets: z.array(z.object({
+         setNumber: z.number().int().min(1),
+         reps: z.number().int().min(0),
+         weight: z.number().min(0),
+         notes: z.string().max(500).optional(),
+      })).min(1),
+   })).optional(),
 });
 
 // ========== BODY WEIGHT ==========

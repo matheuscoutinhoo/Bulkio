@@ -66,12 +66,32 @@ export interface WorkoutLogFilters {
    workoutPlanId?: string;
 }
 
+export interface UpdateWorkoutLogData {
+   isComplete?: boolean;
+   notes?: string | null;
+   endTime?: string | null;
+   startTime?: string | null;
+   date?: string;
+   workoutPlanId?: string | null;
+   exercises?: {
+      exerciseId: string;
+      order: number;
+      notes?: string;
+      sets: {
+         setNumber: number;
+         reps: number;
+         weight: number;
+         notes?: string;
+      }[];
+   }[];
+}
+
 export const workoutLogApi = {
    getAll: (filters?: WorkoutLogFilters) =>
       api.get('/workout-logs', { params: filters }),
    getById: (id: string) => api.get(`/workout-logs/${id}`),
    create: (data: CreateWorkoutLogData) => api.post('/workout-logs', data),
-   update: (id: string, data: { isComplete?: boolean; notes?: string | null; endTime?: string | null }) =>
+   update: (id: string, data: UpdateWorkoutLogData) =>
       api.patch(`/workout-logs/${id}`, data),
    delete: (id: string) => api.delete(`/workout-logs/${id}`),
 };

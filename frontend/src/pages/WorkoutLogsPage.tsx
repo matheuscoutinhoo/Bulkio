@@ -3,7 +3,7 @@ import { workoutLogApi, type WorkoutLog } from '@/services/workoutLogService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, Pencil } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
 import { format } from 'date-fns';
@@ -15,6 +15,7 @@ export default function WorkoutLogsPage() {
    const [loading, setLoading] = useState(true);
    const [expandedLog, setExpandedLog] = useState<string | null>(null);
    const [showCreate, setShowCreate] = useState(false);
+   const [editLog, setEditLog] = useState<WorkoutLog | null>(null);
    const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
@@ -113,14 +114,23 @@ export default function WorkoutLogsPage() {
                                     </div>
                                  </div>
                               </div>
-                              <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 onClick={() => handleDelete(log.id)}
-                                 className="text-destructive hover:text-destructive"
-                              >
-                                 <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex gap-1">
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setEditLog(log)}
+                                 >
+                                    <Pencil className="h-4 w-4" />
+                                 </Button>
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(log.id)}
+                                    className="text-destructive hover:text-destructive"
+                                 >
+                                    <Trash2 className="h-4 w-4" />
+                                 </Button>
+                              </div>
                            </div>
                         </CardHeader>
                         {expandedLog === log.id && (
@@ -179,7 +189,12 @@ export default function WorkoutLogsPage() {
             </>
          )}
 
-         <LogWorkoutDialog open={showCreate} onClose={() => setShowCreate(false)} onCreated={fetchLogs} />
+         <LogWorkoutDialog
+            open={showCreate || !!editLog}
+            onClose={() => { setShowCreate(false); setEditLog(null); }}
+            onCreated={fetchLogs}
+            editLog={editLog}
+         />
 
          <ExerciseDetailModal
             exercise={selectedExercise}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { workoutLogApi } from '@/services/workoutLogService';
+import { workoutLogApi, type WorkoutLog } from '@/services/workoutLogService';
 import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService';
 import { exerciseApi, type Exercise } from '@/services/exerciseService';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,10 @@ interface LogWorkoutDialogProps {
    open: boolean;
    onClose: () => void;
    onCreated: () => void;
+   editLog?: WorkoutLog | null;
 }
 
-export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogProps) {
+export function LogWorkoutDialog({ open, onClose, onCreated, editLog }: LogWorkoutDialogProps) {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
    const [selectedPlan, setSelectedPlan] = useState<string>('');
    const [exercises, setExercises] = useState<LogExercise[]>([]);
@@ -31,6 +32,8 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
    const [notes, setNotes] = useState('');
    const [isComplete, setIsComplete] = useState(true);
    const [submitting, setSubmitting] = useState(false);
+
+   const isEdit = !!editLog;
 
    const resetForm = () => {
       setSelectedPlan('');
@@ -52,6 +55,25 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             .catch((err) => console.error('Failed to load exercises:', err));
       }
    }, [open]);
+
+   useEffect(() => {
+      if (open && editLog) {
+         setSelectedPlan(editLog.workoutPlan?.id || '');
+         setNotes(editLog.notes || '');
+         setIsComplete(editLog.isComplete);
+         setExercises(
+            editLog.exercises.map((ex) => ({
+               exerciseId: ex.exerciseId,
+               exerciseName: ex.exercise.name,
+               sets: ex.sets.map((s) => ({
+                  setNumber: s.setNumber,
+                  reps: s.reps,
+                  weight: s.weight,
+               })),
+            })),
+         );
+      }
+   }, [open, editLog]);
 
    const loadFromPlan = (planId: string) => {
       setSelectedPlan(planId);
@@ -141,20 +163,31 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
       if (exercises.length === 0) return;
       setSubmitting(true);
       try {
-         const now = new Date().toISOString();
-         await workoutLogApi.create({
-            workoutPlanId: selectedPlan || undefined,
-            date: now,
-            startTime: now,
-            endTime: undefined,
-            isComplete,
-            notes: notes || undefined,
-            exercises: exercises.map((ex, i) => ({
-               exerciseId: ex.exerciseId,
-               order: i,
-               sets: ex.sets,
-            })),
-         });
+         const exercisePayload = exercises.map((ex, i) => ({
+            exerciseId: ex.exerciseId,
+            order: i,
+            sets: ex.sets,
+         }));
+
+         if (isEdit && editLog) {
+            await workoutLogApi.update(editLog.id, {
+               workoutPlanId: selectedPlan || null,
+               isComplete,
+               notes: notes || null,
+               exercises: exercisePayload,
+            });
+         } else {
+            const now = new Date().toISOString();
+            await workoutLogApi.create({
+               workoutPlanId: selectedPlan || undefined,
+               date: now,
+               startTime: now,
+               endTime: undefined,
+               isComplete,
+               notes: notes || undefined,
+               exercises: exercisePayload,
+            });
+         }
          handleClose();
          onCreated();
       } catch (err) {
@@ -167,7 +200,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
    return (
       <Dialog open={open} onClose={handleClose} className="sm:max-w-2xl">
          <DialogHeader>
-            <DialogTitle>Registrar Treino</DialogTitle>
+            <DialogTitle>{isEdit ? 'Editar Treino' : 'Registrar Treino'}</DialogTitle>
          </DialogHeader>
          <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
             <div className="space-y-2">
@@ -257,7 +290,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             <div className="flex justify-end gap-2 pt-2">
                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={exercises.length === 0 || submitting}>
-                  {submitting ? 'Salvando...' : 'Salvar Treino'}
+                  {submitting ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Salvar Treino'}
                </Button>
             </div>
          </form>
