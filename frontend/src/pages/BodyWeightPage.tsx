@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair, Activity } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -111,6 +111,15 @@ export default function BodyWeightPage() {
    const oldestWeight = records[records.length - 1]?.weight;
    const diff = latestWeight && oldestWeight && records.length > 1 ? latestWeight - oldestWeight : 0;
 
+   const diffDays = records.length > 1
+      ? differenceInDays(new Date(records[0].date), new Date(records[records.length - 1].date))
+      : 0;
+   const diffTimeLabel = diffDays > 0
+      ? diffDays < 30
+         ? `em ${diffDays} dia${diffDays > 1 ? 's' : ''}`
+         : `em ${Math.round(diffDays / 30)} ${Math.round(diffDays / 30) === 1 ? 'mês' : 'meses'}`
+      : '';
+
    const bmi = latestWeight && user?.height
       ? latestWeight / ((user.height / 100) ** 2)
       : null;
@@ -168,7 +177,7 @@ export default function BodyWeightPage() {
                      )}
                      {diff !== 0 ? `${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg` : '-'}
                   </div>
-                  <p className="text-xs text-muted-foreground">desde o primeiro registro</p>
+                  <p className="text-xs text-muted-foreground">{diffTimeLabel || 'desde o primeiro registro'}</p>
                </CardContent>
             </Card>
             <Card>
