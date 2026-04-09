@@ -31,10 +31,10 @@ export default function BodyWeightPage() {
    const [newWeight, setNewWeight] = useState('');
    const [showGoals, setShowGoals] = useState(false);
    const [goalForm, setGoalForm] = useState({
-      goal: user?.goal || '',
-      initialWeight: user?.initialWeight?.toString() || '',
-      targetWeight: user?.targetWeight?.toString() || '',
-      height: user?.height?.toString() || '',
+      goal: '',
+      initialWeight: '',
+      targetWeight: '',
+      height: '',
    });
 
    const fetchRecords = useCallback(async () => {
@@ -118,7 +118,15 @@ export default function BodyWeightPage() {
                <h1 className="text-2xl sm:text-3xl font-bold">Peso Corporal</h1>
                <p className="text-muted-foreground text-sm sm:text-base">Acompanhe sua evolução</p>
             </div>
-            <Button variant="outline" onClick={() => setShowGoals(true)}>
+            <Button variant="outline" onClick={() => {
+               setGoalForm({
+                  goal: user?.goal || '',
+                  initialWeight: user?.initialWeight?.toString() || records[0]?.weight?.toString() || '',
+                  targetWeight: user?.targetWeight?.toString() || '',
+                  height: user?.height?.toString() || '',
+               });
+               setShowGoals(true);
+            }}>
                <Target className="h-4 w-4 mr-2" /> Definir Meta
             </Button>
          </div>
