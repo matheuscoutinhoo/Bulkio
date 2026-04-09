@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,6 +23,7 @@ export default function WorkoutLogsPage() {
    const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
+   const [progressionExercise, setProgressionExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
 
    // Add set form state
    const [addingSetFor, setAddingSetFor] = useState<string | null>(null);
@@ -246,7 +248,10 @@ export default function WorkoutLogsPage() {
                                        <div key={logEx.id} className="p-3 rounded-lg bg-secondary/30">
                                           <div className="flex items-center justify-between mb-2">
                                              <div className="flex items-center gap-2">
-                                                <span className="font-medium text-sm">
+                                                <span
+                                                   className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                                                   onClick={() => setProgressionExercise(logEx.exercise)}
+                                                >
                                                    {logEx.exercise.name}
                                                 </span>
                                                 <Badge variant="outline" className="text-xs">
@@ -404,6 +409,12 @@ export default function WorkoutLogsPage() {
             exercise={selectedExercise}
             open={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
+         />
+
+         <ExerciseProgressionDialog
+            exercise={progressionExercise}
+            open={!!progressionExercise}
+            onClose={() => setProgressionExercise(null)}
          />
       </div>
    );

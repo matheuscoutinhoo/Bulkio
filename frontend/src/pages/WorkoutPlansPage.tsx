@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
@@ -15,6 +16,7 @@ export default function WorkoutPlansPage() {
    const [editPlan, setEditPlan] = useState<WorkoutPlan | null>(null);
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
+   const [progressionExercise, setProgressionExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
 
    const fetchPlans = useCallback(async () => {
       setLoading(true);
@@ -123,8 +125,8 @@ export default function WorkoutPlansPage() {
                                     className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg bg-secondary/30"
                                  >
                                     <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
-                                    <div className="flex-1 min-w-0">
-                                       <p className="font-medium text-sm truncate">{pe.exercise.name}</p>
+                                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProgressionExercise(pe.exercise)}>
+                                       <p className="font-medium text-sm truncate hover:text-primary transition-colors">{pe.exercise.name}</p>
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           <span>• {pe.restSeconds}s descanso</span>
@@ -167,6 +169,12 @@ export default function WorkoutPlansPage() {
             exercise={selectedExercise}
             open={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
+         />
+
+         <ExerciseProgressionDialog
+            exercise={progressionExercise}
+            open={!!progressionExercise}
+            onClose={() => setProgressionExercise(null)}
          />
       </div>
    );
