@@ -8,6 +8,7 @@ interface User {
    goal?: string | null;
    initialWeight?: number | null;
    targetWeight?: number | null;
+   height?: number | null;
 }
 
 interface AuthState {

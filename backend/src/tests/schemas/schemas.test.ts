@@ -120,6 +120,22 @@ describe('updateProfileSchema', () => {
    it('should accept nullable fields', () => {
       expect(updateProfileSchema.safeParse({ goal: null, initialWeight: null }).success).toBe(true);
    });
+
+   it('should accept valid height', () => {
+      expect(updateProfileSchema.safeParse({ height: 175 }).success).toBe(true);
+   });
+
+   it('should accept nullable height', () => {
+      expect(updateProfileSchema.safeParse({ height: null }).success).toBe(true);
+   });
+
+   it('should reject height above 300', () => {
+      expect(updateProfileSchema.safeParse({ height: 350 }).success).toBe(false);
+   });
+
+   it('should reject negative height', () => {
+      expect(updateProfileSchema.safeParse({ height: -10 }).success).toBe(false);
+   });
 });
 
 describe('workoutPlanExerciseSchema', () => {

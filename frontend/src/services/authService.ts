@@ -16,6 +16,7 @@ export interface UpdateProfileData {
    goal?: string | null;
    initialWeight?: number | null;
    targetWeight?: number | null;
+   height?: number | null;
 }
 
 export const authApi = {

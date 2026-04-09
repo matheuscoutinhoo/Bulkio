@@ -15,6 +15,7 @@ model User {
   goal           String?         // BULK, CUT, MAINTAIN
   initialWeight  Float?
   targetWeight   Float?
+  height         Float?          // Height in cm for BMI calculation
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 

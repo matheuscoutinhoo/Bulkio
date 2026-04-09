@@ -12,6 +12,7 @@ export const userRepository = {
             goal: true,
             initialWeight: true,
             targetWeight: true,
+            height: true,
             createdAt: true,
          },
       });
@@ -37,6 +38,7 @@ export const userRepository = {
             goal: true,
             initialWeight: true,
             targetWeight: true,
+            height: true,
             createdAt: true,
             updatedAt: true,
          },
@@ -47,7 +49,7 @@ export const userRepository = {
       return prisma.user.create({ data });
    },
 
-   update(id: string, data: Partial<{ username: string; goal: string | null; initialWeight: number | null; targetWeight: number | null }>) {
+   update(id: string, data: Partial<{ username: string; goal: string | null; initialWeight: number | null; targetWeight: number | null; height: number | null }>) {
       return prisma.user.update({
          where: { id },
          data,
@@ -58,6 +60,7 @@ export const userRepository = {
             goal: true,
             initialWeight: true,
             targetWeight: true,
+            height: true,
             createdAt: true,
             updatedAt: true,
          },

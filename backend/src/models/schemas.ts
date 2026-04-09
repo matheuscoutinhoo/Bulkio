@@ -29,6 +29,7 @@ export const updateProfileSchema = z.object({
    goal: z.enum(['BULK', 'CUT', 'MAINTAIN']).optional().nullable(),
    initialWeight: z.number().positive().optional().nullable(),
    targetWeight: z.number().positive().optional().nullable(),
+   height: z.number().positive().max(300).optional().nullable(),
 });
 
 // ========== WORKOUT PLAN ==========

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair } from 'lucide-react';
+import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -34,6 +34,7 @@ export default function BodyWeightPage() {
       goal: user?.goal || '',
       initialWeight: user?.initialWeight?.toString() || '',
       targetWeight: user?.targetWeight?.toString() || '',
+      height: user?.height?.toString() || '',
    });
 
    const fetchRecords = useCallback(async () => {
@@ -78,6 +79,7 @@ export default function BodyWeightPage() {
             goal: goalForm.goal || null,
             initialWeight: goalForm.initialWeight ? parseFloat(goalForm.initialWeight) : null,
             targetWeight: goalForm.targetWeight ? parseFloat(goalForm.targetWeight) : null,
+            height: goalForm.height ? parseFloat(goalForm.height) : null,
          };
          const res = await authApi.updateProfile(data);
          setUser(res.data.data);
@@ -98,6 +100,17 @@ export default function BodyWeightPage() {
    const oldestWeight = records[records.length - 1]?.weight;
    const diff = latestWeight && oldestWeight && records.length > 1 ? latestWeight - oldestWeight : 0;
 
+   const bmi = latestWeight && user?.height
+      ? latestWeight / ((user.height / 100) ** 2)
+      : null;
+
+   const getBmiLabel = (value: number) => {
+      if (value < 18.5) return { label: 'Abaixo do peso', color: 'text-warning' };
+      if (value < 25) return { label: 'Peso normal', color: 'text-success' };
+      if (value < 30) return { label: 'Sobrepeso', color: 'text-warning' };
+      return { label: 'Obesidade', color: 'text-destructive' };
+   };
+
    return (
       <div className="space-y-3 sm:space-y-6">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -111,7 +124,7 @@ export default function BodyWeightPage() {
          </div>
 
          {/* Stats */}
-         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
@@ -161,6 +174,20 @@ export default function BodyWeightPage() {
                      {user?.targetWeight ? `${user.targetWeight}kg` : '-'}
                   </div>
                   <p className="text-xs text-muted-foreground">peso alvo</p>
+               </CardContent>
+            </Card>
+            <Card>
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-xs sm:text-sm font-medium">IMC</CardTitle>
+                  <Activity className="h-4 w-4 text-cyan-500 hidden sm:block" />
+               </CardHeader>
+               <CardContent>
+                  <div className={`text-xl sm:text-2xl font-bold ${bmi ? getBmiLabel(bmi).color : ''}`}>
+                     {bmi ? bmi.toFixed(1) : '-'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                     {bmi ? getBmiLabel(bmi).label : 'defina sua altura'}
+                  </p>
                </CardContent>
             </Card>
          </div>
@@ -290,6 +317,16 @@ export default function BodyWeightPage() {
                               onChange={(e) => setGoalForm({ ...goalForm, targetWeight: e.target.value })}
                            />
                         </div>
+                     </div>
+                     <div className="space-y-2">
+                        <Label>Altura (cm)</Label>
+                        <Input
+                           type="number"
+                           step="1"
+                           placeholder="Ex: 175"
+                           value={goalForm.height}
+                           onChange={(e) => setGoalForm({ ...goalForm, height: e.target.value })}
+                        />
                      </div>
                      <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setShowGoals(false)}>Cancelar</Button>
