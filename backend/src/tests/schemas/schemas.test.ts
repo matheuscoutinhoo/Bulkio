@@ -5,12 +5,16 @@ import {
    updateProfileSchema,
    workoutPlanExerciseSchema,
    createWorkoutPlanSchema,
+   updateWorkoutPlanSchema,
    createWorkoutLogSchema,
+   updateWorkoutLogSchema,
+   workoutLogExerciseSchema,
    workoutLogSetSchema,
    createBodyWeightSchema,
    paginationSchema,
    exerciseQuerySchema,
    workoutLogQuerySchema,
+   workoutPlanQuerySchema,
 } from '../../models/schemas';
 
 describe('registerSchema', () => {
@@ -319,6 +323,221 @@ describe('workoutLogQuerySchema', () => {
       if (result.success) {
          expect(result.data.startDate).toBe('2024-01-01');
          expect(result.data.exerciseId).toBe('abc');
+      }
+   });
+});
+
+// ========== createWorkoutPlanSchema ==========
+describe('createWorkoutPlanSchema', () => {
+   it('should accept valid plan with name only', () => {
+      const result = createWorkoutPlanSchema.safeParse({ name: 'Push Day' });
+      expect(result.success).toBe(true);
+   });
+
+   it('should accept plan with description and exercises', () => {
+      const result = createWorkoutPlanSchema.safeParse({
+         name: 'Push Day',
+         description: 'Chest/shoulders/triceps',
+         exercises: [{
+            exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+            sets: 3,
+            reps: '10',
+            order: 0,
+         }],
+      });
+      expect(result.success).toBe(true);
+   });
+
+   it('should reject empty name', () => {
+      expect(createWorkoutPlanSchema.safeParse({ name: '' }).success).toBe(false);
+   });
+
+   it('should reject name > 100 characters', () => {
+      expect(createWorkoutPlanSchema.safeParse({ name: 'x'.repeat(101) }).success).toBe(false);
+   });
+
+   it('should reject description > 500 characters', () => {
+      expect(createWorkoutPlanSchema.safeParse({
+         name: 'Plan',
+         description: 'x'.repeat(501),
+      }).success).toBe(false);
+   });
+
+   it('should accept plan without exercises (optional)', () => {
+      const result = createWorkoutPlanSchema.safeParse({ name: 'Plan' });
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.exercises).toBeUndefined();
+   });
+});
+
+// ========== updateWorkoutPlanSchema ==========
+describe('updateWorkoutPlanSchema', () => {
+   it('should accept empty object (all optional)', () => {
+      expect(updateWorkoutPlanSchema.safeParse({}).success).toBe(true);
+   });
+
+   it('should accept partial fields', () => {
+      expect(updateWorkoutPlanSchema.safeParse({ name: 'New Name' }).success).toBe(true);
+   });
+
+   it('should accept nullable description', () => {
+      expect(updateWorkoutPlanSchema.safeParse({ description: null }).success).toBe(true);
+   });
+
+   it('should accept isArchived boolean', () => {
+      expect(updateWorkoutPlanSchema.safeParse({ isArchived: true }).success).toBe(true);
+   });
+
+   it('should reject isArchived non-boolean', () => {
+      expect(updateWorkoutPlanSchema.safeParse({ isArchived: 'yes' }).success).toBe(false);
+   });
+
+   it('should accept exercises array', () => {
+      const result = updateWorkoutPlanSchema.safeParse({
+         exercises: [{
+            exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+            sets: 3,
+            reps: '10',
+            order: 0,
+         }],
+      });
+      expect(result.success).toBe(true);
+   });
+
+   it('should reject invalid exercise in array', () => {
+      const result = updateWorkoutPlanSchema.safeParse({
+         exercises: [{ exerciseId: 'not-uuid', sets: 3, reps: '10', order: 0 }],
+      });
+      expect(result.success).toBe(false);
+   });
+});
+
+// ========== updateWorkoutLogSchema ==========
+describe('updateWorkoutLogSchema', () => {
+   it('should accept empty object (all optional)', () => {
+      expect(updateWorkoutLogSchema.safeParse({}).success).toBe(true);
+   });
+
+   it('should accept isComplete boolean', () => {
+      expect(updateWorkoutLogSchema.safeParse({ isComplete: true }).success).toBe(true);
+   });
+
+   it('should accept nullable notes', () => {
+      expect(updateWorkoutLogSchema.safeParse({ notes: null }).success).toBe(true);
+   });
+
+   it('should accept nullable endTime', () => {
+      expect(updateWorkoutLogSchema.safeParse({ endTime: null }).success).toBe(true);
+   });
+
+   it('should accept nullable workoutPlanId', () => {
+      expect(updateWorkoutLogSchema.safeParse({ workoutPlanId: null }).success).toBe(true);
+   });
+
+   it('should accept exercises with valid sets', () => {
+      const result = updateWorkoutLogSchema.safeParse({
+         exercises: [{
+            exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+            order: 0,
+            sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+         }],
+      });
+      expect(result.success).toBe(true);
+   });
+
+   it('should reject exercises with empty sets (min 1)', () => {
+      const result = updateWorkoutLogSchema.safeParse({
+         exercises: [{
+            exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+            order: 0,
+            sets: [],
+         }],
+      });
+      expect(result.success).toBe(false);
+   });
+
+   it('should reject exercises with invalid exerciseId', () => {
+      const result = updateWorkoutLogSchema.safeParse({
+         exercises: [{
+            exerciseId: 'not-uuid',
+            order: 0,
+            sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+         }],
+      });
+      expect(result.success).toBe(false);
+   });
+
+   it('should reject notes > 1000 characters', () => {
+      expect(updateWorkoutLogSchema.safeParse({ notes: 'x'.repeat(1001) }).success).toBe(false);
+   });
+});
+
+// ========== workoutLogExerciseSchema ==========
+describe('workoutLogExerciseSchema', () => {
+   const validSet = { setNumber: 1, reps: 10, weight: 60 };
+
+   it('should accept valid exercise entry', () => {
+      const result = workoutLogExerciseSchema.safeParse({
+         exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+         order: 0,
+         sets: [validSet],
+      });
+      expect(result.success).toBe(true);
+   });
+
+   it('should reject invalid UUID exerciseId', () => {
+      const result = workoutLogExerciseSchema.safeParse({
+         exerciseId: 'not-a-uuid',
+         order: 0,
+         sets: [validSet],
+      });
+      expect(result.success).toBe(false);
+   });
+
+   it('should reject negative order', () => {
+      const result = workoutLogExerciseSchema.safeParse({
+         exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+         order: -1,
+         sets: [validSet],
+      });
+      expect(result.success).toBe(false);
+   });
+
+   it('should reject notes > 500 characters', () => {
+      const result = workoutLogExerciseSchema.safeParse({
+         exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+         order: 0,
+         notes: 'x'.repeat(501),
+         sets: [validSet],
+      });
+      expect(result.success).toBe(false);
+   });
+
+   it('should accept optional notes', () => {
+      const result = workoutLogExerciseSchema.safeParse({
+         exerciseId: '550e8400-e29b-41d4-a716-446655440000',
+         order: 0,
+         notes: 'Focus on form',
+         sets: [validSet],
+      });
+      expect(result.success).toBe(true);
+   });
+});
+
+// ========== workoutPlanQuerySchema ==========
+describe('workoutPlanQuerySchema', () => {
+   it('should accept includeArchived string param', () => {
+      const result = workoutPlanQuerySchema.safeParse({ includeArchived: 'true' });
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.includeArchived).toBe('true');
+   });
+
+   it('should default pagination when no params', () => {
+      const result = workoutPlanQuerySchema.safeParse({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+         expect(result.data.page).toBe(1);
+         expect(result.data.limit).toBe(20);
       }
    });
 });

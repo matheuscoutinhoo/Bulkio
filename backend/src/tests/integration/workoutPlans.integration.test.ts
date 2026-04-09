@@ -252,6 +252,71 @@ describe('Workout Plans Integration', () => {
          expect(res.body.data.id).not.toBe(createRes.body.data.id);
          expect(res.body.data.exercises.length).toBe(1);
       });
+
+      it('should return 404 when duplicating non-existent plan', async () => {
+         await request(app)
+            .post('/api/v1/workouts/00000000-0000-0000-0000-000000000000/duplicate')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(404);
+      });
+
+      it('should return 403 when duplicating another user plan', async () => {
+         const createRes = await request(app)
+            .post('/api/v1/workouts')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({ name: 'Not Yours' })
+            .expect(201);
+
+         const user2 = await createAuthenticatedUser({ email: 'u2@test.com', username: 'user2' });
+
+         await request(app)
+            .post(`/api/v1/workouts/${createRes.body.data.id}/duplicate`)
+            .set('Authorization', `Bearer ${user2.accessToken}`)
+            .expect(403);
+      });
+   });
+
+   // ========== GET /workouts with includeArchived ==========
+   describe('GET /api/v1/workouts (includeArchived)', () => {
+      it('should return archived plans when includeArchived=true', async () => {
+         const createRes = await request(app)
+            .post('/api/v1/workouts')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({ name: 'Will Archive' })
+            .expect(201);
+
+         // Archive
+         await request(app)
+            .delete(`/api/v1/workouts/${createRes.body.data.id}`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+
+         // Without includeArchived
+         const res1 = await request(app)
+            .get('/api/v1/workouts')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+         expect(res1.body.data.length).toBe(0);
+
+         // With includeArchived=true
+         const res2 = await request(app)
+            .get('/api/v1/workouts?includeArchived=true')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+         expect(res2.body.data.length).toBe(1);
+         expect(res2.body.data[0].isArchived).toBe(true);
+      });
+   });
+
+   // ========== PATCH /workouts/:id (additional) ==========
+   describe('PATCH /api/v1/workouts/:id (additional)', () => {
+      it('should return 404 when updating non-existent plan', async () => {
+         await request(app)
+            .patch('/api/v1/workouts/00000000-0000-0000-0000-000000000000')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({ name: 'Ghost' })
+            .expect(404);
+      });
    });
 
    // ========== DELETE /workouts/:id (archive) ==========

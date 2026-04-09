@@ -48,6 +48,7 @@ describe('Dashboard Integration', () => {
             .post('/api/v1/workout-logs')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
+               isComplete: true,
                exercises: [
                   {
                      exerciseId: exercises[0].id,
@@ -112,6 +113,7 @@ describe('Dashboard Integration', () => {
                .post('/api/v1/workout-logs')
                .set('Authorization', `Bearer ${accessToken}`)
                .send({
+                  isComplete: true,
                   exercises: [
                      {
                         exerciseId: exercises[0].id,
@@ -165,6 +167,43 @@ describe('Dashboard Integration', () => {
          await request(app)
             .get(`/api/v1/dashboard/exercise-progression/${exercises[0].id}`)
             .expect(401);
+      });
+   });
+
+   // ========== Stats structure validation ==========
+   describe('GET /api/v1/dashboard/stats (structure)', () => {
+      it('should include yearlyActivity in stats', async () => {
+         const res = await request(app)
+            .get('/api/v1/dashboard/stats')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+
+         expect(res.body.data).toHaveProperty('yearlyActivity');
+         expect(typeof res.body.data.yearlyActivity).toBe('object');
+      });
+
+      it('should include muscleDistribution with data after workout', async () => {
+         await request(app)
+            .post('/api/v1/workout-logs')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+               isComplete: true,
+               exercises: [
+                  {
+                     exerciseId: exercises[0].id,
+                     order: 0,
+                     sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+                  },
+               ],
+            })
+            .expect(201);
+
+         const res = await request(app)
+            .get('/api/v1/dashboard/stats')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+
+         expect(Object.keys(res.body.data.muscleDistribution).length).toBeGreaterThan(0);
       });
    });
 });

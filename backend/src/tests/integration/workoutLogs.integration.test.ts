@@ -125,6 +125,7 @@ describe('Workout Logs Integration', () => {
             .post('/api/v1/workout-logs')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
+               isComplete: true,
                exercises: [
                   {
                      exerciseId: exercises[0].id,
@@ -403,6 +404,94 @@ describe('Workout Logs Integration', () => {
             .delete(`/api/v1/workout-logs/${createRes.body.data.id}`)
             .set('Authorization', `Bearer ${user2.accessToken}`)
             .expect(403);
+      });
+
+      it('should return 404 when deleting non-existent log', async () => {
+         await request(app)
+            .delete('/api/v1/workout-logs/00000000-0000-0000-0000-000000000000')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(404);
+      });
+   });
+
+   // ========== PATCH edge cases ==========
+   describe('PATCH /api/v1/workout-logs/:id (additional)', () => {
+      it('should return 404 when updating non-existent log', async () => {
+         await request(app)
+            .patch('/api/v1/workout-logs/00000000-0000-0000-0000-000000000000')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({ notes: 'test' })
+            .expect(404);
+      });
+
+      it('should update exercises in existing log', async () => {
+         const createRes = await request(app)
+            .post('/api/v1/workout-logs')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+               exercises: [
+                  {
+                     exerciseId: exercises[0].id,
+                     order: 0,
+                     sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+                  },
+               ],
+            })
+            .expect(201);
+
+         const res = await request(app)
+            .patch(`/api/v1/workout-logs/${createRes.body.data.id}`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+               exercises: [
+                  {
+                     exerciseId: exercises[1].id,
+                     order: 0,
+                     sets: [
+                        { setNumber: 1, reps: 8, weight: 100 },
+                        { setNumber: 2, reps: 6, weight: 110 },
+                     ],
+                  },
+               ],
+            })
+            .expect(200);
+
+         expect(res.body.data.exercises.length).toBe(1);
+         expect(res.body.data.exercises[0].sets.length).toBe(2);
+      });
+
+      it('should not create PRs when isComplete is false', async () => {
+         const createRes = await request(app)
+            .post('/api/v1/workout-logs')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+               isComplete: false,
+               exercises: [],
+            })
+            .expect(201);
+
+         // Add exercises but keep incomplete
+         await request(app)
+            .patch(`/api/v1/workout-logs/${createRes.body.data.id}`)
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+               exercises: [
+                  {
+                     exerciseId: exercises[0].id,
+                     order: 0,
+                     sets: [{ setNumber: 1, reps: 5, weight: 200 }],
+                  },
+               ],
+            })
+            .expect(200);
+
+         // Check PRs — should be empty since log is incomplete
+         const statsRes = await request(app)
+            .get('/api/v1/dashboard/stats')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(200);
+
+         expect(statsRes.body.data.personalRecords.length).toBe(0);
       });
    });
 });
