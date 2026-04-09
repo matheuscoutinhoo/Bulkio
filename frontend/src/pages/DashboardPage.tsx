@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Flame, Trophy, Dumbbell, Activity, Scale } from 'lucide-react';
 import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-   LineChart, Line, PieChart, Pie, Cell, Legend,
+   LineChart, Line, PieChart, Pie, Cell, Legend, Sector,
 } from 'recharts';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
@@ -157,6 +157,7 @@ export default function DashboardPage() {
                                  outerRadius="70%"
                                  dataKey="sets"
                                  nameKey="name"
+                                 activeShape={(props: any) => <Sector {...props} stroke="none" />}
                               >
                                  {muscleData.map((entry, index) => (
                                     <Cell key={index} fill={getShadeByPercent(entry.percent, maxPercent)} />
@@ -196,7 +197,7 @@ export default function DashboardPage() {
                   {bodyWeightData.length > 0 ? (
                      <div className="w-full aspect-video min-h-45 max-h-75">
                         <ResponsiveContainer width="100%" height="100%">
-                           <LineChart data={bodyWeightData} accessibilityLayer>
+                           <LineChart data={bodyWeightData}>
                               <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                               <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
                               <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
@@ -224,15 +225,16 @@ export default function DashboardPage() {
                <CardContent>
                   <div className="w-full aspect-5/2 min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={muscleData} accessibilityLayer>
+                        <BarChart data={muscleData}>
                            <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                            <XAxis dataKey="name" stroke={chart.axis} fontSize={11} angle={-35} textAnchor="end" height={60} />
                            <YAxis stroke={chart.axis} fontSize={11} />
                            <Tooltip
+                              cursor={false}
                               contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
                               formatter={(value) => [`${value} séries`, 'Volume']}
                            />
-                           <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} />
+                           <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} activeBar={false} />
                         </BarChart>
                      </ResponsiveContainer>
                   </div>

@@ -196,7 +196,7 @@ export default function BodyWeightPage() {
                <CardContent>
                   <div className="w-full aspect-video min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} accessibilityLayer>
+                        <LineChart data={chartData}>
                            <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                            <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
                            <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
