@@ -72,6 +72,11 @@ export default function BodyWeightPage() {
       }
    };
 
+   const closeGoals = () => {
+      setShowGoals(false);
+      setGoalForm({ goal: '', initialWeight: '', targetWeight: '', height: '' });
+   };
+
    const handleSaveGoals = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
@@ -83,7 +88,13 @@ export default function BodyWeightPage() {
          };
          const res = await authApi.updateProfile(data);
          setUser(res.data.data);
-         setShowGoals(false);
+
+         if (data.initialWeight && records.length === 0) {
+            await bodyWeightApi.create({ weight: data.initialWeight });
+            fetchRecords();
+         }
+
+         closeGoals();
       } catch (err) {
          console.error(err);
       }
@@ -120,9 +131,9 @@ export default function BodyWeightPage() {
             </div>
             <Button variant="outline" onClick={() => {
                setGoalForm({
-                  goal: user?.goal || '',
-                  initialWeight: user?.initialWeight?.toString() || records[0]?.weight?.toString() || '',
-                  targetWeight: user?.targetWeight?.toString() || '',
+                  goal: '',
+                  initialWeight: records[0]?.weight?.toString() || '',
+                  targetWeight: '',
                   height: user?.height?.toString() || '',
                });
                setShowGoals(true);
@@ -293,7 +304,7 @@ export default function BodyWeightPage() {
          {/* Goals Dialog */}
          {showGoals && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-               <div className="fixed inset-0 bg-black/80" onClick={() => setShowGoals(false)} />
+               <div className="fixed inset-0 bg-black/80" onClick={closeGoals} />
                <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto">
                   <h2 className="text-lg font-semibold mb-4">Definir Meta</h2>
                   <form onSubmit={handleSaveGoals} className="space-y-4">
@@ -337,7 +348,7 @@ export default function BodyWeightPage() {
                         />
                      </div>
                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setShowGoals(false)}>Cancelar</Button>
+                        <Button type="button" variant="outline" onClick={closeGoals}>Cancelar</Button>
                         <Button type="submit">Salvar</Button>
                      </div>
                   </form>
