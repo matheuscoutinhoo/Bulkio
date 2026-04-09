@@ -246,15 +246,15 @@ export default function WorkoutLogsPage() {
                                  <div className="space-y-3 mb-4">
                                     {log.exercises.map((logEx) => (
                                        <div key={logEx.id} className="p-3 rounded-lg bg-secondary/30">
-                                          <div className="flex items-center justify-between mb-2">
-                                             <div className="flex items-center gap-2">
+                                          <div className="flex items-center justify-between gap-2 mb-2">
+                                             <div className="flex items-center gap-2 min-w-0">
                                                 <span
-                                                   className="font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                                                   className="font-medium text-sm cursor-pointer hover:text-primary transition-colors truncate"
                                                    onClick={() => setProgressionExercise(logEx.exercise)}
                                                 >
                                                    {logEx.exercise.name}
                                                 </span>
-                                                <Badge variant="outline" className="text-xs">
+                                                <Badge variant="outline" className="text-xs shrink-0">
                                                    {muscleGroupLabels[logEx.exercise.muscleGroup]}
                                                 </Badge>
                                                 <Button

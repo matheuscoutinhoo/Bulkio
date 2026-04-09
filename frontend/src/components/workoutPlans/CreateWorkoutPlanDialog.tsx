@@ -159,7 +159,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                      <div key={i} className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-secondary/30">
                         <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
                         <span className="flex-1 text-sm font-medium truncate min-w-0">{ex.exerciseName}</span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                            <Input
                               type="number"
                               className="w-14 sm:w-16 h-8 text-xs"
