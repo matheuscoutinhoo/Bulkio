@@ -4,13 +4,11 @@ import { workoutPlanApi, type WorkoutPlanExercise } from '@/services/workoutPlan
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
+import { AddSetForm } from '@/components/workoutLogs/AddSetForm';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -28,10 +26,6 @@ export default function WorkoutLogsPage() {
    // Add set form state
    const [addingSetFor, setAddingSetFor] = useState<string | null>(null);
    const [planExercises, setPlanExercises] = useState<WorkoutPlanExercise[]>([]);
-   const [newSetExerciseId, setNewSetExerciseId] = useState('');
-   const [newSetReps, setNewSetReps] = useState('10');
-   const [newSetWeight, setNewSetWeight] = useState('0');
-   const [savingSet, setSavingSet] = useState(false);
 
    const fetchLogs = useCallback(async (silent = false) => {
       if (!silent) setLoading(true);
@@ -63,9 +57,6 @@ export default function WorkoutLogsPage() {
          return;
       }
       setAddingSetFor(log.id);
-      setNewSetExerciseId('');
-      setNewSetReps('10');
-      setNewSetWeight('0');
       if (log.workoutPlan) {
          try {
             const res = await workoutPlanApi.getById(log.workoutPlan.id);
@@ -77,53 +68,36 @@ export default function WorkoutLogsPage() {
       }
    };
 
-   const handleSaveSet = async (logId: string) => {
+   const handleSaveSet = async (logId: string, exerciseId: string, reps: number, weight: number) => {
       const log = logs.find((l) => l.id === logId);
-      if (!log || !newSetExerciseId) return;
-      const reps = parseInt(newSetReps) || 0;
-      const weight = parseFloat(newSetWeight) || 0;
-      setSavingSet(true);
-      try {
-         // Build updated exercises array
-         const existingExercises = log.exercises.map((ex) => ({
-            exerciseId: ex.exerciseId,
-            order: ex.order,
-            notes: ex.notes ?? undefined,
-            sets: ex.sets.map((s) => ({
-               setNumber: s.setNumber,
-               reps: s.reps,
-               weight: s.weight,
-            })),
-         }));
+      if (!log) return;
 
-         const existingExIndex = existingExercises.findIndex((e) => e.exerciseId === newSetExerciseId);
-         if (existingExIndex >= 0) {
-            // Add set to existing exercise
-            const ex = existingExercises[existingExIndex];
-            ex.sets.push({
-               setNumber: ex.sets.length + 1,
-               reps,
-               weight,
-            });
-         } else {
-            // Add new exercise entry
-            existingExercises.push({
-               exerciseId: newSetExerciseId,
-               order: existingExercises.length,
-               notes: undefined,
-               sets: [{ setNumber: 1, reps, weight }],
-            });
-         }
+      const existingExercises = log.exercises.map((ex) => ({
+         exerciseId: ex.exerciseId,
+         order: ex.order,
+         notes: ex.notes ?? undefined,
+         sets: ex.sets.map((s) => ({
+            setNumber: s.setNumber,
+            reps: s.reps,
+            weight: s.weight,
+         })),
+      }));
 
-         const res = await workoutLogApi.update(logId, { exercises: existingExercises });
-         setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
-         setNewSetReps('10');
-         setNewSetWeight('0');
-      } catch (err) {
-         console.error(err);
-      } finally {
-         setSavingSet(false);
+      const existingExIndex = existingExercises.findIndex((e) => e.exerciseId === exerciseId);
+      if (existingExIndex >= 0) {
+         const ex = existingExercises[existingExIndex];
+         ex.sets.push({ setNumber: ex.sets.length + 1, reps, weight });
+      } else {
+         existingExercises.push({
+            exerciseId,
+            order: existingExercises.length,
+            notes: undefined,
+            sets: [{ setNumber: 1, reps, weight }],
+         });
       }
+
+      const res = await workoutLogApi.update(logId, { exercises: existingExercises });
+      setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
    };
 
    const handleCompleteWorkout = async (logId: string) => {
@@ -295,60 +269,11 @@ export default function WorkoutLogsPage() {
                               {!log.isComplete ? (
                                  <div className="space-y-3">
                                     {addingSetFor === log.id ? (
-                                       <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
-                                          <div className="space-y-2">
-                                             <Label className="text-xs">Exercício</Label>
-                                             <Select
-                                                value={newSetExerciseId}
-                                                onChange={(e) => setNewSetExerciseId(e.target.value)}
-                                             >
-                                                <option value="">Selecione o exercício</option>
-                                                {planExercises.map((pe) => (
-                                                   <option key={pe.exerciseId} value={pe.exerciseId}>
-                                                      {pe.exercise.name}
-                                                   </option>
-                                                ))}
-                                             </Select>
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-3">
-                                             <div className="space-y-1">
-                                                <Label className="text-xs">Repetições</Label>
-                                                <Input
-                                                   type="number"
-                                                   value={newSetReps}
-                                                   onChange={(e) => setNewSetReps(e.target.value)}
-                                                   min={0}
-                                                />
-                                             </div>
-                                             <div className="space-y-1">
-                                                <Label className="text-xs">Carga (kg)</Label>
-                                                <Input
-                                                   type="number"
-                                                   value={newSetWeight}
-                                                   onChange={(e) => setNewSetWeight(e.target.value)}
-                                                   min={0}
-                                                   step={0.5}
-                                                />
-                                             </div>
-                                          </div>
-                                          <div className="flex gap-2">
-                                             <Button
-                                                size="sm"
-                                                className="flex-1"
-                                                onClick={() => handleSaveSet(log.id)}
-                                                disabled={!newSetExerciseId || savingSet}
-                                             >
-                                                {savingSet ? 'Salvando...' : 'Salvar Série'}
-                                             </Button>
-                                             <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => setAddingSetFor(null)}
-                                             >
-                                                Cancelar
-                                             </Button>
-                                          </div>
-                                       </div>
+                                       <AddSetForm
+                                          planExercises={planExercises}
+                                          onSave={(exerciseId, reps, weight) => handleSaveSet(log.id, exerciseId, reps, weight)}
+                                          onCancel={() => setAddingSetFor(null)}
+                                       />
                                     ) : (
                                        <div className="flex gap-2">
                                           <Button

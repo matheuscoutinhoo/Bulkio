@@ -2,6 +2,27 @@ import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
 import { CreateWorkoutPlanInput, UpdateWorkoutPlanInput } from '../models/schemas';
 
+const exercisesInclude = {
+   exercises: {
+      include: { exercise: true },
+      orderBy: { order: 'asc' as const },
+   },
+};
+
+function toExerciseCreateData(exercises: CreateWorkoutPlanInput['exercises']) {
+   if (!exercises) return undefined;
+   return {
+      create: exercises.map((e) => ({
+         exerciseId: e.exerciseId,
+         sets: e.sets,
+         reps: e.reps,
+         restSeconds: e.restSeconds,
+         order: e.order,
+         notes: e.notes,
+      })),
+   };
+}
+
 export const workoutPlanRepository = {
    findAllByUser(userId: string, includeArchived: boolean, page: number, limit: number) {
       const where: Prisma.WorkoutPlanWhereInput = { userId };
@@ -11,10 +32,7 @@ export const workoutPlanRepository = {
          prisma.workoutPlan.findMany({
             where,
             include: {
-               exercises: {
-                  include: { exercise: true },
-                  orderBy: { order: 'asc' },
-               },
+               ...exercisesInclude,
                _count: { select: { workoutLogs: true } },
             },
             skip: (page - 1) * limit,
@@ -28,12 +46,7 @@ export const workoutPlanRepository = {
    findById(id: string) {
       return prisma.workoutPlan.findUnique({
          where: { id },
-         include: {
-            exercises: {
-               include: { exercise: true },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: exercisesInclude,
       });
    },
 
@@ -43,25 +56,9 @@ export const workoutPlanRepository = {
          data: {
             ...planData,
             userId,
-            exercises: exercises
-               ? {
-                  create: exercises.map((e) => ({
-                     exerciseId: e.exerciseId,
-                     sets: e.sets,
-                     reps: e.reps,
-                     restSeconds: e.restSeconds,
-                     order: e.order,
-                     notes: e.notes,
-                  })),
-               }
-               : undefined,
+            exercises: toExerciseCreateData(exercises),
          },
-         include: {
-            exercises: {
-               include: { exercise: true },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: exercisesInclude,
       });
    },
 
@@ -75,23 +72,9 @@ export const workoutPlanRepository = {
                where: { id },
                data: {
                   ...planData,
-                  exercises: {
-                     create: exercises.map((e) => ({
-                        exerciseId: e.exerciseId,
-                        sets: e.sets,
-                        reps: e.reps,
-                        restSeconds: e.restSeconds,
-                        order: e.order,
-                        notes: e.notes,
-                     })),
-                  },
+                  exercises: toExerciseCreateData(exercises),
                },
-               include: {
-                  exercises: {
-                     include: { exercise: true },
-                     orderBy: { order: 'asc' },
-                  },
-               },
+               include: exercisesInclude,
             });
          });
       }
@@ -99,12 +82,7 @@ export const workoutPlanRepository = {
       return prisma.workoutPlan.update({
          where: { id },
          data: planData,
-         include: {
-            exercises: {
-               include: { exercise: true },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: exercisesInclude,
       });
    },
 
@@ -121,23 +99,9 @@ export const workoutPlanRepository = {
             name: `${original.name} (Copy)`,
             description: original.description,
             userId,
-            exercises: {
-               create: original.exercises.map((e) => ({
-                  exerciseId: e.exerciseId,
-                  sets: e.sets,
-                  reps: e.reps,
-                  restSeconds: e.restSeconds,
-                  order: e.order,
-                  notes: e.notes,
-               })),
-            },
+            exercises: toExerciseCreateData(original.exercises),
          },
-         include: {
-            exercises: {
-               include: { exercise: true },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: exercisesInclude,
       });
    },
 

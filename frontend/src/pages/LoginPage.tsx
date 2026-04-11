@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/services/authService';
@@ -10,13 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dumbbell, Eye, EyeOff } from 'lucide-react';
-
-const loginSchema = z.object({
-   email: z.string().email('Email inválido'),
-   password: z.string().min(1, 'Senha é obrigatória'),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginForm } from '@/lib/schemas';
 
 export default function LoginPage() {
    const navigate = useNavigate();

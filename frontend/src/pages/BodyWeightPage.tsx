@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { bodyWeightApi, type BodyWeightRecord } from '@/services/bodyWeightService';
 import { authApi, type UpdateProfileData } from '@/services/authService';
 import { useAuthStore } from '@/stores/authStore';
@@ -7,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { GoalDialog } from '@/components/bodyWeight/GoalDialog';
 import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair, Activity } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,12 +30,6 @@ export default function BodyWeightPage() {
    const [loading, setLoading] = useState(true);
    const [newWeight, setNewWeight] = useState('');
    const [showGoals, setShowGoals] = useState(false);
-   const [goalForm, setGoalForm] = useState({
-      goal: '',
-      initialWeight: '',
-      targetWeight: '',
-      height: '',
-   });
 
    const fetchRecords = useCallback(async () => {
       setLoading(true);
@@ -73,31 +66,19 @@ export default function BodyWeightPage() {
       }
    };
 
-   const closeGoals = () => {
-      setShowGoals(false);
-      setGoalForm({ goal: '', initialWeight: '', targetWeight: '', height: '' });
-   };
+   const handleSaveGoals = async (form: { goal: string; initialWeight: string; targetWeight: string; height: string }) => {
+      const data: UpdateProfileData = {
+         goal: form.goal || null,
+         initialWeight: form.initialWeight ? parseFloat(form.initialWeight) : null,
+         targetWeight: form.targetWeight ? parseFloat(form.targetWeight) : null,
+         height: form.height ? parseFloat(form.height) : null,
+      };
+      const res = await authApi.updateProfile(data);
+      setUser(res.data.data);
 
-   const handleSaveGoals = async (e: React.FormEvent) => {
-      e.preventDefault();
-      try {
-         const data: UpdateProfileData = {
-            goal: goalForm.goal || null,
-            initialWeight: goalForm.initialWeight ? parseFloat(goalForm.initialWeight) : null,
-            targetWeight: goalForm.targetWeight ? parseFloat(goalForm.targetWeight) : null,
-            height: goalForm.height ? parseFloat(goalForm.height) : null,
-         };
-         const res = await authApi.updateProfile(data);
-         setUser(res.data.data);
-
-         if (data.initialWeight && records.length === 0) {
-            await bodyWeightApi.create({ weight: data.initialWeight });
-            fetchRecords();
-         }
-
-         closeGoals();
-      } catch (err) {
-         console.error(err);
+      if (data.initialWeight && records.length === 0) {
+         await bodyWeightApi.create({ weight: data.initialWeight });
+         fetchRecords();
       }
    };
 
@@ -139,15 +120,7 @@ export default function BodyWeightPage() {
                <h1 className="text-2xl sm:text-3xl font-bold">Peso Corporal</h1>
                <p className="text-muted-foreground text-sm sm:text-base">Acompanhe sua evolução</p>
             </div>
-            <Button variant="outline" onClick={() => {
-               setGoalForm({
-                  goal: '',
-                  initialWeight: records[0]?.weight?.toString() || '',
-                  targetWeight: '',
-                  height: user?.height?.toString() || '',
-               });
-               setShowGoals(true);
-            }}>
+            <Button variant="outline" onClick={() => setShowGoals(true)}>
                <Target className="h-4 w-4 mr-2" /> Definir Meta
             </Button>
          </div>
@@ -311,61 +284,13 @@ export default function BodyWeightPage() {
             </CardContent>
          </Card>
 
-         {/* Goals Dialog */}
-         {showGoals && createPortal(
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-               <div className="fixed inset-0 bg-black/80 animate-fade-in" onClick={closeGoals} />
-               <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto animate-scale-in">
-                  <h2 className="text-lg font-semibold mb-4">Definir Meta</h2>
-                  <form onSubmit={handleSaveGoals} className="space-y-4">
-                     <div className="space-y-2">
-                        <Label>Objetivo</Label>
-                        <Select value={goalForm.goal} onChange={(e) => setGoalForm({ ...goalForm, goal: e.target.value })}>
-                           <option value="">Selecione</option>
-                           <option value="BULK">Ganho de Massa</option>
-                           <option value="CUT">Perda de Gordura</option>
-                           <option value="MAINTAIN">Manutenção</option>
-                        </Select>
-                     </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                           <Label>Peso Inicial (kg)</Label>
-                           <Input
-                              type="number"
-                              step="0.1"
-                              value={goalForm.initialWeight}
-                              onChange={(e) => setGoalForm({ ...goalForm, initialWeight: e.target.value })}
-                           />
-                        </div>
-                        <div className="space-y-2">
-                           <Label>Peso Alvo (kg)</Label>
-                           <Input
-                              type="number"
-                              step="0.1"
-                              value={goalForm.targetWeight}
-                              onChange={(e) => setGoalForm({ ...goalForm, targetWeight: e.target.value })}
-                           />
-                        </div>
-                     </div>
-                     <div className="space-y-2">
-                        <Label>Altura (cm)</Label>
-                        <Input
-                           type="number"
-                           step="1"
-                           placeholder="Ex: 175"
-                           value={goalForm.height}
-                           onChange={(e) => setGoalForm({ ...goalForm, height: e.target.value })}
-                        />
-                     </div>
-                     <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={closeGoals}>Cancelar</Button>
-                        <Button type="submit">Salvar</Button>
-                     </div>
-                  </form>
-               </div>
-            </div>,
-            document.body
-         )}
+         <GoalDialog
+            open={showGoals}
+            onClose={() => setShowGoals(false)}
+            onSave={handleSaveGoals}
+            defaultValues={user}
+            latestWeight={records[0]?.weight}
+         />
       </div>
    );
 }

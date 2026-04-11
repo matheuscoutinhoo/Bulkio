@@ -1,6 +1,6 @@
 import { workoutLogRepository } from '../repositories/workoutLogRepository';
 import { workoutPlanRepository } from '../repositories/workoutPlanRepository';
-import { personalRecordRepository } from '../repositories/personalRecordRepository';
+import { personalRecordService } from './personalRecordService';
 import { CreateWorkoutLogInput, UpdateWorkoutLogInput } from '../models/schemas';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
 
@@ -46,12 +46,7 @@ export const workoutLogService = {
 
       if (data.isComplete !== false && data.exercises.length > 0) {
          const logDate = data.date ? new Date(data.date) : new Date();
-         const prPromises = data.exercises.flatMap((exercise) =>
-            exercise.sets.map((set) =>
-               this.checkAndUpdatePR(userId, exercise.exerciseId, set.weight, set.reps, logDate),
-            ),
-         );
-         await Promise.all(prPromises);
+         await personalRecordService.updateFromExercises(userId, data.exercises, logDate);
       }
 
       return log;
@@ -63,14 +58,11 @@ export const workoutLogService = {
 
       if (log.isComplete && (data.exercises || data.isComplete === true)) {
          const logDate = new Date(log.date);
-         const exercises = data.exercises ?? log.exercises;
-         const prPromises = exercises.flatMap((exercise) => {
-            const exerciseId = 'exerciseId' in exercise ? exercise.exerciseId : exercise.exercise.id;
-            return exercise.sets.map((set) =>
-               this.checkAndUpdatePR(userId, exerciseId, set.weight, set.reps, logDate),
-            );
-         });
-         await Promise.all(prPromises);
+         const exercises = (data.exercises ?? log.exercises).map((exercise) => ({
+            exerciseId: 'exerciseId' in exercise ? exercise.exerciseId : exercise.exercise.id,
+            sets: exercise.sets,
+         }));
+         await personalRecordService.updateFromExercises(userId, exercises, logDate);
       }
 
       return log;
@@ -79,16 +71,5 @@ export const workoutLogService = {
    async delete(userId: string, id: string) {
       await assertLogOwnership(userId, id);
       return workoutLogRepository.delete(id);
-   },
-
-   async checkAndUpdatePR(userId: string, exerciseId: string, weight: number, reps: number, date?: Date) {
-      if (weight <= 0) return;
-
-      const currentPR = await personalRecordRepository.findByUserAndExercise(userId, exerciseId);
-
-      // Update PR if new weight is higher, or same weight with more reps
-      if (!currentPR || weight > currentPR.weight || (weight === currentPR.weight && reps > currentPR.reps)) {
-         await personalRecordRepository.upsert(userId, exerciseId, weight, reps, date ?? new Date());
-      }
    },
 };

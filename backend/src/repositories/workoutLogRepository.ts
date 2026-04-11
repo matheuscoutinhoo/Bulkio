@@ -2,6 +2,17 @@ import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
 import { CreateWorkoutLogInput, UpdateWorkoutLogInput } from '../models/schemas';
 
+const logInclude = {
+   workoutPlan: { select: { id: true, name: true } },
+   exercises: {
+      include: {
+         exercise: true,
+         sets: { orderBy: { setNumber: 'asc' as const } },
+      },
+      orderBy: { order: 'asc' as const },
+   },
+};
+
 export const workoutLogRepository = {
    findAllByUser(
       userId: string,
@@ -43,16 +54,7 @@ export const workoutLogRepository = {
       return Promise.all([
          prisma.workoutLog.findMany({
             where,
-            include: {
-               workoutPlan: { select: { id: true, name: true } },
-               exercises: {
-                  include: {
-                     exercise: true,
-                     sets: { orderBy: { setNumber: 'asc' } },
-                  },
-                  orderBy: { order: 'asc' },
-               },
-            },
+            include: logInclude,
             skip: (filters.page - 1) * filters.limit,
             take: filters.limit,
             orderBy: { date: 'desc' },
@@ -64,16 +66,7 @@ export const workoutLogRepository = {
    findById(id: string) {
       return prisma.workoutLog.findUnique({
          where: { id },
-         include: {
-            workoutPlan: { select: { id: true, name: true } },
-            exercises: {
-               include: {
-                  exercise: true,
-                  sets: { orderBy: { setNumber: 'asc' } },
-               },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: logInclude,
       });
    },
 
@@ -102,16 +95,7 @@ export const workoutLogRepository = {
                })),
             },
          },
-         include: {
-            workoutPlan: { select: { id: true, name: true } },
-            exercises: {
-               include: {
-                  exercise: true,
-                  sets: { orderBy: { setNumber: 'asc' } },
-               },
-               orderBy: { order: 'asc' },
-            },
-         },
+         include: logInclude,
       });
    },
 
@@ -152,16 +136,7 @@ export const workoutLogRepository = {
                ...(logFields.endTime !== undefined && { endTime: logFields.endTime ? new Date(logFields.endTime) : null }),
                ...(logFields.workoutPlanId !== undefined && { workoutPlanId: logFields.workoutPlanId }),
             },
-            include: {
-               workoutPlan: { select: { id: true, name: true } },
-               exercises: {
-                  include: {
-                     exercise: true,
-                     sets: { orderBy: { setNumber: 'asc' } },
-                  },
-                  orderBy: { order: 'asc' },
-               },
-            },
+            include: logInclude,
          });
       });
    },

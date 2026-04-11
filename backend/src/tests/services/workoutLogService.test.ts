@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { workoutLogService } from '../../services/workoutLogService';
 import { NotFoundError, ForbiddenError } from '../../utils/errors';
-import { createMockWorkoutLog, createMockWorkoutPlan, createMockPR } from '../helpers';
+import { createMockWorkoutLog, createMockWorkoutPlan } from '../helpers';
 
 vi.mock('../../repositories/workoutLogRepository', () => ({
    workoutLogRepository: {
@@ -13,10 +13,9 @@ vi.mock('../../repositories/workoutLogRepository', () => ({
    },
 }));
 
-vi.mock('../../repositories/personalRecordRepository', () => ({
-   personalRecordRepository: {
-      findByUserAndExercise: vi.fn(),
-      upsert: vi.fn(),
+vi.mock('../../services/personalRecordService', () => ({
+   personalRecordService: {
+      updateFromExercises: vi.fn(),
    },
 }));
 
@@ -27,11 +26,11 @@ vi.mock('../../repositories/workoutPlanRepository', () => ({
 }));
 
 import { workoutLogRepository } from '../../repositories/workoutLogRepository';
-import { personalRecordRepository } from '../../repositories/personalRecordRepository';
+import { personalRecordService } from '../../services/personalRecordService';
 import { workoutPlanRepository } from '../../repositories/workoutPlanRepository';
 
 const mockLogRepo = vi.mocked(workoutLogRepository);
-const mockPRRepo = vi.mocked(personalRecordRepository);
+const mockPRService = vi.mocked(personalRecordService);
 const mockPlanRepo = vi.mocked(workoutPlanRepository);
 
 describe('workoutLogService', () => {
@@ -90,8 +89,7 @@ describe('workoutLogService', () => {
       it('should create a workout log without workoutPlanId', async () => {
          const log = createMockWorkoutLog();
          mockLogRepo.create.mockResolvedValue(log as any);
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
+         mockPRService.updateFromExercises.mockResolvedValue(undefined);
 
          const result = await workoutLogService.create('user-1', validInput as any);
 
@@ -103,8 +101,7 @@ describe('workoutLogService', () => {
          const plan = createMockWorkoutPlan({ userId: 'user-1' });
          mockPlanRepo.findById.mockResolvedValue(plan as any);
          mockLogRepo.create.mockResolvedValue(createMockWorkoutLog() as any);
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
+         mockPRService.updateFromExercises.mockResolvedValue(undefined);
 
          await expect(
             workoutLogService.create('user-1', { ...validInput, workoutPlanId: 'plan-1' } as any),
@@ -139,7 +136,7 @@ describe('workoutLogService', () => {
          ).rejects.toThrow(/archived/);
       });
 
-      it('should call checkAndUpdatePR for every set of every exercise', async () => {
+      it('should call personalRecordService.updateFromExercises for every exercise', async () => {
          const inputMulti = {
             exercises: [
                {
@@ -156,13 +153,16 @@ describe('workoutLogService', () => {
             ],
          };
          mockLogRepo.create.mockResolvedValue(createMockWorkoutLog() as any);
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
+         mockPRService.updateFromExercises.mockResolvedValue(undefined);
 
          await workoutLogService.create('user-1', inputMulti as any);
 
-         // 3 sets total → 3 PR checks
-         expect(mockPRRepo.findByUserAndExercise).toHaveBeenCalledTimes(3);
+         expect(mockPRService.updateFromExercises).toHaveBeenCalledTimes(1);
+         expect(mockPRService.updateFromExercises).toHaveBeenCalledWith(
+            'user-1',
+            inputMulti.exercises,
+            expect.any(Date),
+         );
       });
 
       it('should use data.date as PR date when provided', async () => {
@@ -171,13 +171,13 @@ describe('workoutLogService', () => {
             date: '2024-06-15T10:00:00.000Z',
          };
          mockLogRepo.create.mockResolvedValue(createMockWorkoutLog() as any);
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
+         mockPRService.updateFromExercises.mockResolvedValue(undefined);
 
          await workoutLogService.create('user-1', inputWithDate as any);
 
-         expect(mockPRRepo.upsert).toHaveBeenCalledWith(
-            'user-1', 'ex-1', 60, 10,
+         expect(mockPRService.updateFromExercises).toHaveBeenCalledWith(
+            'user-1',
+            inputWithDate.exercises,
             new Date('2024-06-15T10:00:00.000Z'),
          );
       });
@@ -235,92 +235,6 @@ describe('workoutLogService', () => {
          );
 
          await expect(workoutLogService.delete('user-1', 'log-1')).rejects.toThrow('Forbidden');
-      });
-   });
-
-   // ========== checkAndUpdatePR ==========
-   describe('checkAndUpdatePR', () => {
-      it('should do nothing when weight is 0', async () => {
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 0, 10);
-
-         expect(mockPRRepo.findByUserAndExercise).not.toHaveBeenCalled();
-      });
-
-      it('should do nothing when weight is negative', async () => {
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', -5, 10);
-
-         expect(mockPRRepo.findByUserAndExercise).not.toHaveBeenCalled();
-      });
-
-      it('should create a new PR when no current PR exists', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 5);
-
-         expect(mockPRRepo.upsert).toHaveBeenCalledWith('user-1', 'ex-1', 100, 5, expect.any(Date));
-      });
-
-      it('should update PR when new weight is higher', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(
-            createMockPR({ weight: 80, reps: 5 }) as any,
-         );
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 5);
-
-         expect(mockPRRepo.upsert).toHaveBeenCalled();
-      });
-
-      it('should update PR when same weight but higher reps', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(
-            createMockPR({ weight: 100, reps: 5 }) as any,
-         );
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 8);
-
-         expect(mockPRRepo.upsert).toHaveBeenCalled();
-      });
-
-      it('should NOT update PR when weight is lower', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(
-            createMockPR({ weight: 100, reps: 5 }) as any,
-         );
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 80, 10);
-
-         expect(mockPRRepo.upsert).not.toHaveBeenCalled();
-      });
-
-      it('should NOT update PR when same weight and equal reps', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(
-            createMockPR({ weight: 100, reps: 5 }) as any,
-         );
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 5);
-
-         expect(mockPRRepo.upsert).not.toHaveBeenCalled();
-      });
-
-      it('should NOT update PR when same weight and fewer reps', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(
-            createMockPR({ weight: 100, reps: 5 }) as any,
-         );
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 3);
-
-         expect(mockPRRepo.upsert).not.toHaveBeenCalled();
-      });
-
-      it('should use provided date parameter', async () => {
-         mockPRRepo.findByUserAndExercise.mockResolvedValue(null);
-         mockPRRepo.upsert.mockResolvedValue(undefined as any);
-         const specificDate = new Date('2024-03-15');
-
-         await workoutLogService.checkAndUpdatePR('user-1', 'ex-1', 100, 5, specificDate);
-
-         expect(mockPRRepo.upsert).toHaveBeenCalledWith('user-1', 'ex-1', 100, 5, specificDate);
       });
    });
 });

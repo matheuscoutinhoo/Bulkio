@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/services/authService';
@@ -10,22 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dumbbell, Eye, EyeOff } from 'lucide-react';
-
-const registerSchema = z.object({
-   username: z
-      .string()
-      .min(3, 'Mínimo 3 caracteres')
-      .max(30, 'Máximo 30 caracteres')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Apenas letras, números e _'),
-   email: z.string().email('Email inválido'),
-   password: z.string().min(8, 'Mínimo 8 caracteres'),
-   confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-   message: 'As senhas não conferem',
-   path: ['confirmPassword'],
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
+import { registerSchema, type RegisterForm } from '@/lib/schemas';
 
 export default function RegisterPage() {
    const navigate = useNavigate();

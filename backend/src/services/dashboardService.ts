@@ -1,6 +1,7 @@
 import { dashboardRepository } from '../repositories/dashboardRepository';
 import { personalRecordRepository } from '../repositories/personalRecordRepository';
 import { userRepository } from '../repositories/userRepository';
+import { calculateStreak } from '../utils/streakCalculator';
 
 function getWeekBounds(weeksAgo: number = 0): { start: Date; end: Date } {
    const now = new Date();
@@ -54,43 +55,8 @@ export const dashboardService = {
          muscleDistribution[group] = (muscleDistribution[group] || 0) + sets;
       }
 
-      // Calculate streak — deduplicate by calendar date first
-      let currentStreak = 0;
-      if (streak.length > 0) {
-         const today = new Date();
-         today.setHours(0, 0, 0, 0);
-
-         const uniqueDates: number[] = [];
-         for (const s of streak) {
-            const d = new Date(s.date);
-            d.setHours(0, 0, 0, 0);
-            const t = d.getTime();
-            if (uniqueDates.length === 0 || uniqueDates[uniqueDates.length - 1] !== t) {
-               uniqueDates.push(t);
-            }
-         }
-
-         // Determine the anchor: today or yesterday
-         let anchor = today.getTime();
-         if (uniqueDates[0] !== anchor) {
-            const yesterday = today.getTime() - 86400000;
-            if (uniqueDates[0] === yesterday) {
-               anchor = yesterday;
-            } else {
-               // Most recent workout is older than yesterday — no streak
-               uniqueDates.length = 0;
-            }
-         }
-
-         for (let i = 0; i < uniqueDates.length; i++) {
-            const expectedDate = anchor - i * 86400000;
-            if (uniqueDates[i] === expectedDate) {
-               currentStreak++;
-            } else {
-               break;
-            }
-         }
-      }
+      // Calculate streak
+      const currentStreak = calculateStreak(streak.map(s => s.date));
 
       // Calculate total volume
       const totalVolume = volumeData.reduce((sum, set) => sum + set.reps * set.weight, 0);
