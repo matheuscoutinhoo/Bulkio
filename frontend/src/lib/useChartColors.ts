@@ -1,19 +1,27 @@
 import { useThemeStore } from '@/stores/themeStore';
 
 const light = {
-   grid: '#ddd8e8',
-   axis: '#65607a',
+   grid: '#e8e5f0',
+   axis: '#78717f',
    tooltipBg: '#ffffff',
-   tooltipBorder: '#ddd8e8',
+   tooltipBorder: '#e8e5f0',
    primary: '#7c3aed',
+   secondary: '#a78bfa',
+   gradientFrom: '#c4b5fd',
+   gradientTo: '#44404d',
+   gradientFromSecondary: '#ddd6fe',
 };
 
 const dark = {
-   grid: '#27272a',
+   grid: '#1e1e24',
    axis: '#a1a1aa',
    tooltipBg: '#0a0a0c',
    tooltipBorder: '#27272a',
-   primary: '#6d28d9',
+   primary: '#a78bfa',
+   secondary: '#c4b5fd',
+   gradientFrom: '#8b5cf6',
+   gradientTo: '#0c0c0e',
+   gradientFromSecondary: '#c4b5fd',
 };
 
 export function useChartColors() {

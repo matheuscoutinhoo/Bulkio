@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Flame, Trophy, Dumbbell, Activity, Scale } from 'lucide-react';
 import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-   LineChart, Line, PieChart, Pie, Cell, Legend, Sector,
+   AreaChart, Area, PieChart, Pie, Cell, Legend, Sector,
 } from 'recharts';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
@@ -176,7 +176,9 @@ export default function DashboardPage() {
                                  data={muscleData}
                                  cx="50%"
                                  cy="50%"
+                                 innerRadius="40%"
                                  outerRadius="70%"
+                                 paddingAngle={2}
                                  dataKey="sets"
                                  nameKey="name"
                                  activeShape={(props: any) => <Sector {...props} stroke="none" />}
@@ -189,7 +191,7 @@ export default function DashboardPage() {
                                  if (!active || !payload?.length) return null;
                                  const d = payload[0].payload;
                                  return (
-                                    <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
+                                    <div className="rounded-xl border bg-background px-3 py-2.5 text-sm shadow-md">
                                        <p className="font-medium">{d.name}</p>
                                        <p className="text-muted-foreground">{d.sets} séries · {d.percent}%</p>
                                     </div>
@@ -219,16 +221,23 @@ export default function DashboardPage() {
                   {bodyWeightData.length > 0 ? (
                      <div className="w-full aspect-video min-h-45 max-h-75">
                         <ResponsiveContainer width="100%" height="100%">
-                           <LineChart data={bodyWeightData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                              <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
-                              <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                           <AreaChart data={bodyWeightData}>
+                              <defs>
+                                 <linearGradient id="gradDashWeight" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.8} />
+                                    <stop offset="45%" stopColor={chart.primary} stopOpacity={0.25} />
+                                    <stop offset="100%" stopColor={chart.gradientTo} stopOpacity={0.6} />
+                                 </linearGradient>
+                              </defs>
+                              <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
+                              <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                              <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
                               <Tooltip
-                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                                  formatter={(value) => [`${value}kg`, 'Peso']}
                               />
-                              <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
-                           </LineChart>
+                              <Area type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
+                           </AreaChart>
                         </ResponsiveContainer>
                      </div>
                   ) : (
@@ -248,15 +257,21 @@ export default function DashboardPage() {
                   <div className="w-full aspect-5/2 min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={muscleData}>
-                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                           <XAxis dataKey="name" stroke={chart.axis} fontSize={11} angle={-35} textAnchor="end" height={60} />
-                           <YAxis stroke={chart.axis} fontSize={11} />
+                           <defs>
+                              <linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.9} />
+                                 <stop offset="100%" stopColor={chart.primary} stopOpacity={0.8} />
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
+                           <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={60} />
+                           <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                            <Tooltip
-                              cursor={false}
-                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                              cursor={{ fill: chart.grid, opacity: 0.3 }}
+                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                               formatter={(value) => [`${value} séries`, 'Volume']}
                            />
-                           <Bar dataKey="sets" fill={chart.primary} radius={[4, 4, 0, 0]} activeBar={false} />
+                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} activeBar={false} />
                         </BarChart>
                      </ResponsiveContainer>
                   </div>

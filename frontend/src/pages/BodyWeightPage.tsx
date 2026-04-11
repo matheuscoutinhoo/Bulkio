@@ -12,7 +12,7 @@ import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goa
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
    ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 import { useChartColors } from '@/lib/useChartColors';
@@ -225,24 +225,31 @@ export default function BodyWeightPage() {
                <CardContent>
                   <div className="w-full aspect-video min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                           <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                           <XAxis dataKey="date" stroke={chart.axis} fontSize={11} />
-                           <YAxis stroke={chart.axis} fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
+                        <AreaChart data={chartData}>
+                           <defs>
+                              <linearGradient id="gradBodyWeight" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.8} />
+                                 <stop offset="45%" stopColor={chart.primary} stopOpacity={0.25} />
+                                 <stop offset="100%" stopColor={chart.gradientTo} stopOpacity={0.6} />
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
+                           <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                           <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
                            <Tooltip
-                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '8px', fontSize: '13px' }}
+                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                               formatter={(value) => [`${value}kg`, 'Peso']}
                            />
-                           <Line type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} dot={{ fill: chart.primary }} />
+                           <Area type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradBodyWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
                            {user?.targetWeight && (
                               <ReferenceLine
                                  y={user.targetWeight}
                                  stroke="#22c55e"
-                                 strokeDasharray="3 3"
+                                 strokeDasharray="6 4"
                                  label={{ value: 'Meta', fill: '#22c55e', fontSize: 12 }}
                               />
                            )}
-                        </LineChart>
+                        </AreaChart>
                      </ResponsiveContainer>
                   </div>
                </CardContent>

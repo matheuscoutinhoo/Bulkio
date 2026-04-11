@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import {
-   LineChart,
-   Line,
+   AreaChart,
+   Area,
    XAxis,
    YAxis,
    CartesianGrid,
@@ -175,18 +175,25 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                   <h3 className="text-sm font-medium mb-2">Evolução de Carga Máxima</h3>
                   <div className="aspect-video w-full">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                           <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+                        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                           <defs>
+                              <linearGradient id="gradMaxWeight" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="0%" stopColor={colors.gradientFrom} stopOpacity={0.8} />
+                                 <stop offset="45%" stopColor={colors.primary} stopOpacity={0.25} />
+                                 <stop offset="100%" stopColor={colors.gradientTo} stopOpacity={0.6} />
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid horizontal={true} vertical={false} stroke={colors.grid} strokeOpacity={0.6} />
                            <XAxis
                               dataKey="date"
                               tick={{ fill: colors.axis, fontSize: 11 }}
-                              tickLine={{ stroke: colors.grid }}
-                              axisLine={{ stroke: colors.grid }}
+                              axisLine={false}
+                              tickLine={false}
                            />
                            <YAxis
                               tick={{ fill: colors.axis, fontSize: 11 }}
-                              tickLine={{ stroke: colors.grid }}
-                              axisLine={{ stroke: colors.grid }}
+                              axisLine={false}
+                              tickLine={false}
                               unit="kg"
                               width={50}
                            />
@@ -194,8 +201,9 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               contentStyle={{
                                  backgroundColor: colors.tooltipBg,
                                  borderColor: colors.tooltipBorder,
-                                 borderRadius: 8,
+                                 borderRadius: 10,
                                  fontSize: 12,
+                                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                               }}
                               formatter={(value) => [`${value}kg`, 'Carga máx.']}
                               labelFormatter={(_label, payload) => {
@@ -203,15 +211,16 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                                  return _label;
                               }}
                            />
-                           <Line
+                           <Area
                               type="monotone"
                               dataKey="maxWeight"
                               stroke={colors.primary}
-                              strokeWidth={2.5}
-                              dot={{ fill: colors.primary, r: 4, strokeWidth: 0 }}
-                              activeDot={{ r: 6, strokeWidth: 2, stroke: colors.primary, fill: colors.tooltipBg }}
+                              strokeWidth={2}
+                              fill="url(#gradMaxWeight)"
+                              dot={false}
+                              activeDot={{ r: 5, strokeWidth: 2, stroke: colors.primary, fill: colors.tooltipBg }}
                            />
-                        </LineChart>
+                        </AreaChart>
                      </ResponsiveContainer>
                   </div>
                </div>
@@ -222,18 +231,25 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                   <p className="text-xs text-muted-foreground mb-2">Volume = Σ(repetições × carga) por sessão</p>
                   <div className="aspect-video w-full">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                           <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+                        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                           <defs>
+                              <linearGradient id="gradVolume" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="0%" stopColor={colors.gradientFromSecondary} stopOpacity={0.7} />
+                                 <stop offset="45%" stopColor={colors.secondary} stopOpacity={0.2} />
+                                 <stop offset="100%" stopColor={colors.gradientTo} stopOpacity={0.5} />
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid horizontal={true} vertical={false} stroke={colors.grid} strokeOpacity={0.6} />
                            <XAxis
                               dataKey="date"
                               tick={{ fill: colors.axis, fontSize: 11 }}
-                              tickLine={{ stroke: colors.grid }}
-                              axisLine={{ stroke: colors.grid }}
+                              axisLine={false}
+                              tickLine={false}
                            />
                            <YAxis
                               tick={{ fill: colors.axis, fontSize: 11 }}
-                              tickLine={{ stroke: colors.grid }}
-                              axisLine={{ stroke: colors.grid }}
+                              axisLine={false}
+                              tickLine={false}
                               unit="kg"
                               width={55}
                            />
@@ -241,8 +257,9 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               contentStyle={{
                                  backgroundColor: colors.tooltipBg,
                                  borderColor: colors.tooltipBorder,
-                                 borderRadius: 8,
+                                 borderRadius: 10,
                                  fontSize: 12,
+                                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                               }}
                               formatter={(value) => [`${value}kg`, 'Volume']}
                               labelFormatter={(_label, payload) => {
@@ -250,15 +267,16 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                                  return _label;
                               }}
                            />
-                           <Line
+                           <Area
                               type="monotone"
                               dataKey="totalVolume"
-                              stroke="#a78bfa"
-                              strokeWidth={2.5}
-                              dot={{ fill: '#a78bfa', r: 4, strokeWidth: 0 }}
-                              activeDot={{ r: 6, strokeWidth: 2, stroke: '#a78bfa', fill: colors.tooltipBg }}
+                              stroke={colors.secondary}
+                              strokeWidth={2}
+                              fill="url(#gradVolume)"
+                              dot={false}
+                              activeDot={{ r: 5, strokeWidth: 2, stroke: colors.secondary, fill: colors.tooltipBg }}
                            />
-                        </LineChart>
+                        </AreaChart>
                      </ResponsiveContainer>
                   </div>
                </div>
