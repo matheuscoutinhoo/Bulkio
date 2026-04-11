@@ -28,13 +28,9 @@ const mockUser = {
 };
 
 const mockAiResponse = {
-   plans: [
-      {
-         name: 'Peito e Tríceps',
-         exercises: [
-            { exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 },
-         ],
-      },
+   name: 'Peito e Tríceps',
+   exercises: [
+      { exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 },
    ],
 };
 
@@ -71,21 +67,20 @@ describe('aiWorkoutService', () => {
       mockGenerateContent.mockResolvedValue({
          response: { text: () => JSON.stringify(mockAiResponse) },
       });
-      mockPlanService.create.mockResolvedValue({ id: 'plan-1', ...mockAiResponse.plans[0] });
+      mockPlanService.create.mockResolvedValue({ id: 'plan-1', ...mockAiResponse });
    });
 
-   it('should generate workout plans', async () => {
+   it('should generate a workout plan', async () => {
       const result = await aiWorkoutService.generate('user-1', {
-         daysPerWeek: 1,
          level: 'INTERMEDIATE',
       });
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveProperty('id', 'plan-1');
       expect(mockExerciseRepo.findAll).toHaveBeenCalledWith({ page: 1, limit: 300 });
       expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Peito e Tríceps',
-         exercises: mockAiResponse.plans[0].exercises,
+         exercises: mockAiResponse.exercises,
       });
    });
 
@@ -93,18 +88,16 @@ describe('aiWorkoutService', () => {
       mockGenerateContent.mockResolvedValue({
          response: {
             text: () => JSON.stringify({
-               plans: [{
-                  name: 'Test',
-                  exercises: [
-                     { exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, order: 0 },
-                     { exerciseId: 'invalid-id', sets: 3, reps: '10', restSeconds: 60, order: 1 },
-                  ],
-               }],
+               name: 'Test',
+               exercises: [
+                  { exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, order: 0 },
+                  { exerciseId: 'invalid-id', sets: 3, reps: '10', restSeconds: 60, order: 1 },
+               ],
             }),
          },
       });
 
-      await aiWorkoutService.generate('user-1', { daysPerWeek: 1, level: 'BEGINNER' });
+      await aiWorkoutService.generate('user-1', { level: 'BEGINNER' });
 
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Test',
@@ -118,7 +111,7 @@ describe('aiWorkoutService', () => {
       (config as any).geminiApiKey = '';
 
       await expect(
-         aiWorkoutService.generate('user-1', { daysPerWeek: 1, level: 'BEGINNER' }),
+         aiWorkoutService.generate('user-1', { level: 'BEGINNER' }),
       ).rejects.toThrow('Gemini API key not configured');
 
       (config as any).geminiApiKey = original;
@@ -130,21 +123,22 @@ describe('aiWorkoutService', () => {
       });
 
       await expect(
-         aiWorkoutService.generate('user-1', { daysPerWeek: 1, level: 'BEGINNER' }),
+         aiWorkoutService.generate('user-1', { level: 'BEGINNER' }),
       ).rejects.toThrow('Failed to generate valid workout plan from AI');
 
       expect(mockGenerateContent).toHaveBeenCalledTimes(2);
    });
 
-   it('should pass focus to the prompt when provided', async () => {
+   it('should pass focus and description to the prompt when provided', async () => {
       await aiWorkoutService.generate('user-1', {
-         daysPerWeek: 3,
          level: 'ADVANCED',
          focus: 'Peito e costas',
+         description: 'Prefiro halteres',
       });
 
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
       const prompt = mockGenerateContent.mock.calls[0][0];
       expect(prompt).toContain('Peito e costas');
+      expect(prompt).toContain('Prefiro halteres');
    });
 });

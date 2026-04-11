@@ -9,7 +9,6 @@ const mockExercises = [
 describe('buildPrompt', () => {
    it('should include all exercises in the prompt', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 3,
          level: 'INTERMEDIATE',
       });
 
@@ -21,7 +20,6 @@ describe('buildPrompt', () => {
 
    it('should include user goal in prompt', () => {
       const prompt = buildPrompt(mockExercises, { goal: 'BULK', initialWeight: 80, targetWeight: 85, height: 180 }, {
-         daysPerWeek: 4,
          level: 'ADVANCED',
       });
 
@@ -34,7 +32,6 @@ describe('buildPrompt', () => {
 
    it('should include focus when provided', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 3,
          level: 'BEGINNER',
          focus: 'Peito e costas',
       });
@@ -45,10 +42,10 @@ describe('buildPrompt', () => {
 
    it('should set correct sets range per level', () => {
       const beginnerPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 3, level: 'BEGINNER',
+         level: 'BEGINNER',
       });
       const advancedPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 3, level: 'ADVANCED',
+         level: 'ADVANCED',
       });
 
       expect(beginnerPrompt).toContain('2-3');
@@ -57,18 +54,20 @@ describe('buildPrompt', () => {
 
    it('should request JSON format', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 3, level: 'INTERMEDIATE',
+         level: 'INTERMEDIATE',
       });
 
       expect(prompt).toContain('JSON');
       expect(prompt).toContain('"exerciseId"');
    });
 
-   it('should specify the number of days', () => {
+   it('should include description when provided', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         daysPerWeek: 5, level: 'INTERMEDIATE',
+         level: 'INTERMEDIATE',
+         description: 'Prefiro exercícios com halteres',
       });
 
-      expect(prompt).toContain('5 fichas de treino');
+      expect(prompt).toContain('Prefiro exercícios com halteres');
+      expect(prompt).toContain('UMA ficha de treino');
    });
 });

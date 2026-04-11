@@ -43,9 +43,9 @@ export interface CreateWorkoutPlanData {
 }
 
 export interface GenerateWorkoutData {
-   daysPerWeek: number;
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
    focus?: string;
+   description?: string;
 }
 
 export const workoutPlanApi = {

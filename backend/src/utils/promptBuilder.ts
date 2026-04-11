@@ -14,9 +14,9 @@ interface UserContext {
 }
 
 interface GeneratePreferences {
-   daysPerWeek: number;
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
    focus?: string;
+   description?: string;
 }
 
 export function buildPrompt(
@@ -47,7 +47,7 @@ export function buildPrompt(
 
    return `Você é um personal trainer profissional especializado em musculação.
 
-TAREFA: Gere ${preferences.daysPerWeek} fichas de treino (uma para cada dia) para o seguinte perfil:
+TAREFA: Gere UMA ficha de treino para o seguinte perfil:
 
 PERFIL DO ALUNO:
 - Objetivo: ${goalLabel}
@@ -56,34 +56,30 @@ ${user.height ? `- Altura: ${user.height}cm` : ''}
 ${user.initialWeight ? `- Peso atual: ${user.initialWeight}kg` : ''}
 ${user.targetWeight ? `- Peso alvo: ${user.targetWeight}kg` : ''}
 ${preferences.focus ? `- Foco muscular: ${preferences.focus}` : ''}
+${preferences.description ? `- Preferências adicionais: ${preferences.description}` : ''}
 
 REGRAS OBRIGATÓRIAS:
 1. Use APENAS exercícios da lista fornecida abaixo (use o ID exato).
-2. Cada ficha deve ter de ${exercisesPerDay} exercícios.
+2. A ficha deve ter de ${exercisesPerDay} exercícios.
 3. Cada exercício deve ter de ${setsRange} séries.
 4. Reps devem ser string (ex: "8-12", "10", "15-20", "até falha").
 5. Descanso em segundos (60-180 para compostos, 45-90 para isolados).
-6. Distribua os grupos musculares de forma equilibrada ao longo da semana.
-7. Comece cada treino com exercícios compostos, depois isolados.
-8. Nomeie cada ficha descritivamente (ex: "Peito e Tríceps", "Costas e Bíceps").
+6. Comece com exercícios compostos, depois isolados.
+7. Nomeie a ficha descritivamente (ex: "Peito e Tríceps", "Costas e Bíceps").
 
 EXERCÍCIOS DISPONÍVEIS:
 ${exerciseList}
 
 FORMATO DE RESPOSTA (JSON):
 {
-  "plans": [
+  "name": "Nome da Ficha",
+  "exercises": [
     {
-      "name": "Nome da Ficha",
-      "exercises": [
-        {
-          "exerciseId": "uuid-do-exercicio",
-          "sets": 3,
-          "reps": "8-12",
-          "restSeconds": 90,
-          "order": 0
-        }
-      ]
+      "exerciseId": "uuid-do-exercicio",
+      "sets": 3,
+      "reps": "8-12",
+      "restSeconds": 90,
+      "order": 0
     }
   ]
 }

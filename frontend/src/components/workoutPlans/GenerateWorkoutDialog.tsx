@@ -20,9 +20,9 @@ const levelLabels: Record<string, string> = {
 };
 
 export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWorkoutDialogProps) {
-   const [daysPerWeek, setDaysPerWeek] = useState(4);
    const [level, setLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
    const [focus, setFocus] = useState('');
+   const [description, setDescription] = useState('');
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
@@ -31,14 +31,14 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
       setError('');
       try {
          await workoutPlanApi.generate({
-            daysPerWeek,
             level,
             focus: focus.trim() || undefined,
+            description: description.trim() || undefined,
          });
          onGenerated();
          onClose();
       } catch (err: any) {
-         setError(err?.response?.data?.message || 'Erro ao gerar fichas. Tente novamente.');
+         setError(err?.response?.data?.message || 'Erro ao gerar ficha. Tente novamente.');
       } finally {
          setLoading(false);
       }
@@ -49,26 +49,14 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
          <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
                <Sparkles className="h-5 w-5 icon-gradient" />
-               Gerar Fichas com IA
+               Gerar Ficha com IA
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
-               Configure suas preferências e deixe a IA criar suas fichas de treino.
+               Configure suas preferências e deixe a IA criar sua ficha de treino.
             </p>
          </DialogHeader>
 
          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-               <Label>Dias por Semana</Label>
-               <Select
-                  value={String(daysPerWeek)}
-                  onChange={(e) => setDaysPerWeek(Number(e.target.value))}
-               >
-                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                     <option key={n} value={n}>{n} {n === 1 ? 'dia' : 'dias'}</option>
-                  ))}
-               </Select>
-            </div>
-
             <div className="space-y-2">
                <Label>Nível</Label>
                <Select
@@ -91,6 +79,18 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
                />
             </div>
 
+            <div className="space-y-2">
+               <Label>Preferências <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+               <textarea
+                  className="flex w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  placeholder="Ex: Prefiro exercícios com halteres, tenho lesão no ombro..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+               />
+            </div>
+
             {error && (
                <p className="text-sm text-destructive">{error}</p>
             )}
@@ -109,7 +109,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
                ) : (
                   <>
                      <Sparkles className="h-4 w-4 mr-2" />
-                     Gerar Fichas
+                     Gerar Ficha
                   </>
                )}
             </Button>

@@ -142,9 +142,9 @@ export const workoutPlanQuerySchema = paginationSchema.extend({
 
 // ========== AI GENERATION ==========
 export const generateWorkoutSchema = z.object({
-   daysPerWeek: z.number().int().min(1).max(7),
    level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
    focus: z.string().max(100).optional(),
+   description: z.string().max(500).optional(),
 });
 
 // ========== TYPES ==========

@@ -47,7 +47,7 @@ export const workoutPlanController = {
    }),
 
    generate: asyncHandler(async (req: Request, res: Response) => {
-      const plans = await aiWorkoutService.generate(req.user!.userId, req.body);
-      res.status(201).json(createResponse(plans, 'Workout plans generated'));
+      const plan = await aiWorkoutService.generate(req.user!.userId, req.body);
+      res.status(201).json(createResponse(plan, 'Workout plan generated'));
    }),
 };

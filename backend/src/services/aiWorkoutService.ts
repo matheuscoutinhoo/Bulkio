@@ -17,16 +17,14 @@ const aiExerciseSchema = z.object({
 });
 
 const aiResponseSchema = z.object({
-   plans: z.array(z.object({
-      name: z.string().min(1).max(100),
-      exercises: z.array(aiExerciseSchema).min(1),
-   })).min(1),
+   name: z.string().min(1).max(100),
+   exercises: z.array(aiExerciseSchema).min(1),
 });
 
 interface GenerateInput {
-   daysPerWeek: number;
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
    focus?: string;
+   description?: string;
 }
 
 export const aiWorkoutService = {
@@ -50,7 +48,7 @@ export const aiWorkoutService = {
 
       const genAI = new GoogleGenerativeAI(config.geminiApiKey);
       const model = genAI.getGenerativeModel({
-         model: 'gemini-2.0-flash',
+         model: 'gemini-2.5-flash',
          generationConfig: {
             responseMimeType: 'application/json',
             temperature: 0.7,
@@ -86,28 +84,22 @@ export const aiWorkoutService = {
 
          // Validate all exerciseIds exist in our catalog
          const exerciseIds = new Set(exercises.map((e) => e.id));
-         for (const plan of parsed!.plans) {
-            plan.exercises = plan.exercises.filter((e) => exerciseIds.has(e.exerciseId));
-            if (plan.exercises.length === 0) {
-               throw new ValidationError('AI generated exercises not found in catalog');
-            }
-            // Re-index order
-            plan.exercises.forEach((e, i) => { e.order = i; });
+         parsed!.exercises = parsed!.exercises.filter((e) => exerciseIds.has(e.exerciseId));
+         if (parsed!.exercises.length === 0) {
+            throw new ValidationError('AI generated exercises not found in catalog');
          }
+         // Re-index order
+         parsed!.exercises.forEach((e, i) => { e.order = i; });
 
-         // Create all plans
-         const createdPlans = [];
-         for (const plan of parsed!.plans) {
-            const created = await workoutPlanService.create(userId, {
-               name: plan.name,
-               exercises: plan.exercises,
-            });
-            createdPlans.push(created);
-         }
+         // Create the plan
+         const created = await workoutPlanService.create(userId, {
+            name: parsed!.name,
+            exercises: parsed!.exercises,
+         });
 
-         return createdPlans;
+         return created;
       }
 
-      throw new ValidationError('Failed to generate workout plans');
+      throw new ValidationError('Failed to generate workout plan');
    },
 };
