@@ -1,5 +1,5 @@
 interface Exercise {
-   id: string;
+   index: number;
    name: string;
    muscleGroup: string;
    type: string;
@@ -20,13 +20,28 @@ interface GeneratePreferences {
 }
 
 const GOAL_LABELS: Record<string, string> = {
-   BULK: 'Massa', CUT: 'Cutting', MAINTAIN: 'Manutenção',
+   BULK: 'M', CUT: 'C', MAINTAIN: 'Ma',
 };
 
 const LEVEL_CONFIG: Record<string, { label: string; sets: string; count: string }> = {
-   BEGINNER: { label: 'Iniciante', sets: '2-3', count: '4-6' },
-   INTERMEDIATE: { label: 'Intermediário', sets: '3-4', count: '5-7' },
-   ADVANCED: { label: 'Avançado', sets: '4-5', count: '6-8' },
+   BEGINNER: { label: 'Ini', sets: '2-3', count: '4-6' },
+   INTERMEDIATE: { label: 'Int', sets: '3-4', count: '5-7' },
+   ADVANCED: { label: 'Av', sets: '4-5', count: '6-8' },
+};
+
+const GROUP_ABBR: Record<string, string> = {
+   CHEST: 'Pe', BACK: 'Co', LEGS: 'Pr', SHOULDERS: 'Om',
+   BICEPS: 'Bi', TRICEPS: 'Tr', ABS: 'Ab', GLUTES: 'Gl',
+   CALVES: 'Pa', FOREARMS: 'An', TRAPS: 'Tp',
+};
+
+const TYPE_ABBR: Record<string, string> = {
+   COMPOUND: 'C', ISOLATION: 'I',
+};
+
+const EQUIP_ABBR: Record<string, string> = {
+   BARBELL: 'B', DUMBBELL: 'H', CABLE: 'Ca', MACHINE: 'M',
+   BODYWEIGHT: 'P', SMITH_MACHINE: 'S', EZ_BAR: 'E', OTHER: 'O',
 };
 
 export function buildPrompt(
@@ -34,31 +49,27 @@ export function buildPrompt(
    user: UserContext,
    preferences: GeneratePreferences,
 ): string {
-   // Compact exercise list: "ID|Nome|Grupo|Tipo|Equip"
    const exerciseList = exercises
-      .map((e) => `${e.id}|${e.name}|${e.muscleGroup}|${e.type}|${e.equipment}`)
+      .map((e) => `${e.index}|${e.name}|${GROUP_ABBR[e.muscleGroup] ?? e.muscleGroup}|${TYPE_ABBR[e.type] ?? e.type}|${EQUIP_ABBR[e.equipment] ?? e.equipment}`)
       .join('\n');
 
    const lvl = LEVEL_CONFIG[preferences.level];
-   const goal = GOAL_LABELS[user.goal ?? ''] ?? 'N/A';
+   const goal = GOAL_LABELS[user.goal ?? ''];
 
    const profile = [
-      `Obj:${goal}`,
-      `Nível:${lvl.label}`,
-      user.height && `Alt:${user.height}cm`,
-      user.initialWeight && `Peso:${user.initialWeight}kg`,
-      user.targetWeight && `Alvo:${user.targetWeight}kg`,
-      `Foco:${preferences.focus}`,
-      preferences.description && `Extra:${preferences.description}`,
-   ].filter(Boolean).join(' | ');
+      goal && `O:${goal}`,
+      `N:${lvl.label}`,
+      user.height && `A:${user.height}`,
+      user.initialWeight && `P:${user.initialWeight}`,
+      user.targetWeight && `Al:${user.targetWeight}`,
+      `F:${preferences.focus}`,
+      preferences.description && `+:${preferences.description}`,
+   ].filter(Boolean).join('|');
 
-   return `Gere 1 ficha de treino. ${lvl.count} exercícios, ${lvl.sets} séries cada. Compostos primeiro.
-Use APENAS IDs da lista. Reps como string. Descanso 60-180s compostos, 45-90s isolados.
-
-Aluno: ${profile}
-
-Exercícios (ID|Nome|Grupo|Tipo|Equip):
+   return `Ficha: ${lvl.count} exerc, ${lvl.sets} séries. Compostos 1º.
+# da lista apenas. Reps=str. Desc 60-180 comp,45-90 isol.
+${profile}
+#|Nome|G|T|E
 ${exerciseList}
-
-JSON: {"name":"...","exercises":[{"exerciseId":"...","sets":3,"reps":"8-12","restSeconds":90}]}`;
+{"e":[{"i":0,"s":3,"r":"8-12","d":90}]}`;
 }

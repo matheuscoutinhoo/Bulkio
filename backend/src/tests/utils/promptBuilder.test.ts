@@ -2,21 +2,19 @@ import { describe, it, expect } from 'vitest';
 import { buildPrompt } from '../../utils/promptBuilder';
 
 const mockExercises = [
-   { id: 'ex-1', name: 'Supino Reto', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL' },
-   { id: 'ex-2', name: 'Puxada Frontal', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'CABLE' },
+   { index: 0, name: 'Supino Reto', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL' },
+   { index: 1, name: 'Puxada Frontal', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'CABLE' },
 ];
 
 describe('buildPrompt', () => {
-   it('should include all exercises in the prompt', () => {
+   it('should include indexed exercises in the prompt', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
          level: 'INTERMEDIATE',
          focus: 'Peito',
       });
 
-      expect(prompt).toContain('ex-1');
-      expect(prompt).toContain('ex-2');
-      expect(prompt).toContain('Supino Reto');
-      expect(prompt).toContain('Puxada Frontal');
+      expect(prompt).toContain('0|Supino Reto');
+      expect(prompt).toContain('1|Puxada Frontal');
    });
 
    it('should include user goal in prompt', () => {
@@ -25,11 +23,11 @@ describe('buildPrompt', () => {
          focus: 'Costas',
       });
 
-      expect(prompt).toContain('Massa');
-      expect(prompt).toContain('180cm');
-      expect(prompt).toContain('80kg');
-      expect(prompt).toContain('85kg');
-      expect(prompt).toContain('Avançado');
+      expect(prompt).toContain('O:M');
+      expect(prompt).toContain('A:180');
+      expect(prompt).toContain('P:80');
+      expect(prompt).toContain('Al:85');
+      expect(prompt).toContain('N:Av');
    });
 
    it('should include focus when provided', () => {
@@ -39,7 +37,7 @@ describe('buildPrompt', () => {
       });
 
       expect(prompt).toContain('Peito e costas');
-      expect(prompt).toContain('Iniciante');
+      expect(prompt).toContain('N:Ini');
    });
 
    it('should set correct sets range per level', () => {
@@ -54,13 +52,15 @@ describe('buildPrompt', () => {
       expect(advancedPrompt).toContain('4-5');
    });
 
-   it('should request JSON format', () => {
+   it('should use compact JSON format with index-based keys', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
          level: 'INTERMEDIATE', focus: 'Peito',
       });
 
-      expect(prompt).toContain('JSON');
-      expect(prompt).toContain('"exerciseId"');
+      expect(prompt).toContain('"i"');
+      expect(prompt).toContain('"s"');
+      expect(prompt).toContain('"r"');
+      expect(prompt).toContain('"d"');
    });
 
    it('should include description when provided', () => {
@@ -71,6 +71,14 @@ describe('buildPrompt', () => {
       });
 
       expect(prompt).toContain('Prefiro exercícios com halteres');
-      expect(prompt).toContain('1 ficha de treino');
+   });
+
+   it('should use abbreviated muscle group, type and equipment', () => {
+      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+         level: 'INTERMEDIATE', focus: 'Peito',
+      });
+
+      expect(prompt).toContain('|Pe|C|B');
+      expect(prompt).toContain('|Co|C|Ca');
    });
 });

@@ -15,7 +15,9 @@ export const config = {
    jwtAccessExpiry: '15m',
    jwtRefreshExpiry: '7d',
    corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-   geminiApiKey: process.env.GEMINI_API_KEY || '',
+   llmApiKey: process.env.LLM_API_KEY || '',
+   llmBaseUrl: process.env.LLM_BASE_URL || 'https://llmrouter.abacus.ai/v1',
+   llmModel: process.env.LLM_MODEL || 'gemini-2.5-flash',
    bcryptSaltRounds: 12,
    rateLimitWindowMs: 15 * 60 * 1000, // 15 minutes
    rateLimitMax: 100,

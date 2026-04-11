@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aiWorkoutService } from '../../services/aiWorkoutService';
 
 vi.mock('../../config', () => ({
-   config: { geminiApiKey: 'test-key' },
+   config: { llmApiKey: 'test-key', llmBaseUrl: 'https://test.api/v1', llmModel: 'test-model' },
 }));
 
 vi.mock('../../config/logger', () => ({
@@ -28,16 +28,15 @@ const mockUser = {
 };
 
 const mockAiResponse = {
-   name: 'Peito e Tríceps',
-   exercises: [
-      { exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90 },
+   e: [
+      { i: 0, s: 4, r: '8-12', d: 90 },
    ],
 };
 
 const mockExerciseRepo = { findAll: vi.fn() };
 const mockUserRepo = { findById: vi.fn() };
 const mockPlanService = { create: vi.fn() };
-const mockGenerateContent = vi.fn();
+const mockFetch = vi.fn();
 
 vi.mock('../../repositories/exerciseRepository', () => ({
    exerciseRepository: { findAll: (...args: any[]) => mockExerciseRepo.findAll(...args) },
@@ -51,22 +50,24 @@ vi.mock('../../services/workoutPlanService', () => ({
    workoutPlanService: { create: (...args: any[]) => mockPlanService.create(...args) },
 }));
 
-vi.mock('@google/generative-ai', () => ({
-   GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-      getGenerativeModel: () => ({
-         generateContent: mockGenerateContent,
-      }),
-   })),
-}));
+// Mock global fetch
+vi.stubGlobal('fetch', mockFetch);
+
+function mockFetchResponse(body: object, status = 200) {
+   return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: async () => ({ choices: [{ message: { content: JSON.stringify(body) } }] }),
+      text: async () => JSON.stringify({ choices: [{ message: { content: JSON.stringify(body) } }] }),
+   };
+}
 
 describe('aiWorkoutService', () => {
    beforeEach(() => {
       vi.clearAllMocks();
       mockExerciseRepo.findAll.mockResolvedValue([mockExercises, mockExercises.length]);
       mockUserRepo.findById.mockResolvedValue(mockUser);
-      mockGenerateContent.mockResolvedValue({
-         response: { text: () => JSON.stringify(mockAiResponse) },
-      });
+      mockFetch.mockResolvedValue(mockFetchResponse(mockAiResponse));
       mockPlanService.create.mockResolvedValue({ id: 'plan-1', ...mockAiResponse });
    });
 
@@ -78,58 +79,55 @@ describe('aiWorkoutService', () => {
 
       expect(result).toHaveProperty('id', 'plan-1');
       expect(mockExerciseRepo.findAll).toHaveBeenCalledWith(
-         expect.objectContaining({ page: 1, limit: 300, muscleGroups: expect.any(Array) }),
+         expect.objectContaining({ page: 1, limit: 80, muscleGroups: expect.any(Array) }),
       );
       expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
-         name: 'Peito e Tríceps',
+         name: 'Treino de Peito e Tríceps',
          exercises: [{ exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 }],
       });
    });
 
-   it('should filter out invalid exerciseIds from AI response', async () => {
-      mockGenerateContent.mockResolvedValue({
-         response: {
-            text: () => JSON.stringify({
-               name: 'Test',
-               exercises: [
-                  { exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60 },
-                  { exerciseId: 'invalid-id', sets: 3, reps: '10', restSeconds: 60 },
-               ],
-            }),
-         },
-      });
+   it('should filter out invalid exercise indices from AI response', async () => {
+      mockFetch.mockResolvedValue(mockFetchResponse({
+         e: [
+            { i: 0, s: 3, r: '10', d: 60 },
+            { i: 999, s: 3, r: '10', d: 60 },
+         ],
+      }));
 
       await aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Pernas' });
 
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
-         name: 'Test',
+         name: 'Treino de Pernas',
          exercises: [{ exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, order: 0 }],
       });
    });
 
    it('should throw if API key is not configured', async () => {
       const { config } = await import('../../config');
-      const original = config.geminiApiKey;
-      (config as any).geminiApiKey = '';
+      const original = config.llmApiKey;
+      (config as any).llmApiKey = '';
 
       await expect(
          aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Costas' }),
-      ).rejects.toThrow('Gemini API key not configured');
+      ).rejects.toThrow('LLM API key not configured');
 
-      (config as any).geminiApiKey = original;
+      (config as any).llmApiKey = original;
    });
 
    it('should retry on invalid AI response and fail after 2 attempts', async () => {
-      mockGenerateContent.mockResolvedValue({
-         response: { text: () => 'not valid json {{{' },
+      mockFetch.mockResolvedValue({
+         ok: true,
+         status: 200,
+         json: async () => ({ choices: [{ message: { content: 'not valid json {{{' } }] }),
       });
 
       await expect(
          aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Peito' }),
       ).rejects.toThrow('Failed to generate valid workout plan from AI');
 
-      expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
    });
 
    it('should pass focus and description to the prompt when provided', async () => {
@@ -139,8 +137,9 @@ describe('aiWorkoutService', () => {
          description: 'Prefiro halteres',
       });
 
-      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
-      const prompt = mockGenerateContent.mock.calls[0][0];
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const prompt = callBody.messages[0].content;
       expect(prompt).toContain('Peito e costas');
       expect(prompt).toContain('Prefiro halteres');
    });
