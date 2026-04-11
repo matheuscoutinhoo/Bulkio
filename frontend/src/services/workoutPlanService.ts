@@ -44,7 +44,7 @@ export interface CreateWorkoutPlanData {
 
 export interface GenerateWorkoutData {
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-   focus?: string;
+   focus: string;
    description?: string;
 }
 

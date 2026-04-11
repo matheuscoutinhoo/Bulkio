@@ -143,7 +143,7 @@ export const workoutPlanQuerySchema = paginationSchema.extend({
 // ========== AI GENERATION ==========
 export const generateWorkoutSchema = z.object({
    level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
-   focus: z.string().max(100).optional(),
+   focus: z.string().min(1).max(100),
    description: z.string().max(500).optional(),
 });
 

@@ -23,7 +23,7 @@ const aiResponseSchema = z.object({
 
 interface GenerateInput {
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-   focus?: string;
+   focus: string;
    description?: string;
 }
 

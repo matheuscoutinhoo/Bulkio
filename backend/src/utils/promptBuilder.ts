@@ -15,7 +15,7 @@ interface UserContext {
 
 interface GeneratePreferences {
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-   focus?: string;
+   focus: string;
    description?: string;
 }
 
@@ -55,7 +55,7 @@ PERFIL DO ALUNO:
 ${user.height ? `- Altura: ${user.height}cm` : ''}
 ${user.initialWeight ? `- Peso atual: ${user.initialWeight}kg` : ''}
 ${user.targetWeight ? `- Peso alvo: ${user.targetWeight}kg` : ''}
-${preferences.focus ? `- Foco muscular: ${preferences.focus}` : ''}
+- Foco muscular: ${preferences.focus}
 ${preferences.description ? `- Preferências adicionais: ${preferences.description}` : ''}
 
 REGRAS OBRIGATÓRIAS:

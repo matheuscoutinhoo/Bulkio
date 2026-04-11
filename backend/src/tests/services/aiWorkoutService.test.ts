@@ -73,6 +73,7 @@ describe('aiWorkoutService', () => {
    it('should generate a workout plan', async () => {
       const result = await aiWorkoutService.generate('user-1', {
          level: 'INTERMEDIATE',
+         focus: 'Peito e Tríceps',
       });
 
       expect(result).toHaveProperty('id', 'plan-1');
@@ -97,7 +98,7 @@ describe('aiWorkoutService', () => {
          },
       });
 
-      await aiWorkoutService.generate('user-1', { level: 'BEGINNER' });
+      await aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Pernas' });
 
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Test',
@@ -111,7 +112,7 @@ describe('aiWorkoutService', () => {
       (config as any).geminiApiKey = '';
 
       await expect(
-         aiWorkoutService.generate('user-1', { level: 'BEGINNER' }),
+         aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Costas' }),
       ).rejects.toThrow('Gemini API key not configured');
 
       (config as any).geminiApiKey = original;
@@ -123,7 +124,7 @@ describe('aiWorkoutService', () => {
       });
 
       await expect(
-         aiWorkoutService.generate('user-1', { level: 'BEGINNER' }),
+         aiWorkoutService.generate('user-1', { level: 'BEGINNER', focus: 'Peito' }),
       ).rejects.toThrow('Failed to generate valid workout plan from AI');
 
       expect(mockGenerateContent).toHaveBeenCalledTimes(2);

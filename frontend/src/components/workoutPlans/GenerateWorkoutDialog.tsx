@@ -32,7 +32,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
       try {
          await workoutPlanApi.generate({
             level,
-            focus: focus.trim() || undefined,
+            focus: focus.trim(),
             description: description.trim() || undefined,
          });
          onGenerated();
@@ -70,7 +70,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
             </div>
 
             <div className="space-y-2">
-               <Label>Foco muscular <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+               <Label>Foco muscular</Label>
                <Input
                   placeholder="Ex: Peito e costas, Pernas, Superior..."
                   value={focus}
@@ -100,7 +100,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
             <Button variant="outline" onClick={onClose} disabled={loading}>
                Cancelar
             </Button>
-            <Button onClick={handleGenerate} disabled={loading}>
+            <Button onClick={handleGenerate} disabled={loading || !focus.trim()}>
                {loading ? (
                   <>
                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
