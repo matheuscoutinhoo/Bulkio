@@ -102,7 +102,7 @@ export const aiWorkoutService = {
          generationConfig: {
             responseMimeType: 'application/json',
             temperature: 0.3,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 4096,
          },
       });
 
@@ -121,6 +121,7 @@ export const aiWorkoutService = {
             throw new ValidationError('Erro ao se comunicar com a IA. Tente novamente.');
          }
          const text = result.response.text();
+         logger.info({ attempt, textLength: text.length }, 'AI response received');
 
          try {
             const json = JSON.parse(text);
