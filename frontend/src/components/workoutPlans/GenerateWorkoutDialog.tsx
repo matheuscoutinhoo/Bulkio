@@ -26,6 +26,18 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
+   const resetForm = () => {
+      setLevel('INTERMEDIATE');
+      setFocus('');
+      setDescription('');
+      setError('');
+   };
+
+   const handleClose = () => {
+      resetForm();
+      onClose();
+   };
+
    const handleGenerate = async () => {
       setLoading(true);
       setError('');
@@ -36,7 +48,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
             description: description.trim() || undefined,
          });
          onGenerated();
-         onClose();
+         handleClose();
       } catch (err: any) {
          setError(err?.response?.data?.message || 'Erro ao gerar ficha. Tente novamente.');
       } finally {
@@ -45,7 +57,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
    };
 
    return (
-      <Dialog open={open} onClose={onClose} className="sm:max-w-md">
+      <Dialog open={open} onClose={handleClose} className="sm:max-w-md">
          <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
                <Sparkles className="h-5 w-5 icon-gradient" />
@@ -97,7 +109,7 @@ export function GenerateWorkoutDialog({ open, onClose, onGenerated }: GenerateWo
          </div>
 
          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={loading}>
+            <Button variant="outline" onClick={handleClose} disabled={loading}>
                Cancelar
             </Button>
             <Button onClick={handleGenerate} disabled={loading || !focus.trim()}>

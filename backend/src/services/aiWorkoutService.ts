@@ -97,19 +97,18 @@ export const aiWorkoutService = {
       }, input);
 
       const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-      const model = genAI.getGenerativeModel({
-         model: 'gemini-2.5-flash',
-         generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.3,
-            maxOutputTokens: 4096,
-         },
-      });
+      const generationConfig = {
+         responseMimeType: 'application/json' as const,
+         temperature: 0.3,
+      };
 
       let parsed: z.infer<typeof aiResponseSchema>;
 
-      // Try up to 2 times
+      // Try up to 2 times, fallback to different model on 503
+      const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
       for (let attempt = 1; attempt <= 2; attempt++) {
+         const modelName = models[attempt - 1] || models[0];
+         const model = genAI.getGenerativeModel({ model: modelName, generationConfig });
          let result;
          try {
             result = await model.generateContent(prompt);
@@ -117,11 +116,15 @@ export const aiWorkoutService = {
             if (err?.status === 429) {
                throw new ValidationError('Limite de requisições da IA atingido. Tente novamente em alguns minutos.');
             }
-            logger.error({ err }, 'Gemini API call failed');
+            if (err?.status === 503 && attempt < 2) {
+               logger.warn({ modelName }, 'Model unavailable, trying fallback');
+               continue;
+            }
+            logger.error({ err, modelName }, 'Gemini API call failed');
             throw new ValidationError('Erro ao se comunicar com a IA. Tente novamente.');
          }
          const text = result.response.text();
-         logger.info({ attempt, textLength: text.length }, 'AI response received');
+         logger.info({ attempt, textLength: text.length, textPreview: text.slice(0, 500) }, 'AI response received');
 
          try {
             const json = JSON.parse(text);
