@@ -173,7 +173,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                {/* Weight progression chart */}
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Carga Máxima</h3>
-                  <div className="aspect-video min-h-32 max-h-52">
+                  <div className="aspect-video w-full">
                      <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
@@ -220,7 +220,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Volume Total</h3>
                   <p className="text-xs text-muted-foreground mb-2">Volume = Σ(repetições × carga) por sessão</p>
-                  <div className="aspect-video min-h-32 max-h-52">
+                  <div className="aspect-video w-full">
                      <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
