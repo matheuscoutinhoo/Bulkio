@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
    return (
       <div className="min-h-screen flex items-center justify-center px-4">
-         <Card className="w-full max-w-md">
+         <Card className="w-full max-w-md animate-fade-in-up">
             <CardHeader className="text-center">
                <div className="flex justify-center mb-4">
                   <Dumbbell className="h-12 w-12 text-primary" />
@@ -67,7 +67,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                <CardContent className="space-y-5">
                   {error && (
-                     <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                     <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md animate-fade-in-down">
                         {error}
                      </div>
                   )}

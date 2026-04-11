@@ -120,8 +120,17 @@ export default function ProfilePage() {
 
    if (loading) {
       return (
-         <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+         <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+            <div>
+               <div className="skeleton h-8 w-32 mb-2" />
+               <div className="skeleton h-4 w-48" />
+            </div>
+            <div className="rounded-lg border bg-card p-5 sm:p-6 space-y-4">
+               <div className="skeleton h-5 w-40" />
+               <div className="skeleton h-4 w-full" />
+               <div className="skeleton h-4 w-3/4" />
+               <div className="skeleton h-4 w-1/2" />
+            </div>
          </div>
       );
    }
@@ -131,7 +140,7 @@ export default function ProfilePage() {
       : '-';
 
    return (
-      <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="space-y-6 max-w-2xl mx-auto animate-fade-in-up">
          <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Perfil</h1>
             <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas informações</p>

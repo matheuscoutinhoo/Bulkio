@@ -51,7 +51,7 @@ export default function WorkoutPlansPage() {
    };
 
    return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in-up">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                <h1 className="text-2xl sm:text-3xl font-bold">Fichas de Treino</h1>
@@ -117,7 +117,7 @@ export default function WorkoutPlansPage() {
                         )}
                      </CardHeader>
                      {expandedPlan === plan.id && (
-                        <CardContent>
+                        <CardContent className="animate-fade-in-down">
                            <div className="space-y-2">
                               {plan.exercises.map((pe, i) => (
                                  <div

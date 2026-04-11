@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { bodyWeightApi, type BodyWeightRecord } from '@/services/bodyWeightService';
 import { authApi, type UpdateProfileData } from '@/services/authService';
 import { useAuthStore } from '@/stores/authStore';
@@ -132,7 +133,7 @@ export default function BodyWeightPage() {
    };
 
    return (
-      <div className="space-y-3 sm:space-y-6">
+      <div className="space-y-3 sm:space-y-6 animate-fade-in-up">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                <h1 className="text-2xl sm:text-3xl font-bold">Peso Corporal</h1>
@@ -152,7 +153,7 @@ export default function BodyWeightPage() {
          </div>
 
          {/* Stats */}
-         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
+         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5 stagger-children">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
@@ -311,10 +312,10 @@ export default function BodyWeightPage() {
          </Card>
 
          {/* Goals Dialog */}
-         {showGoals && (
+         {showGoals && createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-               <div className="fixed inset-0 bg-black/80" onClick={closeGoals} />
-               <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto">
+               <div className="fixed inset-0 bg-black/80 animate-fade-in" onClick={closeGoals} />
+               <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto animate-scale-in">
                   <h2 className="text-lg font-semibold mb-4">Definir Meta</h2>
                   <form onSubmit={handleSaveGoals} className="space-y-4">
                      <div className="space-y-2">
@@ -362,7 +363,8 @@ export default function BodyWeightPage() {
                      </div>
                   </form>
                </div>
-            </div>
+            </div>,
+            document.body
          )}
       </div>
    );

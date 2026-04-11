@@ -7,7 +7,7 @@ import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
    LineChart, Line, PieChart, Pie, Cell, Legend, Sector,
 } from 'recharts';
-import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
+import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
@@ -40,8 +40,30 @@ export default function DashboardPage() {
 
    if (loading) {
       return (
-         <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+         <div className="space-y-3 sm:space-y-6 animate-fade-in">
+            <div>
+               <div className="skeleton h-8 w-40 mb-2" />
+               <div className="skeleton h-4 w-56" />
+            </div>
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
+               {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-lg border bg-card p-5 sm:p-6 space-y-3">
+                     <div className="skeleton h-4 w-24" />
+                     <div className="skeleton h-7 w-16" />
+                     <div className="skeleton h-3 w-32" />
+                  </div>
+               ))}
+            </div>
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+               <div className="rounded-lg border bg-card p-5 sm:p-6">
+                  <div className="skeleton h-5 w-48 mb-4" />
+                  <div className="skeleton w-full aspect-4/3 min-h-50 max-h-70 rounded-lg" />
+               </div>
+               <div className="rounded-lg border bg-card p-5 sm:p-6">
+                  <div className="skeleton h-5 w-48 mb-4" />
+                  <div className="skeleton w-full aspect-video min-h-45 max-h-75 rounded-lg" />
+               </div>
+            </div>
          </div>
       );
    }
@@ -69,14 +91,14 @@ export default function DashboardPage() {
    const weekDiff = stats.weeklyWorkouts.current - stats.weeklyWorkouts.previous;
 
    return (
-      <div className="space-y-3 sm:space-y-6">
+      <div className="space-y-3 sm:space-y-6 animate-fade-in-up">
          <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground text-sm sm:text-base">Visão geral do seu progresso</p>
          </div>
 
          {/* Stats cards */}
-         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
@@ -272,7 +294,7 @@ export default function DashboardPage() {
             </Card>
          )}
 
-         <ExerciseDetailModal
+         <ExerciseProgressionDialog
             exercise={selectedExercise}
             open={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}

@@ -98,13 +98,13 @@ export function Sidebar() {
          {/* Mobile sidebar */}
          {mobileOpen && (
             <div
-               className="lg:hidden fixed inset-0 z-30 bg-black/50"
+               className="lg:hidden fixed inset-0 z-30 bg-black/50 animate-fade-in"
                onClick={() => setMobileOpen(false)}
             />
          )}
          <div
             className={cn(
-               'lg:hidden fixed top-14 left-0 bottom-0 z-30 w-64 max-w-[80vw] bg-background border-r flex flex-col transition-transform',
+               'lg:hidden fixed top-14 left-0 bottom-0 z-30 w-64 max-w-[80vw] bg-background border-r flex flex-col transition-transform duration-250 ease-out',
                mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
          >

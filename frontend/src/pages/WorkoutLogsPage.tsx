@@ -147,7 +147,7 @@ export default function WorkoutLogsPage() {
    };
 
    return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in-up">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                <h1 className="text-2xl sm:text-3xl font-bold">Histórico de Treinos</h1>
@@ -234,7 +234,7 @@ export default function WorkoutLogsPage() {
                            </div>
                         </CardHeader>
                         {expandedLog === log.id && (
-                           <CardContent>
+                           <CardContent className="animate-fade-in-down">
                               {log.notes && (
                                  <p className="text-sm text-muted-foreground mb-3 p-2 bg-secondary/30 rounded">
                                     📝 {log.notes}

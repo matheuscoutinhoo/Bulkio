@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
@@ -23,12 +24,12 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
 
    if (!open) return null;
 
-   return (
+   return createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-         <div className="fixed inset-0 bg-black/80" onClick={onClose} />
+         <div className="fixed inset-0 bg-black/80 animate-fade-in" onClick={onClose} />
          <div
             className={cn(
-               'relative z-50 max-h-[85vh] sm:max-h-[90vh] w-[calc(100%-2rem)] sm:w-full max-w-lg rounded-lg border bg-background p-4 sm:p-6 shadow-lg flex flex-col mx-auto',
+               'relative z-50 max-h-[85vh] sm:max-h-[90vh] w-[calc(100%-2rem)] sm:w-full max-w-lg rounded-lg border bg-background p-4 sm:p-6 shadow-lg flex flex-col mx-auto animate-scale-in overflow-hidden',
                className,
             )}
          >
@@ -40,7 +41,8 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
             </button>
             {children}
          </div>
-      </div>
+      </div>,
+      document.body,
    );
 }
 
