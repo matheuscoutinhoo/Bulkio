@@ -115,16 +115,16 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
                <CardTitle className="text-lg flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-primary" />
+                  <CalendarDays className="h-5 w-5 icon-gradient" />
                   Dias de Treino em {new Date().getFullYear()}
                </CardTitle>
-               <span className="text-sm font-semibold text-primary">{totalDays} dias</span>
+               <span className="text-sm font-semibold text-gradient">{totalDays} dias</span>
             </div>
          </CardHeader>
          <CardContent className="space-y-3">
             {milestone && (
                <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
-                  <Award className="h-4 w-4 text-primary shrink-0" />
+                  <Award className="h-4 w-4 icon-gradient shrink-0" />
                   <span className="text-sm font-medium">
                      {milestone.emoji} {milestone.label}!
                   </span>

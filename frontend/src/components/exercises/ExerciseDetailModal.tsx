@@ -41,7 +41,7 @@ export function ExerciseDetailModal({ exercise, open, onClose }: ExerciseDetailM
       <Dialog open={open} onClose={handleClose}>
          <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-               <Dumbbell className="h-5 w-5 text-primary" />
+               <Dumbbell className="h-5 w-5 icon-gradient" />
                {exercise.name}
             </DialogTitle>
          </DialogHeader>

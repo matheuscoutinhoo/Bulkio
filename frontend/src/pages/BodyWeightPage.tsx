@@ -130,7 +130,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
-                  <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
+                  <Scale className="h-4 w-4 text-emerald-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{latestWeight ? `${latestWeight}kg` : '-'}</div>
@@ -140,7 +140,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Variação</CardTitle>
-                  <ArrowUpDown className="h-4 w-4 text-blue-500 hidden sm:block" />
+                  <ArrowUpDown className="h-4 w-4 text-blue-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold flex items-center gap-1">
@@ -157,7 +157,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Objetivo</CardTitle>
-                  <Goal className="h-4 w-4 text-orange-500 hidden sm:block" />
+                  <Goal className="h-4 w-4 text-orange-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">
@@ -169,7 +169,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Meta</CardTitle>
-                  <Crosshair className="h-4 w-4 text-purple-500 hidden sm:block" />
+                  <Crosshair className="h-4 w-4 icon-gradient" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">
@@ -181,7 +181,7 @@ export default function BodyWeightPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">IMC</CardTitle>
-                  <Activity className="h-4 w-4 text-cyan-500 hidden sm:block" />
+                  <Activity className="h-4 w-4 text-cyan-500" />
                </CardHeader>
                <CardContent>
                   <div className={`text-xl sm:text-2xl font-bold ${bmi ? getBmiLabel(bmi).color : ''}`}>

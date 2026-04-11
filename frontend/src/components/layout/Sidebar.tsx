@@ -33,7 +33,7 @@ export function Sidebar() {
       <>
          <div className="p-6">
             <Link to="/dashboard" className="flex items-center gap-2">
-               <Dumbbell className="h-8 w-8 text-primary" />
+               <Dumbbell className="h-8 w-8 icon-gradient" />
                <span className="text-xl font-bold">Bulkio</span>
             </Link>
          </div>
@@ -87,7 +87,7 @@ export function Sidebar() {
          {/* Mobile header */}
          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-background border-b px-4 h-14">
             <Link to="/dashboard" className="flex items-center gap-2">
-               <Dumbbell className="h-6 w-6 text-primary" />
+               <Dumbbell className="h-6 w-6 icon-gradient" />
                <span className="text-lg font-bold">Bulkio</span>
             </Link>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">

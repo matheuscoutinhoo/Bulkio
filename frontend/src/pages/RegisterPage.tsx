@@ -43,7 +43,7 @@ export default function RegisterPage() {
          <Card className="w-full max-w-md animate-fade-in-up">
             <CardHeader className="text-center">
                <div className="flex justify-center mb-4">
-                  <Dumbbell className="h-12 w-12 text-primary" />
+                  <Dumbbell className="h-12 w-12 icon-gradient" />
                </div>
                <CardTitle className="text-2xl">Criar Conta</CardTitle>
                <CardDescription>Comece a gerenciar seus treinos</CardDescription>
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                   </Button>
                   <p className="text-sm text-muted-foreground">
                      Já tem conta?{' '}
-                     <Link to="/login" className="text-primary hover:underline">
+                     <Link to="/login" className="text-gradient hover:underline">
                         Entrar
                      </Link>
                   </p>

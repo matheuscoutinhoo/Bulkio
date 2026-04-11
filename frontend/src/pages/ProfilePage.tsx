@@ -150,7 +150,7 @@ export default function ProfilePage() {
          <Card>
             <CardHeader>
                <CardTitle className="text-lg flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
+                  <User className="h-5 w-5 icon-gradient" />
                   Informações da Conta
                </CardTitle>
             </CardHeader>
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs uppercase tracking-wide">Membro desde</Label>
                   <div className="flex items-center gap-2">
-                     <Calendar className="h-4 w-4 text-purple-500" />
+                     <Calendar className="h-4 w-4 icon-gradient" />
                      <p className="text-base">{createdAt}</p>
                   </div>
                </div>

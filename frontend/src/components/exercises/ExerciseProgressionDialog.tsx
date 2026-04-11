@@ -115,7 +115,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                         ) : weightDiff < 0 ? (
                            <TrendingDown className="h-5 w-5 text-red-500" />
                         ) : (
-                           <Minus className="h-5 w-5 text-primary" />
+                           <Minus className="h-5 w-5 icon-gradient" />
                         )}
                         <span className="font-semibold text-sm sm:text-base">
                            {weightDiff > 0

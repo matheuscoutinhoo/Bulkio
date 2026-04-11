@@ -102,7 +102,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
-                  <Activity className="h-4 w-4 text-blue-500 hidden sm:block" />
+                  <Activity className="h-4 w-4 text-blue-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{stats.weeklyWorkouts.current}</div>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Streak</CardTitle>
-                  <Flame className="h-4 w-4 text-orange-500 hidden sm:block" />
+                  <Flame className="h-4 w-4 text-orange-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{stats.streak}</div>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Volume Total (30d)</CardTitle>
-                  <Dumbbell className="h-4 w-4 text-purple-500 hidden sm:block" />
+                  <Dumbbell className="h-4 w-4 icon-gradient" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">{stats.totalVolume.toLocaleString('pt-BR')}kg</div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
-                  <Scale className="h-4 w-4 text-emerald-500 hidden sm:block" />
+                  <Scale className="h-4 w-4 text-emerald-500" />
                </CardHeader>
                <CardContent>
                   <div className="text-xl sm:text-2xl font-bold">
@@ -256,22 +256,22 @@ export default function DashboardPage() {
                <CardContent>
                   <div className="w-full aspect-5/2 min-h-45 max-h-75">
                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={muscleData}>
+                        <BarChart data={muscleData} barCategoryGap="25%">
                            <defs>
                               <linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">
-                                 <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.9} />
-                                 <stop offset="100%" stopColor={chart.primary} stopOpacity={0.8} />
+                                 <stop offset="0%" stopColor={chart.secondary} stopOpacity={0.95} />
+                                 <stop offset="100%" stopColor={chart.primary} stopOpacity={0.7} />
                               </linearGradient>
                            </defs>
-                           <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
+                           <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.5} />
                            <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={60} />
                            <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                            <Tooltip
-                              cursor={{ fill: chart.grid, opacity: 0.3 }}
+                              cursor={{ fill: chart.grid, opacity: 0.15 }}
                               contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                               formatter={(value) => [`${value} séries`, 'Volume']}
                            />
-                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} activeBar={false} />
+                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[999, 999, 999, 999]} activeBar={false} />
                         </BarChart>
                      </ResponsiveContainer>
                   </div>
@@ -299,7 +299,7 @@ export default function DashboardPage() {
                               </Badge>
                            </div>
                            <div className="text-right">
-                              <p className="text-lg font-bold text-primary">{pr.weight}kg</p>
+                              <p className="text-lg font-bold text-gradient">{pr.weight}kg</p>
                               <p className="text-xs text-muted-foreground">{pr.reps} reps</p>
                            </div>
                         </div>

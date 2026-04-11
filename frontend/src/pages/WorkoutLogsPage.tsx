@@ -240,7 +240,7 @@ export default function WorkoutLogsPage() {
                                                    <HelpCircle className="h-3.5 w-3.5" />
                                                 </Button>
                                              </div>
-                                             <Badge className="bg-primary/10 text-primary text-xs">
+                                             <Badge className="bg-primary/10 text-gradient text-xs">
                                                 {logEx.sets.length} {logEx.sets.length === 1 ? 'série' : 'séries'}
                                              </Badge>
                                           </div>

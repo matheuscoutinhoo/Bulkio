@@ -266,3 +266,27 @@ select {
 .stagger-children>*:nth-child(8) {
   animation-delay: 350ms;
 }
+
+/* ── Gradient text for primary-colored elements ── */
+:root {
+  --grad-from: #a78bfa;
+  --grad-mid: #7c3aed;
+  --grad-to: #6d28d9;
+}
+
+.dark {
+  --grad-from: #c4b5fd;
+  --grad-mid: #a78bfa;
+  --grad-to: #7c3aed;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--grad-from) 0%, var(--grad-mid) 50%, var(--grad-to) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.icon-gradient svg {
+  stroke: url(#iconGrad);
+}

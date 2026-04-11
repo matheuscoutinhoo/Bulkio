@@ -38,7 +38,7 @@ export default function LoginPage() {
          <Card className="w-full max-w-md animate-fade-in-up">
             <CardHeader className="text-center">
                <div className="flex justify-center mb-4">
-                  <Dumbbell className="h-12 w-12 text-primary" />
+                  <Dumbbell className="h-12 w-12 icon-gradient" />
                </div>
                <CardTitle className="text-2xl">Bem-vindo ao Bulkio</CardTitle>
                <CardDescription>Entre na sua conta para continuar</CardDescription>
@@ -77,7 +77,7 @@ export default function LoginPage() {
                   </Button>
                   <p className="text-sm text-muted-foreground">
                      Não tem conta?{' '}
-                     <Link to="/register" className="text-primary hover:underline">
+                     <Link to="/register" className="text-gradient hover:underline">
                         Criar conta
                      </Link>
                   </p>
