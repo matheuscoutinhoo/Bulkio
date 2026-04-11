@@ -61,7 +61,16 @@ export const aiWorkoutService = {
 
       // Try up to 2 times
       for (let attempt = 1; attempt <= 2; attempt++) {
-         const result = await model.generateContent(prompt);
+         let result;
+         try {
+            result = await model.generateContent(prompt);
+         } catch (err: any) {
+            if (err?.status === 429) {
+               throw new ValidationError('Limite de requisições da IA atingido. Tente novamente em alguns minutos.');
+            }
+            logger.error({ err }, 'Gemini API call failed');
+            throw new ValidationError('Erro ao se comunicar com a IA. Tente novamente.');
+         }
          const text = result.response.text();
 
          try {
