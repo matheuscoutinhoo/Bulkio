@@ -9,9 +9,9 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', validateQuery(workoutPlanQuerySchema), workoutPlanController.findAll);
-router.get('/:id', workoutPlanController.findById);
 router.post('/', validate(createWorkoutPlanSchema), workoutPlanController.create);
 router.post('/generate', validate(generateWorkoutSchema), workoutPlanController.generate);
+router.get('/:id', workoutPlanController.findById);
 router.patch('/:id', validate(updateWorkoutPlanSchema), workoutPlanController.update);
 router.post('/:id/duplicate', workoutPlanController.duplicate);
 router.delete('/:id', workoutPlanController.archive);
