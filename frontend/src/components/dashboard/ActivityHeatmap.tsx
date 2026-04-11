@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CalendarDays, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Average Brazilian gymgoer: ~156 days/year (3x/week)
-// Milestones based on percentile above that average
 const MILESTONES = [
    { threshold: 78, label: 'Acima de 50% dos brasileiros', emoji: '💪' },
    { threshold: 109, label: 'Acima de 70% dos brasileiros', emoji: '🔥' },
@@ -11,104 +11,62 @@ const MILESTONES = [
    { threshold: 200, label: 'Top 1% do Brasil', emoji: '⭐' },
 ];
 
-const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-const SHORT_MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 interface Props {
    yearlyActivity: Record<string, number>;
 }
 
-function getIntensity(count: number): string {
-   if (count === 0) return 'bg-muted-foreground/15';
-   return 'bg-primary/60 ring-1 ring-primary/30';
-}
-
-function formatDateLabel(dateStr: string): string {
-   const [, month, day] = dateStr.split('-');
-   return `${day} ${SHORT_MONTHS[parseInt(month, 10) - 1]}`;
-}
-
 export function ActivityHeatmap({ yearlyActivity }: Props) {
-   const [hoveredDay, setHoveredDay] = useState<{ date: string; count: number; x: number; y: number } | null>(null);
+   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
+   const [viewDate, setViewDate] = useState(() => new Date());
 
-   const { weeks, totalDays, milestone, monthPositions } = useMemo(() => {
-      const year = new Date().getFullYear();
+   const totalDays = useMemo(
+      () => Object.values(yearlyActivity).reduce((s, c) => s + (c > 0 ? 1 : 0), 0),
+      [yearlyActivity],
+   );
+
+   const milestone = useMemo(() => {
+      for (let i = MILESTONES.length - 1; i >= 0; i--) {
+         if (totalDays >= MILESTONES[i].threshold) return MILESTONES[i];
+      }
+      return null;
+   }, [totalDays]);
+
+   const calendarData = useMemo(() => {
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      const firstDayOfWeek = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const jan1 = new Date(year, 0, 1);
-      const startDay = jan1.getDay();
+      const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean }[][] = [];
+      let date = 1 - firstDayOfWeek;
 
-      const allWeeks: { date: string; count: number; future: boolean }[][] = [];
-      let currentWeek: { date: string; count: number; future: boolean }[] = [];
-
-      for (let i = 0; i < startDay; i++) {
-         currentWeek.push({ date: '', count: 0, future: true });
-      }
-
-      let lastMonth = -1;
-      const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
-
-      for (let d = 0; d < daysInYear; d++) {
-         const date = new Date(year, 0, 1 + d);
-         const key = date.toISOString().split('T')[0];
-
-         currentWeek.push({
-            date: key,
-            count: yearlyActivity[key] || 0,
-            future: date > today,
-         });
-
-         if (currentWeek.length === 7) {
-            allWeeks.push(currentWeek);
-            currentWeek = [];
+      for (let row = 0; row < 6; row++) {
+         const week: typeof grid[0] = [];
+         for (let col = 0; col < 7; col++) {
+            const d = new Date(year, month, date);
+            const key = d.toISOString().split('T')[0];
+            week.push({
+               day: d.getDate(),
+               dateKey: key,
+               active: (yearlyActivity[key] || 0) > 0,
+               isToday: d.getTime() === today.getTime(),
+               inMonth: d.getMonth() === month,
+            });
+            date++;
          }
+         grid.push(week);
+         if (grid.length >= 5 && new Date(year, month, date).getMonth() !== month) break;
       }
-      if (currentWeek.length > 0) {
-         allWeeks.push(currentWeek);
-      }
+      return grid;
+   }, [viewDate, yearlyActivity]);
 
-      // Month label positions
-      const mPositions: { label: string; col: number }[] = [];
-      let weekIdx = 0;
-      let dayIdx = startDay;
-      lastMonth = 0;
-      mPositions.push({ label: MONTH_LABELS[0], col: 0 });
-
-      for (let d = 0; d < daysInYear; d++) {
-         const date = new Date(year, 0, 1 + d);
-         const month = date.getMonth();
-         if (month !== lastMonth) {
-            mPositions.push({ label: MONTH_LABELS[month], col: weekIdx });
-            lastMonth = month;
-         }
-         dayIdx++;
-         if (dayIdx === 7) {
-            dayIdx = 0;
-            weekIdx++;
-         }
-      }
-
-      const total = Object.values(yearlyActivity).reduce((s, c) => s + (c > 0 ? 1 : 0), 0);
-
-      let currentMilestone = null;
-      for (let i = MILESTONES.length - 1; i >= 0; i--) {
-         if (total >= MILESTONES[i].threshold) {
-            currentMilestone = MILESTONES[i];
-            break;
-         }
-      }
-
-      return {
-         weeks: allWeeks,
-         totalDays: total,
-         milestone: currentMilestone,
-         monthPositions: mPositions,
-      };
-   }, [yearlyActivity]);
-
-   const totalWeeks = weeks.length;
+   const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+   const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
 
    return (
       <Card>
@@ -131,76 +89,91 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                </div>
             )}
 
-            {/* Heatmap grid */}
-            <div className="relative overflow-x-auto">
-               {/* Month labels */}
-               <div
-                  className="grid mb-1"
-                  style={{ gridTemplateColumns: `repeat(${totalWeeks}, 1fr)` }}
-               >
-                  {monthPositions.map((m, i) => (
-                     <span
-                        key={i}
-                        className="text-[10px] text-muted-foreground"
-                        style={{ gridColumnStart: m.col + 1 }}
-                     >
-                        {m.label}
-                     </span>
-                  ))}
-               </div>
+            {/* Month navigation */}
+            <div className="flex items-center justify-center gap-4">
+               <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8">
+                  <ChevronLeft className="h-4 w-4" />
+               </Button>
+               <span className="text-sm font-semibold min-w-36 text-center">
+                  {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
+               </span>
+               <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8">
+                  <ChevronRight className="h-4 w-4" />
+               </Button>
+            </div>
 
-               {/* Grid of weeks — single flat grid for perfect alignment */}
-               <div
-                  className="grid gap-[3px]"
-                  style={{
-                     gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
-                     gridTemplateRows: 'repeat(7, 1fr)',
-                  }}
-               >
-                  {/* Render column by column (week by week), row by row (day by day) */}
-                  {Array.from({ length: 7 }).map((_, row) =>
-                     weeks.map((week, col) => {
-                        const day = week[row];
-                        if (!day || day.date === '') {
-                           return (
-                              <div
-                                 key={`${row}-${col}`}
-                                 className="aspect-square w-full"
-                                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
-                              />
-                           );
-                        }
+            {/* Day-of-week headers */}
+            <div className="grid grid-cols-7 text-center">
+               {DAY_NAMES.map((d) => (
+                  <span key={d} className="text-xs font-medium text-muted-foreground py-1">{d}</span>
+               ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="space-y-0.5">
+               {calendarData.map((week, rowIdx) => (
+                  <div key={rowIdx} className="grid grid-cols-7">
+                     {week.map((cell, colIdx) => {
+                        const activeInMonth = cell.active && cell.inMonth;
+                        const prevActive = colIdx > 0 && week[colIdx - 1].active && week[colIdx - 1].inMonth;
+                        const nextActive = colIdx < 6 && week[colIdx + 1].active && week[colIdx + 1].inMonth;
+                        const connLeft = activeInMonth && prevActive;
+                        const connRight = activeInMonth && nextActive;
+
                         return (
                            <div
-                              key={`${row}-${col}`}
-                              className={`aspect-square w-full rounded-[3px] transition-colors ${getIntensity(day.count)}`}
-                              style={{ gridRow: row + 1, gridColumn: col + 1 }}
-                              onMouseEnter={(e) => {
-                                 const rect = e.currentTarget.getBoundingClientRect();
-                                 const parentRect = e.currentTarget.closest('.relative')!.getBoundingClientRect();
-                                 setHoveredDay({
-                                    date: day.date,
-                                    count: day.count,
-                                    x: rect.left - parentRect.left + rect.width / 2,
-                                    y: rect.top - parentRect.top - 4,
-                                 });
-                              }}
+                              key={colIdx}
+                              className="relative flex items-center justify-center h-10"
+                              onMouseEnter={() => cell.inMonth ? setHoveredDay(cell.dateKey) : undefined}
                               onMouseLeave={() => setHoveredDay(null)}
-                           />
+                           >
+                              {/* Left connector bar */}
+                              {connLeft && (
+                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
+                              )}
+                              {/* Right connector bar */}
+                              {connRight && (
+                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
+                              )}
+                              {/* Day circle */}
+                              <span
+                                 className={`relative z-10 w-9 h-9 flex items-center justify-center rounded-full text-sm transition-colors ${!cell.inMonth
+                                    ? 'text-muted-foreground/25'
+                                    : cell.isToday && activeInMonth
+                                       ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30'
+                                       : cell.isToday
+                                          ? 'ring-2 ring-orange-500 text-foreground font-bold'
+                                          : activeInMonth
+                                             ? 'bg-primary text-primary-foreground font-medium'
+                                             : 'text-foreground'
+                                    }`}
+                              >
+                                 {cell.day}
+                              </span>
+                           </div>
                         );
-                     }),
-                  )}
-               </div>
-
-               {/* Tooltip */}
-               {hoveredDay && (
-                  <div
-                     className="absolute pointer-events-none z-10 bg-popover border border-border text-popover-foreground text-xs font-medium px-2 py-1 rounded-md shadow-md -translate-x-1/2 -translate-y-full"
-                     style={{ left: hoveredDay.x, top: hoveredDay.y }}
-                  >
-                     {formatDateLabel(hoveredDay.date)} — {hoveredDay.count} treino{hoveredDay.count !== 1 ? 's' : ''}
+                     })}
                   </div>
-               )}
+               ))}
+            </div>
+
+            {/* Hover info */}
+            {hoveredDay && (
+               <p className="text-center text-xs text-muted-foreground">
+                  {hoveredDay.split('-')[2]}/{hoveredDay.split('-')[1]} — {yearlyActivity[hoveredDay] || 0} treino{(yearlyActivity[hoveredDay] || 0) !== 1 ? 's' : ''}
+               </p>
+            )}
+
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
+               <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-primary" />
+                  <span>Treino</span>
+               </div>
+               <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-orange-500" />
+                  <span>Hoje</span>
+               </div>
             </div>
          </CardContent>
       </Card>
