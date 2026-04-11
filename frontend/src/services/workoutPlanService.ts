@@ -42,6 +42,12 @@ export interface CreateWorkoutPlanData {
    }[];
 }
 
+export interface GenerateWorkoutData {
+   daysPerWeek: number;
+   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+   focus?: string;
+}
+
 export const workoutPlanApi = {
    getAll: (params?: { page?: number; limit?: number; includeArchived?: boolean }) =>
       api.get('/workouts', { params }),
@@ -51,4 +57,5 @@ export const workoutPlanApi = {
       api.patch(`/workouts/${id}`, data),
    duplicate: (id: string) => api.post(`/workouts/${id}/duplicate`),
    archive: (id: string) => api.delete(`/workouts/${id}`),
+   generate: (data: GenerateWorkoutData) => api.post('/workouts/generate', data),
 };

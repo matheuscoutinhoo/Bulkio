@@ -15,6 +15,7 @@ export const config = {
    jwtAccessExpiry: '15m',
    jwtRefreshExpiry: '7d',
    corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+   geminiApiKey: process.env.GEMINI_API_KEY || '',
    bcryptSaltRounds: 12,
    rateLimitWindowMs: 15 * 60 * 1000, // 15 minutes
    rateLimitMax: 100,

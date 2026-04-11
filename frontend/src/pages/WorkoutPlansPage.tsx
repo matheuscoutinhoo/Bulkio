@@ -3,16 +3,18 @@ import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle } from 'lucide-react';
+import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle, Sparkles } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
+import { GenerateWorkoutDialog } from '@/components/workoutPlans/GenerateWorkoutDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
 export default function WorkoutPlansPage() {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
    const [loading, setLoading] = useState(true);
    const [showCreate, setShowCreate] = useState(false);
+   const [showGenerate, setShowGenerate] = useState(false);
    const [editPlan, setEditPlan] = useState<WorkoutPlan | null>(null);
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
@@ -57,9 +59,14 @@ export default function WorkoutPlansPage() {
                <h1 className="text-2xl sm:text-3xl font-bold">Fichas de Treino</h1>
                <p className="text-muted-foreground text-sm sm:text-base">{plans.length} fichas ativas</p>
             </div>
-            <Button onClick={() => setShowCreate(true)}>
-               <Plus className="h-4 w-4 mr-2" /> Nova Ficha
-            </Button>
+            <div className="flex gap-2">
+               <Button variant="outline" onClick={() => setShowGenerate(true)}>
+                  <Sparkles className="h-4 w-4 mr-2" /> Gerar com IA
+               </Button>
+               <Button onClick={() => setShowCreate(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Nova Ficha
+               </Button>
+            </div>
          </div>
 
          {loading ? (
@@ -181,6 +188,12 @@ export default function WorkoutPlansPage() {
             exercise={progressionExercise}
             open={!!progressionExercise}
             onClose={() => setProgressionExercise(null)}
+         />
+
+         <GenerateWorkoutDialog
+            open={showGenerate}
+            onClose={() => setShowGenerate(false)}
+            onGenerated={fetchPlans}
          />
       </div>
    );

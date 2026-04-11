@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { workoutPlanService } from '../services/workoutPlanService';
+import { aiWorkoutService } from '../services/aiWorkoutService';
 import { createResponse, createPaginatedResponse } from '../models/types';
 import { asyncHandler } from '../utils/asyncHandler';
 
@@ -43,5 +44,10 @@ export const workoutPlanController = {
    archive: asyncHandler(async (req: Request, res: Response) => {
       await workoutPlanService.archive(req.user!.userId, req.params.id as string);
       res.json(createResponse(null, 'Workout plan archived'));
+   }),
+
+   generate: asyncHandler(async (req: Request, res: Response) => {
+      const plans = await aiWorkoutService.generate(req.user!.userId, req.body);
+      res.status(201).json(createResponse(plans, 'Workout plans generated'));
    }),
 };
