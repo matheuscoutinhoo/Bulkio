@@ -19,70 +19,46 @@ interface GeneratePreferences {
    description?: string;
 }
 
+const GOAL_LABELS: Record<string, string> = {
+   BULK: 'Massa', CUT: 'Cutting', MAINTAIN: 'Manutenção',
+};
+
+const LEVEL_CONFIG: Record<string, { label: string; sets: string; count: string }> = {
+   BEGINNER: { label: 'Iniciante', sets: '2-3', count: '4-6' },
+   INTERMEDIATE: { label: 'Intermediário', sets: '3-4', count: '5-7' },
+   ADVANCED: { label: 'Avançado', sets: '4-5', count: '6-8' },
+};
+
 export function buildPrompt(
    exercises: Exercise[],
    user: UserContext,
    preferences: GeneratePreferences,
 ): string {
+   // Compact exercise list: "ID|Nome|Grupo|Tipo|Equip"
    const exerciseList = exercises
-      .map((e) => `- ID: "${e.id}" | Nome: "${e.name}" | Grupo: ${e.muscleGroup} | Tipo: ${e.type} | Equipamento: ${e.equipment}`)
+      .map((e) => `${e.id}|${e.name}|${e.muscleGroup}|${e.type}|${e.equipment}`)
       .join('\n');
 
-   const goalLabel = user.goal === 'BULK' ? 'Ganho de Massa'
-      : user.goal === 'CUT' ? 'Perda de Gordura'
-         : user.goal === 'MAINTAIN' ? 'Manutenção'
-            : 'Não definido';
+   const lvl = LEVEL_CONFIG[preferences.level];
+   const goal = GOAL_LABELS[user.goal ?? ''] ?? 'N/A';
 
-   const levelLabel = preferences.level === 'BEGINNER' ? 'Iniciante'
-      : preferences.level === 'INTERMEDIATE' ? 'Intermediário'
-         : 'Avançado';
+   const profile = [
+      `Obj:${goal}`,
+      `Nível:${lvl.label}`,
+      user.height && `Alt:${user.height}cm`,
+      user.initialWeight && `Peso:${user.initialWeight}kg`,
+      user.targetWeight && `Alvo:${user.targetWeight}kg`,
+      `Foco:${preferences.focus}`,
+      preferences.description && `Extra:${preferences.description}`,
+   ].filter(Boolean).join(' | ');
 
-   const setsRange = preferences.level === 'BEGINNER' ? '2-3'
-      : preferences.level === 'INTERMEDIATE' ? '3-4'
-         : '4-5';
+   return `Gere 1 ficha de treino. ${lvl.count} exercícios, ${lvl.sets} séries cada. Compostos primeiro.
+Use APENAS IDs da lista. Reps como string. Descanso 60-180s compostos, 45-90s isolados.
 
-   const exercisesPerDay = preferences.level === 'BEGINNER' ? '4-6'
-      : preferences.level === 'INTERMEDIATE' ? '5-7'
-         : '6-8';
+Aluno: ${profile}
 
-   return `Você é um personal trainer profissional especializado em musculação.
-
-TAREFA: Gere UMA ficha de treino para o seguinte perfil:
-
-PERFIL DO ALUNO:
-- Objetivo: ${goalLabel}
-- Nível: ${levelLabel}
-${user.height ? `- Altura: ${user.height}cm` : ''}
-${user.initialWeight ? `- Peso atual: ${user.initialWeight}kg` : ''}
-${user.targetWeight ? `- Peso alvo: ${user.targetWeight}kg` : ''}
-- Foco muscular: ${preferences.focus}
-${preferences.description ? `- Preferências adicionais: ${preferences.description}` : ''}
-
-REGRAS OBRIGATÓRIAS:
-1. Use APENAS exercícios da lista fornecida abaixo (use o ID exato).
-2. A ficha deve ter de ${exercisesPerDay} exercícios.
-3. Cada exercício deve ter de ${setsRange} séries.
-4. Reps devem ser string (ex: "8-12", "10", "15-20", "até falha").
-5. Descanso em segundos (60-180 para compostos, 45-90 para isolados).
-6. Comece com exercícios compostos, depois isolados.
-7. Nomeie a ficha descritivamente (ex: "Peito e Tríceps", "Costas e Bíceps").
-
-EXERCÍCIOS DISPONÍVEIS:
+Exercícios (ID|Nome|Grupo|Tipo|Equip):
 ${exerciseList}
 
-FORMATO DE RESPOSTA (JSON):
-{
-  "name": "Nome da Ficha",
-  "exercises": [
-    {
-      "exerciseId": "uuid-do-exercicio",
-      "sets": 3,
-      "reps": "8-12",
-      "restSeconds": 90,
-      "order": 0
-    }
-  ]
-}
-
-Responda APENAS com JSON válido, sem markdown, sem explicações.`;
+JSON: {"name":"...","exercises":[{"exerciseId":"...","sets":3,"reps":"8-12","restSeconds":90}]}`;
 }

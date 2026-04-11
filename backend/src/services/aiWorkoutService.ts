@@ -13,13 +13,58 @@ const aiExerciseSchema = z.object({
    sets: z.number().int().min(1).max(10),
    reps: z.string().min(1).max(20),
    restSeconds: z.number().int().min(30).max(300),
-   order: z.number().int().min(0),
 });
 
 const aiResponseSchema = z.object({
    name: z.string().min(1).max(100),
    exercises: z.array(aiExerciseSchema).min(1),
 });
+
+// Map common Portuguese focus terms to DB muscle group enums
+const FOCUS_TO_GROUPS: Record<string, string[]> = {
+   peito: ['CHEST'],
+   peitoral: ['CHEST'],
+   costas: ['BACK'],
+   dorsal: ['BACK'],
+   perna: ['LEGS', 'GLUTES', 'CALVES'],
+   pernas: ['LEGS', 'GLUTES', 'CALVES'],
+   inferior: ['LEGS', 'GLUTES', 'CALVES'],
+   ombro: ['SHOULDERS'],
+   ombros: ['SHOULDERS'],
+   biceps: ['BICEPS'],
+   'bíceps': ['BICEPS'],
+   triceps: ['TRICEPS'],
+   'tríceps': ['TRICEPS'],
+   braço: ['BICEPS', 'TRICEPS', 'FOREARMS'],
+   'braços': ['BICEPS', 'TRICEPS', 'FOREARMS'],
+   abdomen: ['ABS'],
+   'abdômen': ['ABS'],
+   abs: ['ABS'],
+   'glúteos': ['GLUTES'],
+   gluteos: ['GLUTES'],
+   panturrilha: ['CALVES'],
+   'antebraço': ['FOREARMS'],
+   'trapézio': ['TRAPS'],
+   superior: ['CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 'TRICEPS'],
+   push: ['CHEST', 'SHOULDERS', 'TRICEPS'],
+   pull: ['BACK', 'BICEPS', 'FOREARMS'],
+   full: ['CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS', 'ABS'],
+   'full body': ['CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'BICEPS', 'TRICEPS', 'ABS'],
+};
+
+function resolveGroups(focus: string): string[] {
+   const normalized = focus.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+   const groups = new Set<string>();
+
+   for (const [keyword, muscleGroups] of Object.entries(FOCUS_TO_GROUPS)) {
+      const normalizedKey = keyword.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (normalized.includes(normalizedKey)) {
+         muscleGroups.forEach((g) => groups.add(g));
+      }
+   }
+
+   return groups.size > 0 ? [...groups] : [];
+}
 
 interface GenerateInput {
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
@@ -33,10 +78,15 @@ export const aiWorkoutService = {
          throw new ValidationError('Gemini API key not configured');
       }
 
-      // Fetch user profile + full exercise catalog in parallel
+      // Resolve focus to muscle groups and fetch only relevant exercises
+      const muscleGroups = resolveGroups(input.focus);
       const [user, [exercises]] = await Promise.all([
          userRepository.findById(userId),
-         exerciseRepository.findAll({ page: 1, limit: 300 }),
+         exerciseRepository.findAll({
+            page: 1,
+            limit: 300,
+            ...(muscleGroups.length > 0 && { muscleGroups }),
+         }),
       ]);
 
       const prompt = buildPrompt(exercises, {
@@ -51,7 +101,8 @@ export const aiWorkoutService = {
          model: 'gemini-2.5-flash',
          generationConfig: {
             responseMimeType: 'application/json',
-            temperature: 0.7,
+            temperature: 0.3,
+            maxOutputTokens: 1024,
          },
       });
 

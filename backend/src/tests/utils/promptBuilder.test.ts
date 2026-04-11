@@ -10,6 +10,7 @@ describe('buildPrompt', () => {
    it('should include all exercises in the prompt', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
          level: 'INTERMEDIATE',
+         focus: 'Peito',
       });
 
       expect(prompt).toContain('ex-1');
@@ -21,9 +22,10 @@ describe('buildPrompt', () => {
    it('should include user goal in prompt', () => {
       const prompt = buildPrompt(mockExercises, { goal: 'BULK', initialWeight: 80, targetWeight: 85, height: 180 }, {
          level: 'ADVANCED',
+         focus: 'Costas',
       });
 
-      expect(prompt).toContain('Ganho de Massa');
+      expect(prompt).toContain('Massa');
       expect(prompt).toContain('180cm');
       expect(prompt).toContain('80kg');
       expect(prompt).toContain('85kg');
@@ -42,10 +44,10 @@ describe('buildPrompt', () => {
 
    it('should set correct sets range per level', () => {
       const beginnerPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         level: 'BEGINNER',
+         level: 'BEGINNER', focus: 'Pernas',
       });
       const advancedPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         level: 'ADVANCED',
+         level: 'ADVANCED', focus: 'Peito',
       });
 
       expect(beginnerPrompt).toContain('2-3');
@@ -54,7 +56,7 @@ describe('buildPrompt', () => {
 
    it('should request JSON format', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
-         level: 'INTERMEDIATE',
+         level: 'INTERMEDIATE', focus: 'Peito',
       });
 
       expect(prompt).toContain('JSON');
@@ -64,10 +66,11 @@ describe('buildPrompt', () => {
    it('should include description when provided', () => {
       const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
          level: 'INTERMEDIATE',
+         focus: 'Peito',
          description: 'Prefiro exercícios com halteres',
       });
 
       expect(prompt).toContain('Prefiro exercícios com halteres');
-      expect(prompt).toContain('UMA ficha de treino');
+      expect(prompt).toContain('1 ficha de treino');
    });
 });

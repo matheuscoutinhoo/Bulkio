@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 export const exerciseRepository = {
    findAll(filters: {
       muscleGroup?: string;
+      muscleGroups?: string[];
       type?: string;
       equipment?: string;
       search?: string;
@@ -12,7 +13,11 @@ export const exerciseRepository = {
    }) {
       const where: Prisma.ExerciseWhereInput = {};
 
-      if (filters.muscleGroup) where.muscleGroup = filters.muscleGroup;
+      if (filters.muscleGroups?.length) {
+         where.muscleGroup = { in: filters.muscleGroups };
+      } else if (filters.muscleGroup) {
+         where.muscleGroup = filters.muscleGroup;
+      }
       if (filters.type) where.type = filters.type;
       if (filters.equipment) where.equipment = filters.equipment;
       if (filters.search) {

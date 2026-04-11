@@ -30,7 +30,7 @@ const mockUser = {
 const mockAiResponse = {
    name: 'Peito e Tríceps',
    exercises: [
-      { exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 },
+      { exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90 },
    ],
 };
 
@@ -77,11 +77,13 @@ describe('aiWorkoutService', () => {
       });
 
       expect(result).toHaveProperty('id', 'plan-1');
-      expect(mockExerciseRepo.findAll).toHaveBeenCalledWith({ page: 1, limit: 300 });
+      expect(mockExerciseRepo.findAll).toHaveBeenCalledWith(
+         expect.objectContaining({ page: 1, limit: 300, muscleGroups: expect.any(Array) }),
+      );
       expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Peito e Tríceps',
-         exercises: mockAiResponse.exercises,
+         exercises: [{ exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 }],
       });
    });
 
@@ -91,8 +93,8 @@ describe('aiWorkoutService', () => {
             text: () => JSON.stringify({
                name: 'Test',
                exercises: [
-                  { exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, order: 0 },
-                  { exerciseId: 'invalid-id', sets: 3, reps: '10', restSeconds: 60, order: 1 },
+                  { exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60 },
+                  { exerciseId: 'invalid-id', sets: 3, reps: '10', restSeconds: 60 },
                ],
             }),
          },
