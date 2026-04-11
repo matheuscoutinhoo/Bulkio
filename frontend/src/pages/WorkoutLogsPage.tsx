@@ -244,18 +244,20 @@ export default function WorkoutLogsPage() {
                                                 {logEx.sets.length} {logEx.sets.length === 1 ? 'série' : 'séries'}
                                              </Badge>
                                           </div>
-                                          <div className="grid grid-cols-3 gap-1 text-xs text-muted-foreground font-medium mb-1">
+                                          <div className="grid grid-cols-3 gap-1 px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-gradient">
                                              <span>Série</span>
                                              <span>Reps</span>
                                              <span>Carga (kg)</span>
                                           </div>
-                                          {logEx.sets.map((set) => (
-                                             <div key={set.id} className="grid grid-cols-3 gap-1 text-sm py-1 border-t border-border/50">
-                                                <span className="text-muted-foreground">{set.setNumber}</span>
-                                                <span className="font-medium">{set.reps}</span>
-                                                <span className="font-medium">{set.weight}kg</span>
-                                             </div>
-                                          ))}
+                                          <div className="divide-y divide-border/50">
+                                             {logEx.sets.map((set) => (
+                                                <div key={set.id} className="grid grid-cols-3 gap-1 px-2 py-1.5 text-sm">
+                                                   <span className="text-muted-foreground">{set.setNumber}</span>
+                                                   <span className="font-medium">{set.reps}</span>
+                                                   <span className="font-medium">{set.weight}kg</span>
+                                                </div>
+                                             ))}
+                                          </div>
                                        </div>
                                     ))}
                                  </div>

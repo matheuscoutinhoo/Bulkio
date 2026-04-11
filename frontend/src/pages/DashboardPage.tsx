@@ -289,19 +289,22 @@ export default function DashboardPage() {
                   </CardTitle>
                </CardHeader>
                <CardContent>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wide text-gradient hidden sm:grid">
+                     <span>Exercício</span>
+                     <span>Carga</span>
+                     <span>Reps</span>
+                  </div>
+                  <div className="divide-y divide-border/50">
                      {stats.personalRecords.map((pr) => (
-                        <div key={pr.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                           <div>
-                              <p className="font-medium text-sm cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</p>
-                              <Badge variant="secondary" className="mt-1">
+                        <div key={pr.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] gap-3 sm:gap-4 items-center px-4 py-3 hover:bg-secondary/20 transition-colors">
+                           <div className="min-w-0">
+                              <p className="font-medium text-sm cursor-pointer hover:text-primary transition-colors truncate" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</p>
+                              <Badge variant="secondary" className="mt-1 text-xs">
                                  {muscleGroupLabels[pr.exercise.muscleGroup] || pr.exercise.muscleGroup}
                               </Badge>
                            </div>
-                           <div className="text-right">
-                              <p className="text-lg font-bold text-gradient">{pr.weight}kg</p>
-                              <p className="text-xs text-muted-foreground">{pr.reps} reps</p>
-                           </div>
+                           <p className="text-lg font-bold text-gradient whitespace-nowrap">{pr.weight}kg</p>
+                           <p className="text-sm text-muted-foreground hidden sm:block">{pr.reps} reps</p>
                         </div>
                      ))}
                   </div>

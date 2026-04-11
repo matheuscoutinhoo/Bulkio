@@ -118,11 +118,17 @@ export default function WorkoutPlansPage() {
                      </CardHeader>
                      {expandedPlan === plan.id && (
                         <CardContent className="animate-fade-in-down">
-                           <div className="space-y-2">
+                           <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wide text-gradient hidden sm:grid">
+                              <span className="w-6">#</span>
+                              <span>Exercício</span>
+                              <span>Grupo</span>
+                              <span className="w-7" />
+                           </div>
+                           <div className="divide-y divide-border/50">
                               {plan.exercises.map((pe, i) => (
                                  <div
                                     key={pe.id}
-                                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg bg-secondary/30"
+                                    className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto] sm:items-center gap-2 sm:gap-3 px-3 py-3 hover:bg-secondary/20 transition-colors"
                                  >
                                     <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
                                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProgressionExercise(pe.exercise)}>

@@ -269,23 +269,28 @@ export default function BodyWeightPage() {
                ) : records.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">Nenhum registro de peso</p>
                ) : (
-                  <div className="space-y-1">
-                     {records.map((record) => (
-                        <div
-                           key={record.id}
-                           className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/30 transition-colors"
-                        >
-                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                  <div>
+                     <div className="grid grid-cols-[1fr_1fr_auto] gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wide text-gradient">
+                        <span>Peso</span>
+                        <span>Data</span>
+                        <span className="w-8" />
+                     </div>
+                     <div className="divide-y divide-border/60">
+                        {records.map((record) => (
+                           <div
+                              key={record.id}
+                              className="grid grid-cols-[1fr_1fr_auto] gap-4 items-center px-4 py-3 hover:bg-secondary/20 transition-colors"
+                           >
                               <span className="font-medium">{record.weight}kg</span>
-                              <span className="text-sm text-muted-foreground sm:ml-3">
+                              <span className="text-sm text-muted-foreground">
                                  {format(new Date(record.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                               </span>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleDelete(record.id)}>
+                                 <Trash2 className="h-3 w-3" />
+                              </Button>
                            </div>
-                           <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleDelete(record.id)}>
-                              <Trash2 className="h-3 w-3" />
-                           </Button>
-                        </div>
-                     ))}
+                        ))}
+                     </div>
                   </div>
                )}
             </CardContent>
