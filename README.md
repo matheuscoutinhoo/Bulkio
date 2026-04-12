@@ -4,20 +4,23 @@ Aplicação web completa para controle, anotação e gerenciamento de treinos de
 
 ## Stack
 
-- **Frontend**: React 18+ / TypeScript / Vite / Tailwind CSS v4 / Recharts / Zustand
+- **Frontend**: React 19+ / TypeScript / Vite / Tailwind CSS v4 / Recharts / Zustand
 - **Backend**: Node.js / Express / TypeScript / Prisma ORM
 - **Database**: SQLite (dev) / PostgreSQL-ready
 - **Auth**: JWT + bcrypt + httpOnly cookies
+- **AI**: Abacus.ai Route LLM (gemini-2.5-flash) via OpenAI-compatible API
 
 ## Funcionalidades
 
 - 226 exercícios pré-cadastrados por grupo muscular
 - Criação de fichas de treino (Treino A, B, C...)
+- Geração de fichas de treino com IA (nível, foco muscular, descrição)
 - Registro de treinos com séries, reps e carga
 - Controle de peso corporal com gráficos
-- Dashboard com analytics (volume, streak, PRs, distribuição muscular)
+- Dashboard com analytics (volume, streak, PRs, distribuição muscular, heatmap de atividade)
 - Exercícios customizados
 - Personal Records automáticos
+- Light/Dark mode
 
 ## Setup Rápido
 
@@ -88,6 +91,7 @@ Bulkio/
 | POST | `/api/v1/exercises` | Criar exercício custom |
 | GET | `/api/v1/workouts` | Listar fichas |
 | POST | `/api/v1/workouts` | Criar ficha |
+| POST | `/api/v1/workouts/generate` | Gerar ficha com IA |
 | POST | `/api/v1/workouts/:id/duplicate` | Duplicar ficha |
 | DELETE | `/api/v1/workouts/:id` | Arquivar ficha |
 | GET | `/api/v1/workout-logs` | Histórico de treinos |
@@ -96,6 +100,7 @@ Bulkio/
 | POST | `/api/v1/body-weight` | Registrar peso |
 | GET | `/api/v1/dashboard/stats` | Stats do dashboard |
 | GET | `/api/v1/dashboard/exercise-progression/:id` | Progressão de exercício |
+| DELETE | `/api/v1/auth/account` | Deletar conta |
 
 ## Docker
 
@@ -113,6 +118,9 @@ JWT_REFRESH_SECRET="change-me"
 NODE_ENV="development"
 PORT=3001
 CORS_ORIGIN="http://localhost:5173"
+LLM_API_KEY="your-abacus-ai-route-llm-key"
+LLM_BASE_URL="https://llmrouter.abacus.ai/v1"
+LLM_MODEL="gemini-2.5-flash"
 ```
 
 ## Testes

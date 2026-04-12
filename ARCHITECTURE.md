@@ -1,6 +1,6 @@
 # Bulkio — Architecture & Engineering Standards
 # Single Source of Truth (SSoT)
-# Status: ATIVO | Última revisão: 2026-04-06
+# Status: ATIVO | Última revisão: 2026-04-11
 
 ---
 
@@ -15,7 +15,8 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 - Registro de treinos (log de séries, reps, carga, notas)
 - Rastreamento de peso corporal
 - Recordes pessoais (PRs automáticos)
-- Dashboard com analytics (streak, volume, distribuição muscular, progressão)
+- Dashboard com analytics (streak, volume, distribuição muscular, progressão, heatmap de atividade anual com milestones)
+- Geração de fichas de treino com IA (Abacus.ai Route LLM — gemini-2.5-flash)
 
 ### Objetivos Não-Funcionais (NFRs)
 | NFR | Meta | Status |
@@ -113,6 +114,29 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 - **Estrutura**: `src/tests/integration/setup.ts` (helpers), `*.integration.test.ts` (6 suites).
 - **Status**: Ativa.
 
+### ADR-009: CSS Animations + React Portal for Dialogs
+- **Contexto**: Animations (fade-in, scale-in) applied to page containers create CSS stacking contexts that break `position: fixed` on descendant dialogs.
+- **Decisão**: Page-level animations via CSS keyframes in `index.css`. Dialogs rendered via `createPortal(content, document.body)` to escape stacking contexts. Reusable `Dialog` component handles portal internally. Inline dialogs (e.g., GoalDialog) also use `createPortal`.
+- **Motivo**: CSS `transform` (even `transform: none` at animation end) creates a containing block for `position: fixed` descendants. Portal renders outside any animated parent.
+- **Consequências (+)**: Dialogs always render on top of everything, regardless of parent animations.
+- **Consequências (-)**: Portal elements are outside the React tree for event bubbling (rarely an issue for modals).
+- **Animations available**: `animate-fade-in`, `animate-fade-in-up`, `animate-fade-in-down`, `animate-scale-in`, `animate-slide-in-left`, `skeleton` (pulse loader).
+- **Stagger utility**: `.stagger-children` class delays children by 50ms increments (up to 8th child).
+- **Status**: Ativa.
+
+### ADR-010: Abacus.ai Route LLM for AI Workout Generation
+- **Contexto**: Usuário deseja geração automática de fichas de treino com base em preferências (nível, foco muscular, descrição livre). Migrado de Google Gemini SDK para Abacus.ai Route LLM por flexibilidade de modelos e custo.
+- **Decisão**: Usar Abacus.ai Route LLM API (endpoint OpenAI-compatible: `POST {LLM_BASE_URL}/chat/completions`). Modelo padrão: `gemini-2.5-flash`. Sem SDK — usa `fetch` nativo. Gera UMA ficha por requisição. Resposta em JSON validada com Zod (schema compacto: `i/s/r/d`). Retry até 2x em resposta inválida. Exercícios referenciados por índice no prompt (otimização de tokens) e mapeados para IDs reais no service.
+- **Motivo**: Abacus.ai Route LLM oferece acesso a múltiplos modelos (Gemini, GPT, Claude, Llama, etc.) via uma única API key (`s2_` prefix). Endpoint OpenAI-compatible simplifica integração. `gemini-2.5-flash` confirmado como melhor modelo para JSON estruturado (rápido, barato, preciso). Zero dependências extras (sem SDK).
+- **Alternativas descartadas**: Google Gemini SDK direto (gemini-2.0-flash shutting down Jun/2026, vendor lock-in), GPT-4o-mini (custo maior), regras determinísticas (qualidade inferior).
+- **Otimização de tokens**: Índices em vez de IDs no prompt, abreviações de grupos musculares/tipo/equipamento (`GROUP_ABBR`, `TYPE_ABBR`, `EQUIP_ABBR`), chaves JSON compactas (`i/s/r/d` em vez de `index/sets/reps/restSeconds`), nome do plano gerado server-side, limite 80 exercícios, `max_tokens: 1024`.
+- **Config**: `LLM_API_KEY` (env var, NUNCA commitada), `LLM_BASE_URL` (default `https://llmrouter.abacus.ai/v1`), `LLM_MODEL` (default `gemini-2.5-flash`).
+- **Consequências (+)**: Planos personalizados, catálogo real, multi-model flexibility, zero SDK deps, ~60-70% menos tokens no prompt.
+- **Consequências (-)**: Dependência de API externa (requer LLM_API_KEY em .env), latência variável, possibilidade de respostas inválidas (mitigada com retry + Zod).
+- **Endpoint**: `POST /api/v1/workouts/generate` (JWT, validate generateWorkoutSchema). Input: `{ level, focus?, description? }`. Returns single plan.
+- **Files**: `services/aiWorkoutService.ts`, `utils/promptBuilder.ts`, `components/workoutPlans/GenerateWorkoutDialog.tsx`.
+- **Status**: Ativa.
+
 ---
 
 ## 4. Estilo Arquitetural e Estrutura do Sistema
@@ -157,9 +181,11 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 | Auth | User, RefreshToken | authService |
 | Exercises | Exercise | exerciseService |
 | Training Plans | WorkoutPlan, WorkoutPlanExercise | workoutPlanService |
-| Training Logs | WorkoutLog, WorkoutLogExercise, WorkoutLogSet, PersonalRecord | workoutLogService |
+| Training Logs | WorkoutLog, WorkoutLogExercise, WorkoutLogSet | workoutLogService |
+| Personal Records | PersonalRecord | personalRecordService |
 | Body Tracking | BodyWeight | bodyWeightService |
 | Analytics | (lê de várias entidades) | dashboardService |
+| AI Generation | (usa Exercise, User, WorkoutPlan) | aiWorkoutService |
 
 ---
 
@@ -169,6 +195,7 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 | Padrão | Onde | Propósito |
 |--------|------|-----------|
 | Repository | `repositories/*.ts` | Encapsular queries Prisma; interface única de acesso a dados |
+| Repository DRY includes | `repositories/*.ts` (constantes no topo) | Includes reutilizáveis: `exercisesInclude`, `logInclude`, `toExerciseCreateData()` |
 | Service Layer | `services/*.ts` | Encapsular lógica de negócio e orquestração |
 | asyncHandler | `utils/asyncHandler.ts` | Eliminar try/catch boilerplate em controllers |
 | assertOwnership | `services/*.ts` (funções privadas) | Validar que recurso pertence ao usuário autenticado |
@@ -181,6 +208,17 @@ Bulkio é uma aplicação web de gerenciamento de treinos de musculação. Permi
 - **Dynamic imports** — NÃO DEVE usar `await import(...)` para resolver circular dependencies. Reorganizar módulos.
 - **`any` types** — NÃO DEVE usar `any` exceto quando estritamente necessário para contornar limitações de tipos de terceiros (ex: Prisma query results em testes). DEVE documentar com comentário.
 - **Inline complex dialogs** — Dialogs de formulário complexos DEVEM ser extraídos como componentes separados em `components/*/`.
+- **Alturas fixas em px para charts** — NÃO DEVE usar `height={N}` fixo em ResponsiveContainer. DEVE usar containers com aspect-ratio.
+
+### Padrões de Frontend — Mobile-First & Responsividade
+1. **Mobile-first obrigatório** — Todo componente DEVE ser projetado primeiro para viewports móveis (≥320px) e depois progressivamente aprimorado com `sm:`, `md:`, `lg:`. NUNCA projetar apenas para desktop.
+2. **Sem alturas fixas em charts** — Gráficos (Recharts) DEVEM usar containers com `aspect-ratio` + `min-h`/`max-h` e `ResponsiveContainer width="100%" height="100%"`. NUNCA usar `height={300}` fixo.
+3. **Padding responsivo** — Cards e containers DEVEM usar padding menor em mobile (`p-5 sm:p-6`). Stat cards usam `pb-3` entre header e content para breathing room.
+4. **Textos escaláveis** — Títulos e valores DEVEM ter tamanhos progressivos (`text-sm sm:text-base`, `text-xl sm:text-2xl`).
+5. **Sem overflow horizontal** — Layouts DEVEM prevenir scrollbar horizontal. Usar `overflow-x-auto` em tabelas/grids que podem exceder a viewport, e `overflow-x-hidden` no body.
+6. **Flex/Grid stackável** — Layouts lado a lado DEVEM empilhar em mobile (`flex-col sm:flex-row`, `grid-cols-1 sm:grid-cols-2`).
+7. **Truncate para textos longos** — Textos que podem exceder o container DEVEM usar `truncate` ou `line-clamp-*`.
+8. **Toque amigável** — Botões e áreas clicáveis DEVEM ter ao mínimo `h-10 w-10` (44px) em mobile para facilitar toque.
 
 ### Convenções de Código
 | Aspecto | Regra |
@@ -211,11 +249,11 @@ tests/          # Testes unitários (espelho da estrutura src/)
   controllers/
   middlewares/
   schemas/
-  services/
-  utils/
+  services/     # authService, bodyWeightService, dashboardService, exerciseService, personalRecordService, workoutLogService, workoutPlanService, aiWorkoutService
+  utils/        # asyncHandler, errors, streakCalculator, promptBuilder
   helpers.ts    # Factories e mocks compartilhados
   setup.ts      # Setup global de testes
-utils/          # Utilities (errors.ts, asyncHandler.ts)
+utils/          # Utilities (errors.ts, asyncHandler.ts, streakCalculator.ts, promptBuilder.ts)
 app.ts          # Express app configuration
 server.ts       # Server entry point
 ```
@@ -223,14 +261,17 @@ server.ts       # Server entry point
 #### Frontend (`frontend/src/`)
 ```
 components/     # Componentes React reutilizáveis
-  exercises/    # ExerciseDetailModal, ExerciseSearchDropdown
+  bodyWeight/  # GoalDialog
+  dashboard/   # ActivityHeatmap (heatmap de atividade anual)
+  exercises/    # ExerciseDetailModal, ExerciseProgressionDialog, ExerciseSearchDropdown
   layout/       # AppLayout, Sidebar, ProtectedRoute
   ui/           # Design system primitives (Button, Input, Card, Dialog, etc.)
-  workoutLogs/  # LogWorkoutDialog
-  workoutPlans/ # CreateWorkoutPlanDialog
+  workoutLogs/  # LogWorkoutDialog, AddSetForm
+  workoutPlans/ # CreateWorkoutPlanDialog, GenerateWorkoutDialog
 lib/            # Utilities compartilhados
   api.ts        # Axios instance com interceptors
   exerciseLabels.ts  # Mapeamento de enums para labels pt-BR
+  schemas.ts    # Zod schemas centralizados (login, register) — single source para validação frontend
   useChartColors.ts  # Hook para cores de gráficos (theme-aware)
   utils.ts      # cn() helper (clsx + tailwind-merge)
 pages/          # Page components (um por rota)
@@ -472,6 +513,7 @@ interface ApiResponse<T> {
 | GET | /api/v1/exercises/muscle-groups | JWT | - | exerciseController.getMuscleGroups |
 | GET | /api/v1/exercises/:id | JWT | - | exerciseController.findById |
 | GET | /api/v1/workouts | JWT | workoutPlanQuerySchema | workoutPlanController.findAll |
+| POST | /api/v1/workouts/generate | JWT | generateWorkoutSchema | workoutPlanController.generate |
 | GET | /api/v1/workouts/:id | JWT | - | workoutPlanController.findById |
 | POST | /api/v1/workouts | JWT | createWorkoutPlanSchema | workoutPlanController.create |
 | PATCH | /api/v1/workouts/:id | JWT | updateWorkoutPlanSchema | workoutPlanController.update |
@@ -485,6 +527,7 @@ interface ApiResponse<T> {
 | GET | /api/v1/body-weight | JWT | paginationSchema | bodyWeightController.findAll |
 | POST | /api/v1/body-weight | JWT | createBodyWeightSchema | bodyWeightController.create |
 | DELETE | /api/v1/body-weight/:id | JWT | - | bodyWeightController.delete |
+| DELETE | /api/v1/auth/account | JWT | - | authController.deleteAccount |
 | GET | /api/v1/dashboard/stats | JWT | - | dashboardController.getStats |
 | GET | /api/v1/dashboard/exercise-progression/:exerciseId | JWT | - | dashboardController.getExerciseProgression |
 | GET | /api/health | No | - | Inline handler |
@@ -493,13 +536,160 @@ interface ApiResponse<T> {
 
 | Model | Key Fields | Relations |
 |-------|------------|-----------|
-| User | id, email (unique), username (unique), password, goal | → WorkoutPlan[], WorkoutLog[], BodyWeight[], PersonalRecord[], RefreshToken[] |
+| User | id, email (unique), username (unique), password, goal?, initialWeight?, targetWeight?, height? | → WorkoutPlan[], WorkoutLog[], BodyWeight[], PersonalRecord[], RefreshToken[] |
 | Exercise | id, name (unique), muscleGroup, type, equipment, videoUrl | → WorkoutPlanExercise[], WorkoutLogExercise[], PersonalRecord[] |
 | WorkoutPlan | id, name, userId, isArchived | → User, WorkoutPlanExercise[], WorkoutLog[] |
-| WorkoutPlanExercise | id, workoutPlanId, exerciseId, sets, reps, restSeconds, order | → WorkoutPlan, Exercise |
-| WorkoutLog | id, userId, workoutPlanId?, date, isComplete | → User, WorkoutPlan?, WorkoutLogExercise[] |
-| WorkoutLogExercise | id, workoutLogId, exerciseId, order | → WorkoutLog, Exercise, WorkoutLogSet[] |
-| WorkoutLogSet | id, workoutLogExerciseId, setNumber, reps, weight | → WorkoutLogExercise |
+| WorkoutPlanExercise | id, workoutPlanId, exerciseId, sets, reps, restSeconds, order, notes? | → WorkoutPlan, Exercise |
+| WorkoutLog | id, userId, workoutPlanId?, date, startTime?, endTime?, notes?, isComplete | → User, WorkoutPlan?, WorkoutLogExercise[] |
+| WorkoutLogExercise | id, workoutLogId, exerciseId, order, notes? | → WorkoutLog, Exercise, WorkoutLogSet[] |
+| WorkoutLogSet | id, workoutLogExerciseId, setNumber, reps, weight, notes? | → WorkoutLogExercise |
 | BodyWeight | id, userId, weight, date | → User |
 | PersonalRecord | id, userId, exerciseId, weight, reps  (unique: userId+exerciseId) | → User, Exercise |
 | RefreshToken | id, tokenHash (unique), userId, expiresAt | → User |
+
+---
+
+## Apêndice: NPM Scripts
+
+### Root Monorepo (`package.json`)
+| Script | Comando | Propósito |
+|--------|---------|----------|
+| `dev` | `concurrently "npm run dev:backend" "npm run dev:frontend"` | Inicia backend + frontend em paralelo |
+| `dev:backend` | `cd backend && npm run dev` | Apenas backend |
+| `dev:frontend` | `cd frontend && npm run dev` | Apenas frontend |
+| `build` | `concurrently "npm run build:backend" "npm run build:frontend"` | Build de ambos |
+| `test` | `concurrently "npm run test:backend" "npm run test:frontend"` | Testes de ambos |
+| `lint` | `concurrently "npm run lint:backend" "npm run lint:frontend"` | Lint de ambos |
+| `setup` | `npm install && cd backend && npm install && prisma generate && prisma db push && prisma db seed && cd ../frontend && npm install` | Setup completo do projeto |
+
+### Backend (`backend/package.json`)
+| Script | Comando | Propósito |
+|--------|---------|----------|
+| `dev` | `tsx watch src/server.ts` | Dev server com hot reload |
+| `build` | `tsc` | Compilar TypeScript |
+| `start` | `node dist/server.js` | Iniciar em produção |
+| `test` | `vitest run` | Rodar testes unitários |
+| `test:watch` | `vitest` | Testes em watch mode |
+| `test:coverage` | `vitest run --coverage` | Testes com cobertura |
+| `test:integration` | `vitest run --config vitest.integration.config.ts` | Testes de integração |
+| `lint` | `eslint src/ --ext .ts` | Linting |
+| `db:generate` | `prisma generate` | Gerar Prisma Client |
+| `db:push` | `prisma db push` | Sincronizar schema com DB |
+| `db:migrate` | `prisma migrate dev` | Criar migration |
+| `db:seed` | `tsx prisma/seed.ts` | Popular DB com dados iniciais |
+| `db:studio` | `prisma studio` | UI de gestão do banco |
+
+### Frontend (`frontend/package.json`)
+| Script | Comando | Propósito |
+|--------|---------|----------|
+| `dev` | `vite` | Dev server |
+| `build` | `tsc -b && vite build` | Build de produção |
+| `lint` | `eslint .` | Linting |
+| `preview` | `vite preview` | Preview do build |
+
+---
+
+## Apêndice: Frontend Routes
+
+| Path | Componente | Auth | Descrição |
+|------|-----------|------|----------|
+| `/login` | LoginPage | Não | Página de login |
+| `/register` | RegisterPage | Não | Página de cadastro |
+| `/dashboard` | DashboardPage | JWT | Dashboard principal com stats, charts e heatmap |
+| `/workouts` | WorkoutPlansPage | JWT | Fichas de treino (CRUD) |
+| `/logs` | WorkoutLogsPage | JWT | Registro de treinos (CRUD) |
+| `/body-weight` | BodyWeightPage | JWT | Rastreamento de peso corporal, IMC, metas |
+| `/profile` | ProfilePage | JWT | Perfil do usuário (meta, peso alvo, deletar conta) |
+| `*` | → `/dashboard` | - | Redirect catch-all |
+
+Rotas protegidas são envolvidas por `<ProtectedRoute>` e renderizadas dentro de `<AppLayout>` (sidebar + conteúdo).
+
+---
+
+## Apêndice: Dashboard — Features & Métricas
+
+### Cards de Resumo
+| Card | Dados | Fonte |
+|------|-------|-------|
+| Treinos na Semana | Semana atual vs semana anterior | `weeklyWorkouts.current / previous` |
+| Streak | Dias consecutivos com treino | `streak` |
+| Volume Total | kg levantados nos últimos 30d (Σ reps × weight) | `totalVolume` |
+| Peso Corporal | Peso atual + meta (BULK/CUT/MAINTAIN) + peso alvo | `bodyWeight.current / goal / target / initial` |
+
+### Gráficos (Recharts)
+| Gráfico | Tipo | Dados | Container |
+|---------|------|-------|----------|
+| Distribuição Muscular | PieChart + Legend | Sets por grupo muscular (30d) | `aspect-4/3 min-h-50 max-h-70` |
+| Evolução do Peso | LineChart | Histórico de peso (30d) | `aspect-video min-h-45 max-h-75` |
+| Volume por Músculo | BarChart | Sets por grupo muscular (30d) | `aspect-5/2 min-h-45 max-h-75` |
+
+Todos os charts usam `ResponsiveContainer width="100%" height="100%"` e cores via `useChartColors()`.
+
+### Heatmap de Atividade Anual (`ActivityHeatmap`)
+- Grid estilo GitHub: 52-53 colunas (semanas) × 7 linhas (dias)
+- Intensidade de cor baseada na quantidade de treinos no dia
+- Tooltip interativo com data e contagem
+- **Sistema de milestones** baseado em percentis brasileiros:
+  | Dias | Milestone | Emoji |
+  |------|-----------|-------|
+  | 78 | Acima de 50% dos brasileiros | 💪 |
+  | 109 | Acima de 70% dos brasileiros | 🔥 |
+  | 140 | Acima de 90% dos brasileiros | 🏆 |
+  | 200 | Top 1% do Brasil | ⭐ |
+- Backend: `dashboardRepository.getYearlyWorkoutDays(userId, year)` → retorna datas de treino do ano
+- Tipo: `yearlyActivity: Record<string, number>` (data ISO → contagem de treinos)
+
+### Recordes Pessoais
+- Grid com top 10 PRs por exercício
+- Exibe: nome do exercício, peso, reps, data, grupo muscular
+- Link para vídeo do exercício (videoUrl)
+
+### Progressão por Exercício (`ExerciseProgressionDialog`)
+- Dialog (portal-rendered) with exercise progression charts
+- LineChart: Evolução de carga máxima over time
+- LineChart: Evolução de volume total over time
+- Stats cards: carga atual, carga máxima, total treinos
+- Progression highlight: kg gained/lost since first workout
+- Stagnation detection: warns if no weight increase for 3+ consecutive sessions with actionable tips
+- Triggered from: Dashboard PR cards, WorkoutLogsPage exercise names
+- Tipo: `ExerciseProgression { date, sets[], maxWeight, totalVolume }`
+
+---
+
+## Apêndice: Inventário de Testes
+
+### Testes Unitários (20 arquivos)
+| Pasta | Arquivo | Foco |
+|-------|---------|------|
+| `tests/controllers/` | `authController.test.ts` | Handlers HTTP de autenticação (17) |
+| `tests/controllers/` | `bodyWeightController.test.ts` | Handlers HTTP de peso corporal (7) |
+| `tests/controllers/` | `dashboardController.test.ts` | Handlers HTTP de dashboard (4) |
+| `tests/controllers/` | `exerciseController.test.ts` | Handlers HTTP de exercícios (7) |
+| `tests/controllers/` | `workoutLogController.test.ts` | Handlers HTTP de logs de treino (11) |
+| `tests/controllers/` | `workoutPlanController.test.ts` | Handlers HTTP de fichas de treino (14) |
+| `tests/middlewares/` | `middleware.test.ts` | Auth middleware, errorHandler, validation (12) |
+| `tests/schemas/` | `schemas.test.ts` | Validação Zod (inputs válidos/inválidos) (77) |
+| `tests/services/` | `authService.test.ts` | Lógica de auth, refresh, revogação (27) |
+| `tests/services/` | `bodyWeightService.test.ts` | CRUD peso corporal + ownership (6) |
+| `tests/services/` | `dashboardService.test.ts` | Agregações, stats, PRs (18) |
+| `tests/services/` | `exerciseService.test.ts` | Busca de exercícios (6) |
+| `tests/services/` | `personalRecordService.test.ts` | PR check/update + bulk update from exercises (10) |
+| `tests/services/` | `workoutLogService.test.ts` | Logs de treino (17) |
+| `tests/services/` | `workoutPlanService.test.ts` | Fichas de treino + duplicação + arquivamento (16) |
+| `tests/services/` | `aiWorkoutService.test.ts` | Geração AI: planos, filtro IDs, retry, API key (5) |
+| `tests/utils/` | `asyncHandler.test.ts` | Wrapper async para controllers (3) |
+| `tests/utils/` | `errors.test.ts` | Classes de erro customizadas (12) |
+| `tests/utils/` | `streakCalculator.test.ts` | Cálculo de streak com dedup e timezone (7) |
+| `tests/utils/` | `promptBuilder.test.ts` | Construção de prompt AI com exercícios, nível, foco (6) |
+
+### Testes de Integração (6 suites)
+| Arquivo | Endpoints cobertos |
+|---------|-------------------|
+| `auth.integration.test.ts` | register, login, refresh, logout, profile, updateProfile, deleteAccount |
+| `exercises.integration.test.ts` | findAll, getMuscleGroups, findById |
+| `workoutPlans.integration.test.ts` | findAll, findById, create, update, duplicate, archive |
+| `workoutLogs.integration.test.ts` | findAll, findById, create, update, delete |
+| `bodyWeight.integration.test.ts` | findAll, create, delete |
+| `dashboard.integration.test.ts` | getStats, getExerciseProgression |
+
+**Totais**: 283 testes unitários (20 arquivos) + 87 testes de integração (6 suites) = **370 testes**
