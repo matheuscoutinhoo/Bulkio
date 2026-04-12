@@ -36,6 +36,12 @@ const mockAiResponse = {
 const mockExerciseRepo = { findAll: vi.fn() };
 const mockUserRepo = { findById: vi.fn() };
 const mockPlanService = { create: vi.fn() };
+const mockDashboardRepo = {
+   getMuscleGroupVolume: vi.fn(),
+   getWeeklyWorkouts: vi.fn(),
+   getBodyWeightHistory: vi.fn(),
+};
+const mockPRRepo = { findAllByUser: vi.fn() };
 const mockFetch = vi.fn();
 
 vi.mock('../../repositories/exerciseRepository', () => ({
@@ -48,6 +54,20 @@ vi.mock('../../repositories/userRepository', () => ({
 
 vi.mock('../../services/workoutPlanService', () => ({
    workoutPlanService: { create: (...args: any[]) => mockPlanService.create(...args) },
+}));
+
+vi.mock('../../repositories/dashboardRepository', () => ({
+   dashboardRepository: {
+      getMuscleGroupVolume: (...args: any[]) => mockDashboardRepo.getMuscleGroupVolume(...args),
+      getWeeklyWorkouts: (...args: any[]) => mockDashboardRepo.getWeeklyWorkouts(...args),
+      getBodyWeightHistory: (...args: any[]) => mockDashboardRepo.getBodyWeightHistory(...args),
+   },
+}));
+
+vi.mock('../../repositories/personalRecordRepository', () => ({
+   personalRecordRepository: {
+      findAllByUser: (...args: any[]) => mockPRRepo.findAllByUser(...args),
+   },
 }));
 
 // Mock global fetch
@@ -69,6 +89,10 @@ describe('aiWorkoutService', () => {
       mockUserRepo.findById.mockResolvedValue(mockUser);
       mockFetch.mockResolvedValue(mockFetchResponse(mockAiResponse));
       mockPlanService.create.mockResolvedValue({ id: 'plan-1', ...mockAiResponse });
+      mockDashboardRepo.getMuscleGroupVolume.mockResolvedValue([]);
+      mockDashboardRepo.getWeeklyWorkouts.mockResolvedValue(0);
+      mockDashboardRepo.getBodyWeightHistory.mockResolvedValue([]);
+      mockPRRepo.findAllByUser.mockResolvedValue([]);
    });
 
    it('should generate a workout plan', async () => {
@@ -142,5 +166,31 @@ describe('aiWorkoutService', () => {
       const prompt = callBody.messages[0].content;
       expect(prompt).toContain('Peito e costas');
       expect(prompt).toContain('Prefiro halteres');
+   });
+
+   it('should include training context in prompt when user has history', async () => {
+      mockDashboardRepo.getMuscleGroupVolume.mockResolvedValue([
+         { exercise: { muscleGroup: 'CHEST' }, sets: [{}, {}] },
+         { exercise: { muscleGroup: 'CHEST' }, sets: [{}] },
+         { exercise: { muscleGroup: 'BACK' }, sets: [{}, {}, {}] },
+      ]);
+      mockDashboardRepo.getWeeklyWorkouts.mockResolvedValue(4);
+      mockDashboardRepo.getBodyWeightHistory.mockResolvedValue([{ weight: 82 }]);
+      mockPRRepo.findAllByUser.mockResolvedValue([
+         { exercise: { name: 'Supino Reto', muscleGroup: 'CHEST' }, weight: 80, reps: 6 },
+      ]);
+
+      await aiWorkoutService.generate('user-1', {
+         level: 'INTERMEDIATE',
+         focus: 'Peito',
+      });
+
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const prompt = callBody.messages[0].content;
+      expect(prompt).toContain('PA:82');
+      expect(prompt).toContain('Fr:4');
+      expect(prompt).toContain('V:Pe3,Co3');
+      expect(prompt).toContain('PR:Supino Reto/80x6');
+      expect(prompt).toContain('Priorizar');
    });
 });

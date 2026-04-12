@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { config } from '../config';
 import { exerciseRepository } from '../repositories/exerciseRepository';
 import { userRepository } from '../repositories/userRepository';
+import { dashboardRepository } from '../repositories/dashboardRepository';
+import { personalRecordRepository } from '../repositories/personalRecordRepository';
 import { workoutPlanService } from './workoutPlanService';
 import { buildPrompt } from '../utils/promptBuilder';
 import { ValidationError } from '../utils/errors';
@@ -65,6 +67,15 @@ function resolveGroups(focus: string): string[] {
    return groups.size > 0 ? [...groups] : [];
 }
 
+function getWeekStart(): Date {
+   const now = new Date();
+   const day = now.getDay();
+   const start = new Date(now);
+   start.setDate(now.getDate() - day);
+   start.setHours(0, 0, 0, 0);
+   return start;
+}
+
 interface GenerateInput {
    level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
    focus: string;
@@ -79,14 +90,42 @@ export const aiWorkoutService = {
 
       // Resolve focus to muscle groups and fetch only relevant exercises
       const muscleGroups = resolveGroups(input.focus);
-      const [user, [exercises]] = await Promise.all([
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const weekStart = getWeekStart();
+
+      const [user, [exercises], muscleGroupData, weeklyWorkouts, allPRs, bodyWeightHistory] = await Promise.all([
          userRepository.findById(userId),
          exerciseRepository.findAll({
             page: 1,
             limit: 80,
             ...(muscleGroups.length > 0 && { muscleGroups }),
          }),
+         dashboardRepository.getMuscleGroupVolume(userId, thirtyDaysAgo, new Date()),
+         dashboardRepository.getWeeklyWorkouts(userId, weekStart, new Date()),
+         personalRecordRepository.findAllByUser(userId),
+         dashboardRepository.getBodyWeightHistory(userId, 1),
       ]);
+
+      // Aggregate muscle distribution (sets per group, last 30d)
+      const muscleDistribution: Record<string, number> = {};
+      for (const entry of muscleGroupData) {
+         const group = entry.exercise.muscleGroup;
+         muscleDistribution[group] = (muscleDistribution[group] || 0) + entry.sets.length;
+      }
+
+      // Filter PRs relevant to focus muscles, limit 5
+      const focusGroupSet = new Set(muscleGroups);
+      let relevantPRs = allPRs
+         .filter((pr) => focusGroupSet.size === 0 || focusGroupSet.has(pr.exercise.muscleGroup))
+         .slice(0, 5)
+         .map((pr) => ({ name: pr.exercise.name, weight: pr.weight, reps: pr.reps }));
+
+      if (relevantPRs.length === 0 && allPRs.length > 0) {
+         relevantPRs = allPRs
+            .slice(0, 5)
+            .map((pr) => ({ name: pr.exercise.name, weight: pr.weight, reps: pr.reps }));
+      }
 
       // Build index→ID map for compact prompt
       const indexMap = exercises.map((e) => e.id);
@@ -103,6 +142,10 @@ export const aiWorkoutService = {
          initialWeight: user?.initialWeight ?? null,
          targetWeight: user?.targetWeight ?? null,
          height: user?.height ?? null,
+         currentWeight: bodyWeightHistory[0]?.weight ?? null,
+         weeklyFrequency: weeklyWorkouts,
+         muscleDistribution,
+         relevantPRs,
       }, input);
 
       let parsed: z.infer<typeof aiResponseSchema>;

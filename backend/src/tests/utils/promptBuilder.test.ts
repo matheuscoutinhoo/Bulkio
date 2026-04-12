@@ -6,9 +6,20 @@ const mockExercises = [
    { index: 1, name: 'Puxada Frontal', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'CABLE' },
 ];
 
+const emptyUser = {
+   goal: null as string | null,
+   initialWeight: null as number | null,
+   targetWeight: null as number | null,
+   height: null as number | null,
+   currentWeight: null as number | null,
+   weeklyFrequency: 0,
+   muscleDistribution: {} as Record<string, number>,
+   relevantPRs: [] as { name: string; weight: number; reps: number }[],
+};
+
 describe('buildPrompt', () => {
    it('should include indexed exercises in the prompt', () => {
-      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'INTERMEDIATE',
          focus: 'Peito',
       });
@@ -18,7 +29,7 @@ describe('buildPrompt', () => {
    });
 
    it('should include user goal in prompt', () => {
-      const prompt = buildPrompt(mockExercises, { goal: 'BULK', initialWeight: 80, targetWeight: 85, height: 180 }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser, goal: 'BULK', initialWeight: 80, targetWeight: 85, height: 180 }, {
          level: 'ADVANCED',
          focus: 'Costas',
       });
@@ -31,7 +42,7 @@ describe('buildPrompt', () => {
    });
 
    it('should include focus when provided', () => {
-      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'BEGINNER',
          focus: 'Peito e costas',
       });
@@ -41,10 +52,10 @@ describe('buildPrompt', () => {
    });
 
    it('should set correct sets range per level', () => {
-      const beginnerPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const beginnerPrompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'BEGINNER', focus: 'Pernas',
       });
-      const advancedPrompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const advancedPrompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'ADVANCED', focus: 'Peito',
       });
 
@@ -53,7 +64,7 @@ describe('buildPrompt', () => {
    });
 
    it('should use compact JSON format with index-based keys', () => {
-      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'INTERMEDIATE', focus: 'Peito',
       });
 
@@ -64,7 +75,7 @@ describe('buildPrompt', () => {
    });
 
    it('should include description when provided', () => {
-      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'INTERMEDIATE',
          focus: 'Peito',
          description: 'Prefiro exercícios com halteres',
@@ -74,11 +85,54 @@ describe('buildPrompt', () => {
    });
 
    it('should use abbreviated muscle group, type and equipment', () => {
-      const prompt = buildPrompt(mockExercises, { goal: null, initialWeight: null, targetWeight: null, height: null }, {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
          level: 'INTERMEDIATE', focus: 'Peito',
       });
 
       expect(prompt).toContain('|Pe|C|B');
       expect(prompt).toContain('|Co|C|Ca');
+   });
+
+   it('should include muscle distribution when available', () => {
+      const prompt = buildPrompt(mockExercises, {
+         ...emptyUser,
+         muscleDistribution: { CHEST: 24, BACK: 20, LEGS: 18 },
+      }, { level: 'INTERMEDIATE', focus: 'Peito' });
+
+      expect(prompt).toContain('V:Pe24,Co20,Pr18');
+      expect(prompt).toContain('Priorizar');
+   });
+
+   it('should include relevant PRs when available', () => {
+      const prompt = buildPrompt(mockExercises, {
+         ...emptyUser,
+         relevantPRs: [
+            { name: 'Supino Reto', weight: 80, reps: 6 },
+            { name: 'Supino Inc H', weight: 32, reps: 8 },
+         ],
+      }, { level: 'INTERMEDIATE', focus: 'Peito' });
+
+      expect(prompt).toContain('PR:Supino Reto/80x6,Supino Inc H/32x8');
+   });
+
+   it('should include current weight and frequency in profile', () => {
+      const prompt = buildPrompt(mockExercises, {
+         ...emptyUser,
+         currentWeight: 82,
+         weeklyFrequency: 4,
+      }, { level: 'INTERMEDIATE', focus: 'Peito' });
+
+      expect(prompt).toContain('PA:82');
+      expect(prompt).toContain('Fr:4');
+   });
+
+   it('should not include science line when no context data', () => {
+      const prompt = buildPrompt(mockExercises, { ...emptyUser }, {
+         level: 'INTERMEDIATE', focus: 'Peito',
+      });
+
+      expect(prompt).not.toContain('Priorizar');
+      expect(prompt).not.toContain('V:');
+      expect(prompt).not.toContain('PR:');
    });
 });
