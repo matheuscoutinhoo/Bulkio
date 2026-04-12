@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollText } from '@/components/ui/scroll-text';
 import { Trash2 } from 'lucide-react';
 import { ExerciseSearchDropdown } from '@/components/exercises/ExerciseSearchDropdown';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -158,7 +159,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                   {exercises.map((ex, i) => (
                      <div key={i} className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-secondary/30">
                         <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
-                        <span className="flex-1 text-sm font-medium truncate min-w-0">{ex.exerciseName}</span>
+                        <ScrollText className="flex-1 text-sm font-medium min-w-0">{ex.exerciseName}</ScrollText>
                         <div className="flex flex-wrap items-center gap-2">
                            <Input
                               type="number"

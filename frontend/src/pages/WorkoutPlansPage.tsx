@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle, Sparkles } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
+import { ScrollText } from '@/components/ui/scroll-text';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
 import { GenerateWorkoutDialog } from '@/components/workoutPlans/GenerateWorkoutDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -139,7 +140,7 @@ export default function WorkoutPlansPage() {
                                  >
                                     <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
                                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProgressionExercise(pe.exercise)}>
-                                       <p className="font-medium text-sm truncate hover:text-primary transition-colors">{pe.exercise.name}</p>
+                                       <ScrollText className="font-medium text-sm hover:text-primary transition-colors">{pe.exercise.name}</ScrollText>
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           <span>• {pe.restSeconds}s descanso</span>

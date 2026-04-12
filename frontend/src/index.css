@@ -204,6 +204,22 @@ select {
   }
 }
 
+@keyframes scroll-text {
+  0%, 15% {
+    transform: translateX(0);
+  }
+  50%, 65% {
+    transform: translateX(var(--scroll-offset, -50px));
+  }
+  85%, 100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll-text {
+  animation: scroll-text var(--scroll-duration, 5s) ease-in-out infinite;
+}
+
 .animate-fade-in {
   animation: fade-in 0.3s ease-out both;
 }
