@@ -19,6 +19,7 @@
       "setup": "npm install && cd backend && npm install && npx prisma generate && npx prisma db push && npx prisma db seed && cd ../frontend && npm install"
    },
    "devDependencies": {
-      "concurrently": "^8.2.2"
+      "concurrently": "^8.2.2",
+      "xlsx": "^0.18.5"
    }
 }

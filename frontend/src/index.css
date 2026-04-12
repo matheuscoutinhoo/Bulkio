@@ -260,7 +260,9 @@ select {
 }
 
 @keyframes timer-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 var(--color-success);
   }
 

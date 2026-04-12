@@ -153,25 +153,27 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
             </div>
 
             {/* Time adjust */}
-            <div className="flex items-center justify-center gap-3 mb-5">
+            <div className="flex items-center justify-center gap-2 mb-5">
                <Button
                   variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
+                  size="sm"
+                  className="h-8 rounded-full px-3 gap-1.5"
                   onClick={() => handleAdjust(-15)}
                >
                   <Minus className="h-3.5 w-3.5" />
+                  <span className="text-xs">15s</span>
                </Button>
-               <span className="text-xs text-muted-foreground w-16 text-center">
+               <span className="text-xs text-muted-foreground w-16 text-center tabular-nums">
                   {Math.floor(totalSeconds / 60)}:{(totalSeconds % 60).toString().padStart(2, '0')}
                </span>
                <Button
                   variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
+                  size="sm"
+                  className="h-8 rounded-full px-3 gap-1.5"
                   onClick={() => handleAdjust(15)}
                >
                   <Plus className="h-3.5 w-3.5" />
+                  <span className="text-xs">15s</span>
                </Button>
             </div>
 
