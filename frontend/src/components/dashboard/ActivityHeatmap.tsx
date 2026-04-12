@@ -43,7 +43,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
       today.setHours(0, 0, 0, 0);
       const toDateKey = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
 
-      const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean; connLeft: boolean; connRight: boolean; connTop: boolean; connBottom: boolean }[][] = [];
+      const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean; hasLeft: boolean; hasRight: boolean }[][] = [];
       let date = 1 - firstDayOfWeek;
 
       for (let row = 0; row < 6; row++) {
@@ -57,7 +57,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                active: (yearlyActivity[key] || 0) > 0,
                isToday: d.getTime() === today.getTime(),
                inMonth: d.getMonth() === month,
-               connLeft: false, connRight: false, connTop: false, connBottom: false,
+               hasLeft: false, hasRight: false,
             });
             date++;
          }
@@ -65,17 +65,13 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
          if (grid.length >= 5 && new Date(year, month, date).getMonth() !== month) break;
       }
 
-      // Compute streak connectors
+      // Compute horizontal streak connections
       for (let r = 0; r < grid.length; r++) {
          for (let c = 0; c < 7; c++) {
             const cell = grid[r][c];
             if (!cell.active || !cell.inMonth) continue;
-            // horizontal
-            if (c > 0 && grid[r][c - 1].active && grid[r][c - 1].inMonth) cell.connLeft = true;
-            if (c < 6 && grid[r][c + 1].active && grid[r][c + 1].inMonth) cell.connRight = true;
-            // vertical cross-row (Sat→Sun wrap)
-            if (c === 6 && r + 1 < grid.length && grid[r + 1][0].active && grid[r + 1][0].inMonth) cell.connBottom = true;
-            if (c === 0 && r > 0 && grid[r - 1][6].active && grid[r - 1][6].inMonth) cell.connTop = true;
+            if (c > 0 && grid[r][c - 1].active && grid[r][c - 1].inMonth) cell.hasLeft = true;
+            if (c < 6 && grid[r][c + 1].active && grid[r][c + 1].inMonth) cell.hasRight = true;
          }
       }
       return grid;
@@ -130,6 +126,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                {calendarData.map((week, rowIdx) => (
                   <div key={rowIdx} className="grid grid-cols-7">
                      {week.map((cell, colIdx) => {
+                        const showBand = cell.active && cell.inMonth && (cell.hasLeft || cell.hasRight);
                         return (
                            <div
                               key={colIdx}
@@ -137,19 +134,19 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                               onMouseEnter={() => cell.inMonth ? setHoveredDay(cell.dateKey) : undefined}
                               onMouseLeave={() => setHoveredDay(null)}
                            >
-                              {/* Horizontal connectors */}
-                              {cell.connLeft && (
-                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
-                              )}
-                              {cell.connRight && (
-                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
-                              )}
-                              {/* Vertical cross-row connectors (Sat↓ / Sun↑) */}
-                              {cell.connBottom && (
-                                 <div className="absolute bottom-0 right-0 w-9 h-1/2 bg-primary/20 rounded-b-lg" />
-                              )}
-                              {cell.connTop && (
-                                 <div className="absolute top-0 left-0 w-9 h-1/2 bg-primary/20 rounded-t-lg" />
+                              {/* Streak pill band */}
+                              {showBand && (
+                                 <div
+                                    className="absolute top-1/2 -translate-y-1/2 h-9 bg-primary/25"
+                                    style={{
+                                       left: cell.hasLeft ? 0 : 'calc(50% - 18px)',
+                                       right: cell.hasRight ? 0 : 'calc(50% - 18px)',
+                                       borderTopLeftRadius: cell.hasLeft ? 0 : 9999,
+                                       borderBottomLeftRadius: cell.hasLeft ? 0 : 9999,
+                                       borderTopRightRadius: cell.hasRight ? 0 : 9999,
+                                       borderBottomRightRadius: cell.hasRight ? 0 : 9999,
+                                    }}
+                                 />
                               )}
                               {/* Day circle */}
                               <span
