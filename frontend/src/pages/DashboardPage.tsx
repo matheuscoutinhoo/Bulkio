@@ -271,7 +271,7 @@ export default function DashboardPage() {
                               contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                               formatter={(value) => [`${value} séries`, 'Volume']}
                            />
-                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[999, 999, 999, 999]} activeBar={false} />
+                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} maxBarSize={48} activeBar={false} />
                         </BarChart>
                      </ResponsiveContainer>
                   </div>
