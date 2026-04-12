@@ -1,7 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
-
-const TEST_DB_PATH = path.resolve(__dirname, 'prisma', 'test.db');
 
 export default defineConfig({
    test: {
@@ -12,7 +9,7 @@ export default defineConfig({
       hookTimeout: 30000,
       fileParallelism: false,
       env: {
-         DATABASE_URL: `file:${TEST_DB_PATH}`,
+         DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bulkio_test?schema=public',
          NODE_ENV: 'test',
       },
    },
