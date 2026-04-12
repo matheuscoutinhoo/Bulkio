@@ -198,17 +198,16 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               width={50}
                            />
                            <Tooltip
-                              contentStyle={{
-                                 backgroundColor: colors.tooltipBg,
-                                 borderColor: colors.tooltipBorder,
-                                 borderRadius: 10,
-                                 fontSize: 12,
-                                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                              }}
-                              formatter={(value) => [`${value}kg`, 'Carga máx.']}
-                              labelFormatter={(_label, payload) => {
-                                 if (payload?.[0]?.payload?.fullDate) return payload[0].payload.fullDate;
-                                 return _label;
+                              content={({ active, payload }) => {
+                                 if (!active || !payload?.length) return null;
+                                 const d = payload[0].payload;
+                                 return (
+                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <p className="text-muted-foreground text-xs">{d.fullDate || d.date}</p>
+                                       <p className="font-semibold text-base">{payload[0].value}kg</p>
+                                       <p className="text-muted-foreground text-xs">Carga máxima</p>
+                                    </div>
+                                 );
                               }}
                            />
                            <Area
@@ -254,17 +253,16 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               width={55}
                            />
                            <Tooltip
-                              contentStyle={{
-                                 backgroundColor: colors.tooltipBg,
-                                 borderColor: colors.tooltipBorder,
-                                 borderRadius: 10,
-                                 fontSize: 12,
-                                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                              }}
-                              formatter={(value) => [`${value}kg`, 'Volume']}
-                              labelFormatter={(_label, payload) => {
-                                 if (payload?.[0]?.payload?.fullDate) return payload[0].payload.fullDate;
-                                 return _label;
+                              content={({ active, payload }) => {
+                                 if (!active || !payload?.length) return null;
+                                 const d = payload[0].payload;
+                                 return (
+                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <p className="text-muted-foreground text-xs">{d.fullDate || d.date}</p>
+                                       <p className="font-semibold text-base">{Number(payload[0].value).toLocaleString('pt-BR')}kg</p>
+                                       <p className="text-muted-foreground text-xs">Volume total</p>
+                                    </div>
+                                 );
                               }}
                            />
                            <Area
