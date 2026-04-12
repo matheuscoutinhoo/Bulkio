@@ -41,6 +41,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const toDateKey = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
 
       const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean }[][] = [];
       let date = 1 - firstDayOfWeek;
@@ -49,7 +50,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
          const week: typeof grid[0] = [];
          for (let col = 0; col < 7; col++) {
             const d = new Date(year, month, date);
-            const key = d.toISOString().split('T')[0];
+            const key = toDateKey(d);
             week.push({
                day: d.getDate(),
                dateKey: key,

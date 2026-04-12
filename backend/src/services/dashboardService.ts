@@ -68,7 +68,8 @@ export const dashboardService = {
       // Build yearly activity map: { 'YYYY-MM-DD': count }
       const yearlyActivity: Record<string, number> = {};
       for (const log of yearlyWorkouts) {
-         const key = new Date(log.date).toISOString().split('T')[0];
+         const d = new Date(log.date);
+         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
          yearlyActivity[key] = (yearlyActivity[key] || 0) + 1;
       }
 
