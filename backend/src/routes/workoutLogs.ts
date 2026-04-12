@@ -9,6 +9,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', validateQuery(workoutLogQuerySchema), workoutLogController.findAll);
+router.get('/exercise-history/:exerciseId', workoutLogController.getExerciseLastSession);
 router.get('/:id', workoutLogController.findById);
 router.post('/', validate(createWorkoutLogSchema), workoutLogController.create);
 router.patch('/:id', validate(updateWorkoutLogSchema), workoutLogController.update);

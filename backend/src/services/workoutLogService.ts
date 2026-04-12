@@ -72,4 +72,8 @@ export const workoutLogService = {
       await assertLogOwnership(userId, id);
       return workoutLogRepository.delete(id);
    },
+
+   async getExerciseLastSession(userId: string, exerciseId: string) {
+      return workoutLogRepository.findLastExerciseSets(userId, exerciseId);
+   },
 };

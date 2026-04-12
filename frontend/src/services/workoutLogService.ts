@@ -86,6 +86,11 @@ export interface UpdateWorkoutLogData {
    }[];
 }
 
+export interface ExerciseLastSession {
+   sets: { setNumber: number; reps: number; weight: number }[];
+   workoutLog: { date: string };
+}
+
 export const workoutLogApi = {
    getAll: (filters?: WorkoutLogFilters) =>
       api.get('/workout-logs', { params: filters }),
@@ -94,4 +99,6 @@ export const workoutLogApi = {
    update: (id: string, data: UpdateWorkoutLogData) =>
       api.patch(`/workout-logs/${id}`, data),
    delete: (id: string) => api.delete(`/workout-logs/${id}`),
+   getExerciseLastSession: (exerciseId: string) =>
+      api.get<{ success: boolean; data: ExerciseLastSession | null }>(`/workout-logs/exercise-history/${exerciseId}`),
 };

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { History } from 'lucide-react';
 import type { WorkoutPlanExercise } from '@/services/workoutPlanService';
+import { workoutLogApi, type ExerciseLastSession } from '@/services/workoutLogService';
 
 interface AddSetFormProps {
    planExercises: WorkoutPlanExercise[];
@@ -16,6 +18,33 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
    const [reps, setReps] = useState('10');
    const [weight, setWeight] = useState('0');
    const [saving, setSaving] = useState(false);
+   const [lastSession, setLastSession] = useState<ExerciseLastSession | null>(null);
+   const [loadingHistory, setLoadingHistory] = useState(false);
+
+   useEffect(() => {
+      if (!exerciseId) {
+         setLastSession(null);
+         return;
+      }
+
+      let cancelled = false;
+      setLoadingHistory(true);
+      workoutLogApi.getExerciseLastSession(exerciseId)
+         .then((res) => {
+            if (!cancelled) {
+               setLastSession(res.data.data);
+               if (res.data.data && res.data.data.sets.length > 0) {
+                  const lastSet = res.data.data.sets[res.data.data.sets.length - 1];
+                  setReps(String(lastSet.reps));
+                  setWeight(String(lastSet.weight));
+               }
+            }
+         })
+         .catch(() => { if (!cancelled) setLastSession(null); })
+         .finally(() => { if (!cancelled) setLoadingHistory(false); });
+
+      return () => { cancelled = true; };
+   }, [exerciseId]);
 
    const handleSave = async () => {
       if (!exerciseId) return;
@@ -42,6 +71,34 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
                ))}
             </Select>
          </div>
+
+         {/* Inline history */}
+         {exerciseId && (
+            <div className="text-xs text-muted-foreground">
+               {loadingHistory ? (
+                  <span className="animate-pulse">Carregando histórico...</span>
+               ) : lastSession ? (
+                  <div className="flex items-start gap-1.5 p-2 rounded-md bg-secondary/40">
+                     <History className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary/70" />
+                     <div>
+                        <span className="font-medium text-foreground/80">Última vez: </span>
+                        {lastSession.sets.map((s, i) => (
+                           <span key={i}>
+                              {i > 0 && <span className="mx-0.5 text-muted-foreground/50">·</span>}
+                              <span className="text-foreground/90">{s.reps}×{s.weight}kg</span>
+                           </span>
+                        ))}
+                     </div>
+                  </div>
+               ) : (
+                  <div className="flex items-center gap-1.5 p-2 rounded-md bg-secondary/40">
+                     <History className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
+                     <span>Sem histórico anterior</span>
+                  </div>
+               )}
+            </div>
+         )}
+
          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
                <Label className="text-xs">Repetições</Label>

@@ -144,4 +144,18 @@ export const workoutLogRepository = {
    delete(id: string) {
       return prisma.workoutLog.delete({ where: { id } });
    },
+
+   findLastExerciseSets(userId: string, exerciseId: string) {
+      return prisma.workoutLogExercise.findFirst({
+         where: {
+            exerciseId,
+            workoutLog: { userId, isComplete: true },
+         },
+         include: {
+            sets: { orderBy: { setNumber: 'asc' as const } },
+            workoutLog: { select: { date: true } },
+         },
+         orderBy: { workoutLog: { date: 'desc' } },
+      });
+   },
 };

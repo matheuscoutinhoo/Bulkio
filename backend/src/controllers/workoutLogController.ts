@@ -45,4 +45,9 @@ export const workoutLogController = {
       await workoutLogService.delete(req.user!.userId, req.params.id as string);
       res.json(createResponse(null, 'Workout log deleted'));
    }),
+
+   getExerciseLastSession: asyncHandler(async (req: Request, res: Response) => {
+      const data = await workoutLogService.getExerciseLastSession(req.user!.userId, req.params.exerciseId as string);
+      res.json(createResponse(data));
+   }),
 };

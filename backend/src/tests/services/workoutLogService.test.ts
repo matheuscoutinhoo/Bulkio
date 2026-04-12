@@ -10,6 +10,7 @@ vi.mock('../../repositories/workoutLogRepository', () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      findLastExerciseSets: vi.fn(),
    },
 }));
 
@@ -225,6 +226,30 @@ describe('workoutLogService', () => {
          );
 
          await expect(workoutLogService.delete('user-1', 'log-1')).rejects.toThrow('Forbidden');
+      });
+   });
+
+   // ========== getExerciseLastSession ==========
+   describe('getExerciseLastSession', () => {
+      it('should return last session sets for exercise', async () => {
+         const mockData = {
+            sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+            workoutLog: { date: '2026-04-10T00:00:00.000Z' },
+         };
+         mockLogRepo.findLastExerciseSets.mockResolvedValue(mockData as any);
+
+         const result = await workoutLogService.getExerciseLastSession('user-1', 'ex-1');
+
+         expect(mockLogRepo.findLastExerciseSets).toHaveBeenCalledWith('user-1', 'ex-1');
+         expect(result).toEqual(mockData);
+      });
+
+      it('should return null when no previous session exists', async () => {
+         mockLogRepo.findLastExerciseSets.mockResolvedValue(null);
+
+         const result = await workoutLogService.getExerciseLastSession('user-1', 'ex-1');
+
+         expect(result).toBeNull();
       });
    });
 });

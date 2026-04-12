@@ -9,6 +9,7 @@ vi.mock('../../services/workoutLogService', () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      getExerciseLastSession: vi.fn(),
    },
 }));
 
@@ -263,6 +264,54 @@ describe('workoutLogController', () => {
          await workoutLogController.delete(req, res, next);
 
          expect(next).toHaveBeenCalledTimes(1);
+      });
+   });
+
+   // ========== getExerciseLastSession ==========
+   describe('getExerciseLastSession', () => {
+      it('should return last session data for exercise', async () => {
+         const mockData = {
+            sets: [{ setNumber: 1, reps: 10, weight: 60 }],
+            workoutLog: { date: '2026-04-10T00:00:00.000Z' },
+         };
+         mockService.getExerciseLastSession.mockResolvedValue(mockData as any);
+
+         const req = mockRequest({
+            user: { userId: 'user-1', email: 'a@b.com' },
+            params: { exerciseId: 'ex-1' },
+         });
+         const res = mockResponse();
+         const next = mockNext();
+
+         await workoutLogController.getExerciseLastSession(req, res, next);
+
+         expect(mockService.getExerciseLastSession).toHaveBeenCalledWith('user-1', 'ex-1');
+         expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+               success: true,
+               data: mockData,
+            }),
+         );
+      });
+
+      it('should return null when no history exists', async () => {
+         mockService.getExerciseLastSession.mockResolvedValue(null);
+
+         const req = mockRequest({
+            user: { userId: 'user-1', email: 'a@b.com' },
+            params: { exerciseId: 'ex-no-history' },
+         });
+         const res = mockResponse();
+         const next = mockNext();
+
+         await workoutLogController.getExerciseLastSession(req, res, next);
+
+         expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+               success: true,
+               data: null,
+            }),
+         );
       });
    });
 });
