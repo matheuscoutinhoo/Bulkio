@@ -5,9 +5,9 @@ import { calculateStreak } from '../utils/streakCalculator';
 
 function getWeekBounds(weeksAgo: number = 0): { start: Date; end: Date } {
    const now = new Date();
-   const daysSinceMonday = (now.getDay() + 6) % 7;
+   const dayOfWeek = now.getDay();
    const startOfWeek = new Date(now);
-   startOfWeek.setDate(now.getDate() - daysSinceMonday - weeksAgo * 7);
+   startOfWeek.setDate(now.getDate() - dayOfWeek - weeksAgo * 7);
    startOfWeek.setHours(0, 0, 0, 0);
 
    const endOfWeek = new Date(startOfWeek);
