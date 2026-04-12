@@ -14,6 +14,6 @@ router.post('/generate', validate(generateWorkoutSchema), workoutPlanController.
 router.get('/:id', workoutPlanController.findById);
 router.patch('/:id', validate(updateWorkoutPlanSchema), workoutPlanController.update);
 router.post('/:id/duplicate', workoutPlanController.duplicate);
-router.delete('/:id', workoutPlanController.archive);
+router.delete('/:id', workoutPlanController.delete);
 
 export default router;

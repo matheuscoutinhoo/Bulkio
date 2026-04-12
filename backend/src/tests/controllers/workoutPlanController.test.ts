@@ -9,7 +9,7 @@ vi.mock('../../services/workoutPlanService', () => ({
       create: vi.fn(),
       update: vi.fn(),
       duplicate: vi.fn(),
-      archive: vi.fn(),
+      delete: vi.fn(),
    },
 }));
 
@@ -35,14 +35,14 @@ describe('workoutPlanController', () => {
 
          const req = mockRequest({
             user: { userId: 'user-1', email: 'a@b.com' },
-            query: { page: '1', limit: '20', includeArchived: 'false' },
+            query: { page: '1', limit: '20' },
          });
          const res = mockResponse();
          const next = mockNext();
 
          await workoutPlanController.findAll(req, res, next);
 
-         expect(mockService.findAll).toHaveBeenCalledWith('user-1', false, 1, 20);
+         expect(mockService.findAll).toHaveBeenCalledWith('user-1', 1, 20);
          expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({
                success: true,
@@ -52,22 +52,7 @@ describe('workoutPlanController', () => {
          );
       });
 
-      it('should pass includeArchived=true to service', async () => {
-         mockService.findAll.mockResolvedValue({ plans: [], total: 0, page: 1, totalPages: 0 });
-
-         const req = mockRequest({
-            user: { userId: 'user-1', email: 'a@b.com' },
-            query: { includeArchived: 'true' },
-         });
-         const res = mockResponse();
-         const next = mockNext();
-
-         await workoutPlanController.findAll(req, res, next);
-
-         expect(mockService.findAll).toHaveBeenCalledWith('user-1', true, 1, 20);
-      });
-
-      it('should default includeArchived to false', async () => {
+      it('should use default pagination', async () => {
          mockService.findAll.mockResolvedValue({ plans: [], total: 0, page: 1, totalPages: 0 });
 
          const req = mockRequest({
@@ -79,7 +64,7 @@ describe('workoutPlanController', () => {
 
          await workoutPlanController.findAll(req, res, next);
 
-         expect(mockService.findAll).toHaveBeenCalledWith('user-1', false, 1, 20);
+         expect(mockService.findAll).toHaveBeenCalledWith('user-1', 1, 20);
       });
 
       it('should call next(error) when service throws', async () => {
@@ -262,10 +247,10 @@ describe('workoutPlanController', () => {
       });
    });
 
-   // ========== archive ==========
-   describe('archive', () => {
-      it('should return success message on archive', async () => {
-         mockService.archive.mockResolvedValue(undefined as any);
+   // ========== delete ==========
+   describe('delete', () => {
+      it('should return success message on delete', async () => {
+         mockService.delete.mockResolvedValue(undefined as any);
 
          const req = mockRequest({
             user: { userId: 'user-1', email: 'a@b.com' },
@@ -274,20 +259,20 @@ describe('workoutPlanController', () => {
          const res = mockResponse();
          const next = mockNext();
 
-         await workoutPlanController.archive(req, res, next);
+         await workoutPlanController.delete(req, res, next);
 
-         expect(mockService.archive).toHaveBeenCalledWith('user-1', 'plan-1');
+         expect(mockService.delete).toHaveBeenCalledWith('user-1', 'plan-1');
          expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({
                success: true,
                data: null,
-               message: 'Workout plan archived',
+               message: 'Workout plan deleted',
             }),
          );
       });
 
       it('should call next(error) when service throws', async () => {
-         mockService.archive.mockRejectedValue(new Error('not found'));
+         mockService.delete.mockRejectedValue(new Error('not found'));
 
          const req = mockRequest({
             user: { userId: 'user-1', email: 'a@b.com' },
@@ -296,7 +281,7 @@ describe('workoutPlanController', () => {
          const res = mockResponse();
          const next = mockNext();
 
-         await workoutPlanController.archive(req, res, next);
+         await workoutPlanController.delete(req, res, next);
 
          expect(next).toHaveBeenCalledTimes(1);
       });

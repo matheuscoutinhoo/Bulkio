@@ -37,7 +37,6 @@ export function createMockWorkoutPlan(overrides: Record<string, unknown> = {}) {
       name: 'Push Day',
       description: null,
       userId: 'user-1',
-      isArchived: false,
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
       exercises: [],

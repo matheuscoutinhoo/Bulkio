@@ -400,14 +400,6 @@ describe('updateWorkoutPlanSchema', () => {
       expect(updateWorkoutPlanSchema.safeParse({ description: null }).success).toBe(true);
    });
 
-   it('should accept isArchived boolean', () => {
-      expect(updateWorkoutPlanSchema.safeParse({ isArchived: true }).success).toBe(true);
-   });
-
-   it('should reject isArchived non-boolean', () => {
-      expect(updateWorkoutPlanSchema.safeParse({ isArchived: 'yes' }).success).toBe(false);
-   });
-
    it('should accept exercises array', () => {
       const result = updateWorkoutPlanSchema.safeParse({
          exercises: [{
@@ -542,12 +534,6 @@ describe('workoutLogExerciseSchema', () => {
 
 // ========== workoutPlanQuerySchema ==========
 describe('workoutPlanQuerySchema', () => {
-   it('should accept includeArchived string param', () => {
-      const result = workoutPlanQuerySchema.safeParse({ includeArchived: 'true' });
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data.includeArchived).toBe('true');
-   });
-
    it('should default pagination when no params', () => {
       const result = workoutPlanQuerySchema.safeParse({});
       expect(result.success).toBe(true);

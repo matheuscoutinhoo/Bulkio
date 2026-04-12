@@ -29,25 +29,25 @@ describe('workoutPlanService', () => {
          const plans = [createMockWorkoutPlan()];
          mockRepo.findAllByUser.mockResolvedValue([plans, 1] as any);
 
-         const result = await workoutPlanService.findAll('user-1', false, 1, 20);
+         const result = await workoutPlanService.findAll('user-1', 1, 20);
 
          expect(result.plans).toEqual(plans);
          expect(result.total).toBe(1);
          expect(result.totalPages).toBe(1);
       });
 
-      it('should pass includeArchived flag to repository', async () => {
+      it('should pass params to repository', async () => {
          mockRepo.findAllByUser.mockResolvedValue([[], 0] as any);
 
-         await workoutPlanService.findAll('user-1', true, 1, 20);
+         await workoutPlanService.findAll('user-1', 1, 20);
 
-         expect(mockRepo.findAllByUser).toHaveBeenCalledWith('user-1', true, 1, 20);
+         expect(mockRepo.findAllByUser).toHaveBeenCalledWith('user-1', 1, 20);
       });
 
       it('should calculate totalPages correctly', async () => {
          mockRepo.findAllByUser.mockResolvedValue([[], 45] as any);
 
-         const result = await workoutPlanService.findAll('user-1', false, 1, 20);
+         const result = await workoutPlanService.findAll('user-1', 1, 20);
 
          expect(result.totalPages).toBe(3); // ceil(45/20)
       });
@@ -144,25 +144,25 @@ describe('workoutPlanService', () => {
       });
    });
 
-   // ========== archive ==========
-   describe('archive', () => {
-      it('should archive plan when it belongs to user', async () => {
+   // ========== delete ==========
+   describe('delete', () => {
+      it('should delete plan when it belongs to user', async () => {
          mockRepo.findById.mockResolvedValue(createMockWorkoutPlan() as any);
          mockRepo.delete.mockResolvedValue(undefined as any);
 
-         await expect(workoutPlanService.archive('user-1', 'plan-1')).resolves.not.toThrow();
+         await expect(workoutPlanService.delete('user-1', 'plan-1')).resolves.not.toThrow();
       });
 
       it('should throw NotFoundError when plan does not exist', async () => {
          mockRepo.findById.mockResolvedValue(null);
 
-         await expect(workoutPlanService.archive('user-1', 'missing')).rejects.toThrow('Workout plan not found');
+         await expect(workoutPlanService.delete('user-1', 'missing')).rejects.toThrow('Workout plan not found');
       });
 
       it('should throw ForbiddenError when plan belongs to another user', async () => {
          mockRepo.findById.mockResolvedValue(createMockWorkoutPlan({ userId: 'other' }) as any);
 
-         await expect(workoutPlanService.archive('user-1', 'plan-1')).rejects.toThrow('Forbidden');
+         await expect(workoutPlanService.delete('user-1', 'plan-1')).rejects.toThrow('Forbidden');
       });
    });
 });

@@ -126,16 +126,6 @@ describe('workoutLogService', () => {
          ).rejects.toThrow(/does not belong/);
       });
 
-      it('should throw ForbiddenError when workout plan is archived', async () => {
-         mockPlanRepo.findById.mockResolvedValue(
-            createMockWorkoutPlan({ userId: 'user-1', isArchived: true }) as any,
-         );
-
-         await expect(
-            workoutLogService.create('user-1', { ...validInput, workoutPlanId: 'plan-1' } as any),
-         ).rejects.toThrow(/archived/);
-      });
-
       it('should call personalRecordService.updateFromExercises for every exercise', async () => {
          const inputMulti = {
             exercises: [

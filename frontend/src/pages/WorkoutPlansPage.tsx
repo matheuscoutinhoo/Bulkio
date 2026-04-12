@@ -3,7 +3,7 @@ import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Archive, ChevronDown, ChevronUp, Pencil, HelpCircle, Sparkles } from 'lucide-react';
+import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Pencil, HelpCircle, Sparkles } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { ScrollText } from '@/components/ui/scroll-text';
@@ -20,6 +20,7 @@ export default function WorkoutPlansPage() {
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
    const [progressionExercise, setProgressionExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
+   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
    const fetchPlans = useCallback(async () => {
       setLoading(true);
@@ -44,9 +45,11 @@ export default function WorkoutPlansPage() {
       }
    };
 
-   const handleArchive = async (id: string) => {
+   const handleDelete = async () => {
+      if (!deleteTarget) return;
       try {
-         await workoutPlanApi.archive(id);
+         await workoutPlanApi.delete(deleteTarget);
+         setDeleteTarget(null);
          fetchPlans();
       } catch (err) {
          console.error(err);
@@ -115,8 +118,8 @@ export default function WorkoutPlansPage() {
                               <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar" className="hover:text-primary">
                                  <Copy className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleArchive(plan.id)} title="Arquivar" className="hover:text-primary">
-                                 <Archive className="h-4 w-4" />
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(plan.id)} title="Excluir" className="hover:text-destructive">
+                                 <Trash2 className="h-4 w-4" />
                               </Button>
                            </div>
                         </div>
@@ -197,6 +200,26 @@ export default function WorkoutPlansPage() {
             onClose={() => setShowGenerate(false)}
             onGenerated={fetchPlans}
          />
+
+         {/* Delete confirmation modal */}
+         {deleteTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteTarget(null)}>
+               <div className="bg-card border rounded-lg p-6 mx-4 max-w-sm w-full shadow-lg" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="text-lg font-semibold mb-2">Excluir ficha</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                     Tem certeza que deseja excluir esta ficha de treino? Esta ação não pode ser desfeita.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                     <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
+                        Cancelar
+                     </Button>
+                     <Button variant="destructive" size="sm" onClick={handleDelete}>
+                        Excluir
+                     </Button>
+                  </div>
+               </div>
+            </div>
+         )}
       </div>
    );
 }

@@ -10,8 +10,8 @@ async function assertPlanOwnership(userId: string, planId: string) {
 }
 
 export const workoutPlanService = {
-   async findAll(userId: string, includeArchived: boolean, page: number, limit: number) {
-      const [plans, total] = await workoutPlanRepository.findAllByUser(userId, includeArchived, page, limit);
+   async findAll(userId: string, page: number, limit: number) {
+      const [plans, total] = await workoutPlanRepository.findAllByUser(userId, page, limit);
       return {
          plans,
          total,
@@ -38,7 +38,7 @@ export const workoutPlanService = {
       return workoutPlanRepository.duplicate(id, userId);
    },
 
-   async archive(userId: string, id: string) {
+   async delete(userId: string, id: string) {
       await assertPlanOwnership(userId, id);
       return workoutPlanRepository.delete(id);
    },

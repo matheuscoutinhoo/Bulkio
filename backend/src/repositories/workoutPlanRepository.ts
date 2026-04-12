@@ -25,9 +25,8 @@ function toExerciseCreateData(exercises: CreateWorkoutPlanInput['exercises']) {
 }
 
 export const workoutPlanRepository = {
-   findAllByUser(userId: string, includeArchived: boolean, page: number, limit: number) {
+   findAllByUser(userId: string, page: number, limit: number) {
       const where: Prisma.WorkoutPlanWhereInput = { userId };
-      if (!includeArchived) where.isArchived = false;
 
       return Promise.all([
          prisma.workoutPlan.findMany({
@@ -107,9 +106,8 @@ export const workoutPlanRepository = {
    },
 
    delete(id: string) {
-      return prisma.workoutPlan.update({
+      return prisma.workoutPlan.delete({
          where: { id },
-         data: { isArchived: true },
       });
    },
 };

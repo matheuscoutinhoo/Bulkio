@@ -39,7 +39,7 @@ export const workoutLogService = {
          const plan = await workoutPlanRepository.findById(data.workoutPlanId);
          if (!plan) throw new NotFoundError('Workout plan');
          if (plan.userId !== userId) throw new ForbiddenError('Workout plan does not belong to user');
-         if (plan.isArchived) throw new ForbiddenError('Cannot log from an archived workout plan');
+
       }
 
       const log = await workoutLogRepository.create(userId, data);

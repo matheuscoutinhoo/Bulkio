@@ -32,8 +32,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
    useEffect(() => {
       if (open) {
          workoutPlanApi.getAll({ limit: 50 }).then((res) => {
-            const activePlans = (res.data.data as WorkoutPlan[]).filter((p) => !p.isArchived);
-            setPlans(activePlans);
+            setPlans(res.data.data as WorkoutPlan[]);
          }).catch(console.error);
       }
    }, [open]);

@@ -52,7 +52,6 @@ model WorkoutPlan {
   name        String
   description String?
   userId      String
-  isArchived  Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

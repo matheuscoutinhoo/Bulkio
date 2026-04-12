@@ -6,10 +6,9 @@ import { asyncHandler } from '../utils/asyncHandler';
 
 export const workoutPlanController = {
    findAll: asyncHandler(async (req: Request, res: Response) => {
-      const { page = 1, limit = 20, includeArchived = 'false' } = req.query;
+      const { page = 1, limit = 20 } = req.query;
       const result = await workoutPlanService.findAll(
          req.user!.userId,
-         includeArchived === 'true',
          Number(page),
          Number(limit),
       );
@@ -41,9 +40,9 @@ export const workoutPlanController = {
       res.status(201).json(createResponse(plan, 'Workout plan duplicated'));
    }),
 
-   archive: asyncHandler(async (req: Request, res: Response) => {
-      await workoutPlanService.archive(req.user!.userId, req.params.id as string);
-      res.json(createResponse(null, 'Workout plan archived'));
+   delete: asyncHandler(async (req: Request, res: Response) => {
+      await workoutPlanService.delete(req.user!.userId, req.params.id as string);
+      res.json(createResponse(null, 'Workout plan deleted'));
    }),
 
    generate: asyncHandler(async (req: Request, res: Response) => {

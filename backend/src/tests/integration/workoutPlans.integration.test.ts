@@ -100,14 +100,13 @@ describe('Workout Plans Integration', () => {
          expect(res.body.data[0].name).toBe('User1 Plan');
       });
 
-      it('should exclude archived plans by default', async () => {
+      it('should delete plans permanently', async () => {
          const createRes = await request(app)
             .post('/api/v1/workouts')
             .set('Authorization', `Bearer ${accessToken}`)
-            .send({ name: 'To Archive' })
+            .send({ name: 'To Delete' })
             .expect(201);
 
-         // Archive it
          await request(app)
             .delete(`/api/v1/workouts/${createRes.body.data.id}`)
             .set('Authorization', `Bearer ${accessToken}`)
@@ -276,38 +275,6 @@ describe('Workout Plans Integration', () => {
       });
    });
 
-   // ========== GET /workouts with includeArchived ==========
-   describe('GET /api/v1/workouts (includeArchived)', () => {
-      it('should return archived plans when includeArchived=true', async () => {
-         const createRes = await request(app)
-            .post('/api/v1/workouts')
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({ name: 'Will Archive' })
-            .expect(201);
-
-         // Archive
-         await request(app)
-            .delete(`/api/v1/workouts/${createRes.body.data.id}`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .expect(200);
-
-         // Without includeArchived
-         const res1 = await request(app)
-            .get('/api/v1/workouts')
-            .set('Authorization', `Bearer ${accessToken}`)
-            .expect(200);
-         expect(res1.body.data.length).toBe(0);
-
-         // With includeArchived=true
-         const res2 = await request(app)
-            .get('/api/v1/workouts?includeArchived=true')
-            .set('Authorization', `Bearer ${accessToken}`)
-            .expect(200);
-         expect(res2.body.data.length).toBe(1);
-         expect(res2.body.data[0].isArchived).toBe(true);
-      });
-   });
-
    // ========== PATCH /workouts/:id (additional) ==========
    describe('PATCH /api/v1/workouts/:id (additional)', () => {
       it('should return 404 when updating non-existent plan', async () => {
@@ -319,13 +286,13 @@ describe('Workout Plans Integration', () => {
       });
    });
 
-   // ========== DELETE /workouts/:id (archive) ==========
+   // ========== DELETE /workouts/:id ==========
    describe('DELETE /api/v1/workouts/:id', () => {
-      it('should archive a workout plan (soft delete)', async () => {
+      it('should delete a workout plan permanently', async () => {
          const createRes = await request(app)
             .post('/api/v1/workouts')
             .set('Authorization', `Bearer ${accessToken}`)
-            .send({ name: 'To Archive' })
+            .send({ name: 'To Delete' })
             .expect(201);
 
          const res = await request(app)
@@ -334,10 +301,10 @@ describe('Workout Plans Integration', () => {
             .expect(200);
 
          expect(res.body.success).toBe(true);
-         expect(res.body.message).toContain('archived');
+         expect(res.body.message).toContain('deleted');
       });
 
-      it('should return 403 when archiving another user plan', async () => {
+      it('should return 403 when deleting another user plan', async () => {
          const createRes = await request(app)
             .post('/api/v1/workouts')
             .set('Authorization', `Bearer ${accessToken}`)

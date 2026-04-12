@@ -52,7 +52,6 @@ export const createWorkoutPlanSchema = z.object({
 export const updateWorkoutPlanSchema = z.object({
    name: z.string().min(1).max(100).optional(),
    description: z.string().max(500).optional().nullable(),
-   isArchived: z.boolean().optional(),
    exercises: z.array(workoutPlanExerciseSchema).optional(),
 });
 
@@ -137,9 +136,7 @@ export const workoutLogQuerySchema = paginationSchema.extend({
    workoutPlanId: z.string().optional(),
 });
 
-export const workoutPlanQuerySchema = paginationSchema.extend({
-   includeArchived: z.string().optional(),
-});
+export const workoutPlanQuerySchema = paginationSchema.extend({});
 
 // ========== AI GENERATION ==========
 export const generateWorkoutSchema = z.object({
