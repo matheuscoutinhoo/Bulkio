@@ -9,6 +9,7 @@ import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal'
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
 import { AddSetForm } from '@/components/workoutLogs/AddSetForm';
+import { RestTimer } from '@/components/workoutLogs/RestTimer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -26,6 +27,9 @@ export default function WorkoutLogsPage() {
    // Add set form state
    const [addingSetFor, setAddingSetFor] = useState<string | null>(null);
    const [planExercises, setPlanExercises] = useState<WorkoutPlanExercise[]>([]);
+
+   // Rest timer state
+   const [restTimer, setRestTimer] = useState<{ seconds: number; exerciseName: string } | null>(null);
 
    const fetchLogs = useCallback(async (silent = false) => {
       if (!silent) setLoading(true);
@@ -98,6 +102,12 @@ export default function WorkoutLogsPage() {
 
       const res = await workoutLogApi.update(logId, { exercises: existingExercises });
       setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
+
+      // Trigger rest timer
+      const planEx = planExercises.find((pe) => pe.exerciseId === exerciseId);
+      if (planEx && planEx.restSeconds > 0) {
+         setRestTimer({ seconds: planEx.restSeconds, exerciseName: planEx.exercise.name });
+      }
    };
 
    const handleCompleteWorkout = async (logId: string) => {
@@ -343,6 +353,14 @@ export default function WorkoutLogsPage() {
             open={!!progressionExercise}
             onClose={() => setProgressionExercise(null)}
          />
+
+         {restTimer && (
+            <RestTimer
+               initialSeconds={restTimer.seconds}
+               exerciseName={restTimer.exerciseName}
+               onClose={() => setRestTimer(null)}
+            />
+         )}
       </div>
    );
 }

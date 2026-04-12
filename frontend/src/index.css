@@ -246,6 +246,37 @@ select {
   animation: slide-in-left 0.25s ease-out both;
 }
 
+/* ── Rest Timer ── */
+@keyframes timer-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes timer-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--color-success);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+.animate-timer-slide-up {
+  animation: timer-slide-up 0.3s ease-out both;
+}
+
+.animate-timer-pulse {
+  animation: timer-pulse 1.5s ease-in-out 3;
+}
+
 .skeleton {
   background: var(--color-muted);
   border-radius: var(--radius-md);
