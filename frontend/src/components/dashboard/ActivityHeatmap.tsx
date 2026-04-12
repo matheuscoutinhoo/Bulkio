@@ -65,17 +65,13 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
          if (grid.length >= 5 && new Date(year, month, date).getMonth() !== month) break;
       }
 
-      // Compute streak connections (horizontal + cross-row Sat→Sun)
+      // Compute streak connections (horizontal only, each row is an independent pill)
       for (let r = 0; r < grid.length; r++) {
          for (let c = 0; c < 7; c++) {
             const cell = grid[r][c];
             if (!cell.active || !cell.inMonth) continue;
             if (c > 0 && grid[r][c - 1].active && grid[r][c - 1].inMonth) cell.hasLeft = true;
             if (c < 6 && grid[r][c + 1].active && grid[r][c + 1].inMonth) cell.hasRight = true;
-            // Cross-row: Sunday (col 0) connects to previous row's Saturday (col 6)
-            if (c === 0 && r > 0 && grid[r - 1][6].active && grid[r - 1][6].inMonth) cell.hasLeft = true;
-            // Cross-row: Saturday (col 6) connects to next row's Sunday (col 0)
-            if (c === 6 && r + 1 < grid.length && grid[r + 1][0].active && grid[r + 1][0].inMonth) cell.hasRight = true;
          }
       }
       return grid;
