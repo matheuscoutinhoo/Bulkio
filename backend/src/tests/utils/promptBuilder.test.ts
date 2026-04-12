@@ -72,6 +72,7 @@ describe('buildPrompt', () => {
       expect(prompt).toContain('"s"');
       expect(prompt).toContain('"r"');
       expect(prompt).toContain('"d"');
+      expect(prompt).toContain('"w"');
    });
 
    it('should include description when provided', () => {

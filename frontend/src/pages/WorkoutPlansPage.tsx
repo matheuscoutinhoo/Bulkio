@@ -143,6 +143,7 @@ export default function WorkoutPlansPage() {
                                        <ScrollText className="font-medium text-sm hover:text-primary transition-colors">{pe.exercise.name}</ScrollText>
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
+                                          {pe.weight != null && <span>• {pe.weight}kg</span>}
                                           <span>• {pe.restSeconds}s descanso</span>
                                        </div>
                                     </div>

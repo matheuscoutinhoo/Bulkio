@@ -6,6 +6,7 @@ export interface WorkoutPlanExercise {
    sets: number;
    reps: string;
    restSeconds: number;
+   weight?: number | null;
    order: number;
    notes?: string;
    exercise: {
@@ -37,6 +38,7 @@ export interface CreateWorkoutPlanData {
       sets: number;
       reps: string;
       restSeconds?: number;
+      weight?: number | null;
       order: number;
       notes?: string;
    }[];

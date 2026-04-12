@@ -86,7 +86,7 @@ export function buildPrompt(
 
    const lines = [
       `Ficha: ${lvl.count} exerc, ${lvl.sets} séries. Compostos 1º.`,
-      '# da lista apenas. Reps=str. Desc 60-180 comp,45-90 isol.',
+      '# da lista apenas. Reps=str. Desc 60-180 comp,45-90 isol. w=carga kg sugerida baseada em PR/nível.',
    ];
 
    if (hasContext) lines.push('Priorizar déficits(V), carga~PR.');
@@ -98,7 +98,7 @@ export function buildPrompt(
 
    lines.push('#|Nome|G|T|E');
    lines.push(exerciseList);
-   lines.push('{"e":[{"i":0,"s":3,"r":"8-12","d":90}]}');
+   lines.push('{"e":[{"i":0,"s":3,"r":"8-12","d":90,"w":40}]}');
 
    return lines.join('\n');
 }

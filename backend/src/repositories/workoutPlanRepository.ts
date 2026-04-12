@@ -17,6 +17,7 @@ function toExerciseCreateData(exercises: CreateWorkoutPlanInput['exercises']) {
          sets: e.sets,
          reps: e.reps,
          restSeconds: e.restSeconds,
+         weight: e.weight ?? null,
          order: e.order,
          notes: e.notes,
       })),

@@ -108,7 +108,7 @@ describe('aiWorkoutService', () => {
       expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Treino de Peito e Tríceps',
-         exercises: [{ exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, order: 0 }],
+         exercises: [{ exerciseId: 'ex-1', sets: 4, reps: '8-12', restSeconds: 90, weight: null, order: 0 }],
       });
    });
 
@@ -124,7 +124,7 @@ describe('aiWorkoutService', () => {
 
       expect(mockPlanService.create).toHaveBeenCalledWith('user-1', {
          name: 'Treino de Pernas',
-         exercises: [{ exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, order: 0 }],
+         exercises: [{ exerciseId: 'ex-1', sets: 3, reps: '10', restSeconds: 60, weight: null, order: 0 }],
       });
    });
 

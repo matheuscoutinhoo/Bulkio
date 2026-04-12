@@ -9,12 +9,13 @@ import { buildPrompt } from '../utils/promptBuilder';
 import { ValidationError } from '../utils/errors';
 import { logger } from '../config/logger';
 
-// Compact AI response schema: i=index, s=sets, r=reps, d=rest(descanso)
+// Compact AI response schema: i=index, s=sets, r=reps, d=rest(descanso), w=weight(kg)
 const aiExerciseSchema = z.object({
    i: z.number().int().min(0),
    s: z.number().int().min(1).max(10),
    r: z.string().min(1).max(20),
    d: z.number().int().min(30).max(300),
+   w: z.number().min(0).optional(),
 });
 
 const aiResponseSchema = z.object({
@@ -206,6 +207,7 @@ export const aiWorkoutService = {
                sets: ex.s,
                reps: ex.r,
                restSeconds: ex.d,
+               weight: ex.w ?? null,
                order,
             }));
 

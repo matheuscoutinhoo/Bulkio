@@ -38,6 +38,7 @@ export const workoutPlanExerciseSchema = z.object({
    sets: z.number().int().min(1).max(20),
    reps: z.string().min(1).max(20),
    restSeconds: z.number().int().min(0).max(600).default(60),
+   weight: z.number().min(0).optional().nullable(),
    order: z.number().int().min(0),
    notes: z.string().max(500).optional(),
 });

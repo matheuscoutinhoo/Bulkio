@@ -70,6 +70,7 @@ model WorkoutPlanExercise {
   sets          Int
   reps          String   // Can be "8-12" range or "10"
   restSeconds   Int      @default(60)
+  weight        Float?   // Suggested load in kg (AI-generated or manual)
   order         Int
   notes         String?
 

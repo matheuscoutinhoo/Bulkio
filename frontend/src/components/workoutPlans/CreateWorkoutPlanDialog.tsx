@@ -20,7 +20,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
    const [name, setName] = useState('');
    const [description, setDescription] = useState('');
    const [exercises, setExercises] = useState<
-      { exerciseId: string; exerciseName: string; sets: number; reps: string; restSeconds: number }[]
+      { exerciseId: string; exerciseName: string; sets: number; reps: string; restSeconds: number; weight: number | null }[]
    >([]);
    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
    const [submitting, setSubmitting] = useState(false);
@@ -57,6 +57,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                sets: pe.sets,
                reps: pe.reps,
                restSeconds: pe.restSeconds,
+               weight: pe.weight ?? null,
             })),
          );
       }
@@ -71,6 +72,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             sets: 3,
             reps: '10',
             restSeconds: 60,
+            weight: null,
          },
       ]);
    };
@@ -79,7 +81,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
       setExercises((prev) => prev.filter((_, i) => i !== index));
    };
 
-   const updateExercise = (index: number, field: string, value: string | number) => {
+   const updateExercise = (index: number, field: string, value: string | number | null) => {
       setExercises((prev) =>
          prev.map((e, i) => (i === index ? { ...e, [field]: value } : e)),
       );
@@ -95,6 +97,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             sets: e.sets,
             reps: e.reps,
             restSeconds: e.restSeconds,
+            weight: e.weight,
             order: i,
          }));
 
@@ -184,6 +187,15 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               value={ex.reps}
                               onChange={(e) => updateExercise(i, 'reps', e.target.value)}
                               placeholder="10"
+                           />
+                           <span className="text-xs text-muted-foreground">•</span>
+                           <Input
+                              type="number"
+                              className="w-14 h-8 text-xs"
+                              value={ex.weight ?? ''}
+                              onChange={(e) => updateExercise(i, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
+                              min={0}
+                              placeholder="kg"
                            />
                            <span className="text-xs text-muted-foreground">•</span>
                            <Input
