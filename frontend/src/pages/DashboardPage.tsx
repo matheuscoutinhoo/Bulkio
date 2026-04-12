@@ -191,16 +191,24 @@ export default function DashboardPage() {
                                  if (!active || !payload?.length) return null;
                                  const d = payload[0].payload;
                                  return (
-                                    <div className="rounded-xl border bg-background px-3 py-2.5 text-sm shadow-md">
-                                       <p className="font-medium">{d.name}</p>
-                                       <p className="text-muted-foreground">{d.sets} séries · {d.percent}%</p>
+                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <p className="font-semibold">{d.name}</p>
+                                       <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                                          <span>{d.sets} séries</span>
+                                          <span className="text-[10px]">•</span>
+                                          <span className="font-medium text-foreground">{d.percent}%</span>
+                                       </div>
                                     </div>
                                  );
                               }} />
-                              <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }}
+                              <Legend
+                                 verticalAlign="bottom"
+                                 iconType="circle"
+                                 iconSize={8}
+                                 wrapperStyle={{ fontSize: '12px', paddingTop: '12px', lineHeight: '22px' }}
                                  formatter={(value: string) => {
                                     const item = muscleData.find((d) => d.name === value);
-                                    return <span className="text-foreground">{item ? `${value} (${item.percent}%)` : value}</span>;
+                                    return <span className="text-muted-foreground">{item ? `${value} ${item.percent}%` : value}</span>;
                                  }}
                               />
                            </PieChart>
@@ -233,8 +241,15 @@ export default function DashboardPage() {
                               <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                               <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
                               <Tooltip
-                                 contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                                 formatter={(value) => [`${value}kg`, 'Peso']}
+                                 content={({ active, payload, label }) => {
+                                    if (!active || !payload?.length) return null;
+                                    return (
+                                       <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                          <p className="text-muted-foreground text-xs">{label}</p>
+                                          <p className="font-semibold text-base">{payload[0].value}kg</p>
+                                       </div>
+                                    );
+                                 }}
                               />
                               <Area type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
                            </AreaChart>
@@ -251,7 +266,8 @@ export default function DashboardPage() {
          {muscleData.length > 0 && (
             <Card>
                <CardHeader>
-                  <CardTitle className="text-sm sm:text-lg">Volume por Grupo Muscular (séries nos últimos 30d)</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Volume por Grupo Muscular</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Séries nos últimos 30 dias</p>
                </CardHeader>
                <CardContent>
                   <div className="w-full aspect-5/2 min-h-45 max-h-75">
@@ -268,8 +284,20 @@ export default function DashboardPage() {
                            <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                            <Tooltip
                               cursor={{ fill: chart.grid, opacity: 0.15 }}
-                              contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: '10px', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                              formatter={(value) => [`${value} séries`, 'Volume']}
+                              content={({ active, payload }) => {
+                                 if (!active || !payload?.length) return null;
+                                 const d = payload[0].payload;
+                                 return (
+                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <p className="font-semibold">{d.name}</p>
+                                       <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                                          <span>{d.sets} séries</span>
+                                          <span className="text-[10px]">•</span>
+                                          <span className="font-medium text-foreground">{d.percent}%</span>
+                                       </div>
+                                    </div>
+                                 );
+                              }}
                            />
                            <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} maxBarSize={48} activeBar={false} />
                         </BarChart>
