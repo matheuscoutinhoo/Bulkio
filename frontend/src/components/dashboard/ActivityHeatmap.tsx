@@ -43,7 +43,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
       today.setHours(0, 0, 0, 0);
       const toDateKey = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
 
-      const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean }[][] = [];
+      const grid: { day: number; dateKey: string; active: boolean; isToday: boolean; inMonth: boolean; connLeft: boolean; connRight: boolean; connTop: boolean; connBottom: boolean }[][] = [];
       let date = 1 - firstDayOfWeek;
 
       for (let row = 0; row < 6; row++) {
@@ -57,11 +57,26 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                active: (yearlyActivity[key] || 0) > 0,
                isToday: d.getTime() === today.getTime(),
                inMonth: d.getMonth() === month,
+               connLeft: false, connRight: false, connTop: false, connBottom: false,
             });
             date++;
          }
          grid.push(week);
          if (grid.length >= 5 && new Date(year, month, date).getMonth() !== month) break;
+      }
+
+      // Compute streak connectors
+      for (let r = 0; r < grid.length; r++) {
+         for (let c = 0; c < 7; c++) {
+            const cell = grid[r][c];
+            if (!cell.active || !cell.inMonth) continue;
+            // horizontal
+            if (c > 0 && grid[r][c - 1].active && grid[r][c - 1].inMonth) cell.connLeft = true;
+            if (c < 6 && grid[r][c + 1].active && grid[r][c + 1].inMonth) cell.connRight = true;
+            // vertical cross-row (Sat→Sun wrap)
+            if (c === 6 && r + 1 < grid.length && grid[r + 1][0].active && grid[r + 1][0].inMonth) cell.connBottom = true;
+            if (c === 0 && r > 0 && grid[r - 1][6].active && grid[r - 1][6].inMonth) cell.connTop = true;
+         }
       }
       return grid;
    }, [viewDate, yearlyActivity]);
@@ -111,16 +126,10 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
             </div>
 
             {/* Calendar grid */}
-            <div className="space-y-0.5">
+            <div>
                {calendarData.map((week, rowIdx) => (
                   <div key={rowIdx} className="grid grid-cols-7">
                      {week.map((cell, colIdx) => {
-                        const activeInMonth = cell.active && cell.inMonth;
-                        const prevActive = colIdx > 0 && week[colIdx - 1].active && week[colIdx - 1].inMonth;
-                        const nextActive = colIdx < 6 && week[colIdx + 1].active && week[colIdx + 1].inMonth;
-                        const connLeft = activeInMonth && prevActive;
-                        const connRight = activeInMonth && nextActive;
-
                         return (
                            <div
                               key={colIdx}
@@ -128,23 +137,29 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                               onMouseEnter={() => cell.inMonth ? setHoveredDay(cell.dateKey) : undefined}
                               onMouseLeave={() => setHoveredDay(null)}
                            >
-                              {/* Left connector bar */}
-                              {connLeft && (
+                              {/* Horizontal connectors */}
+                              {cell.connLeft && (
                                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
                               )}
-                              {/* Right connector bar */}
-                              {connRight && (
+                              {cell.connRight && (
                                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-9 bg-primary/20" />
+                              )}
+                              {/* Vertical cross-row connectors (Sat↓ / Sun↑) */}
+                              {cell.connBottom && (
+                                 <div className="absolute bottom-0 right-0 w-9 h-1/2 bg-primary/20 rounded-b-lg" />
+                              )}
+                              {cell.connTop && (
+                                 <div className="absolute top-0 left-0 w-9 h-1/2 bg-primary/20 rounded-t-lg" />
                               )}
                               {/* Day circle */}
                               <span
                                  className={`relative z-10 w-9 h-9 flex items-center justify-center rounded-full text-sm transition-colors ${!cell.inMonth
                                     ? 'text-muted-foreground/25'
-                                    : cell.isToday && activeInMonth
+                                    : cell.isToday && cell.active
                                        ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30'
                                        : cell.isToday
                                           ? 'ring-2 ring-orange-500 text-foreground font-bold'
-                                          : activeInMonth
+                                          : cell.active
                                              ? 'bg-primary text-primary-foreground font-medium'
                                              : 'text-foreground'
                                     }`}
