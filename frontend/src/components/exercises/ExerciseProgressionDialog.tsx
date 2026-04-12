@@ -189,13 +189,15 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               tick={{ fill: colors.axis, fontSize: 11 }}
                               axisLine={false}
                               tickLine={false}
+                              interval="preserveStartEnd"
+                              minTickGap={30}
                            />
                            <YAxis
                               tick={{ fill: colors.axis, fontSize: 11 }}
                               axisLine={false}
                               tickLine={false}
-                              unit="kg"
-                              width={50}
+                              width={45}
+                              tickFormatter={(v) => `${v}kg`}
                            />
                            <Tooltip
                               content={({ active, payload }) => {
@@ -244,13 +246,15 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               tick={{ fill: colors.axis, fontSize: 11 }}
                               axisLine={false}
                               tickLine={false}
+                              interval="preserveStartEnd"
+                              minTickGap={30}
                            />
                            <YAxis
                               tick={{ fill: colors.axis, fontSize: 11 }}
                               axisLine={false}
                               tickLine={false}
-                              unit="kg"
                               width={55}
+                              tickFormatter={(v) => `${v}kg`}
                            />
                            <Tooltip
                               content={({ active, payload }) => {
