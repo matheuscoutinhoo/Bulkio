@@ -280,7 +280,7 @@ export default function DashboardPage() {
                               </linearGradient>
                            </defs>
                            <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.5} />
-                           <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={60} />
+                           <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} height={32} />
                            <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                            <Tooltip
                               cursor={{ fill: chart.grid, opacity: 0.15 }}
