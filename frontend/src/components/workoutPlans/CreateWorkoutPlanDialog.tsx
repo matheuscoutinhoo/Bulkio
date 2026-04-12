@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollText } from '@/components/ui/scroll-text';
 import { Trash2 } from 'lucide-react';
 import { ExerciseSearchDropdown } from '@/components/exercises/ExerciseSearchDropdown';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -157,20 +156,31 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             {exercises.length > 0 && (
                <div className="space-y-2 overflow-y-auto max-h-[40vh] pr-1">
                   {exercises.map((ex, i) => (
-                     <div key={i} className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-secondary/30">
-                        <span className="text-sm text-muted-foreground w-6">{i + 1}.</span>
-                        <ScrollText className="flex-1 text-sm font-medium min-w-0">{ex.exerciseName}</ScrollText>
-                        <div className="flex flex-wrap items-center gap-2">
+                     <div key={i} className="flex flex-col gap-1.5 p-3 rounded-lg bg-secondary/30">
+                        <div className="flex items-center gap-2">
+                           <span className="text-sm text-muted-foreground w-6 shrink-0">{i + 1}.</span>
+                           <span className="text-sm font-medium truncate">{ex.exerciseName}</span>
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 ml-auto shrink-0"
+                              onClick={() => removeExercise(i)}
+                           >
+                              <Trash2 className="h-3 w-3" />
+                           </Button>
+                        </div>
+                        <div className="flex items-center gap-2 pl-8">
                            <Input
                               type="number"
-                              className="w-14 sm:w-16 h-8 text-xs"
+                              className="w-14 h-8 text-xs"
                               value={ex.sets}
                               onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
                               min={1}
                            />
                            <span className="text-xs text-muted-foreground">×</span>
                            <Input
-                              className="w-16 sm:w-20 h-8 text-xs"
+                              className="w-16 h-8 text-xs"
                               value={ex.reps}
                               onChange={(e) => updateExercise(i, 'reps', e.target.value)}
                               placeholder="10"
@@ -178,22 +188,13 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                            <span className="text-xs text-muted-foreground">•</span>
                            <Input
                               type="number"
-                              className="w-14 sm:w-16 h-8 text-xs"
+                              className="w-14 h-8 text-xs"
                               value={ex.restSeconds}
                               onChange={(e) => updateExercise(i, 'restSeconds', parseInt(e.target.value) || 0)}
                               min={0}
                               max={600}
                            />
                            <span className="text-xs text-muted-foreground">s</span>
-                           <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => removeExercise(i)}
-                           >
-                              <Trash2 className="h-3 w-3" />
-                           </Button>
                         </div>
                      </div>
                   ))}
