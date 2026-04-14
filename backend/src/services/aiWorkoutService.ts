@@ -83,6 +83,54 @@ interface GenerateInput {
    description?: string;
 }
 
+// Normalize AI response: extract compact {e:[...]} from alternative structures
+function normalizeAiResponse(json: unknown): unknown {
+   if (typeof json !== 'object' || json === null) return json;
+   const obj = json as Record<string, unknown>;
+
+   // Already in expected format
+   if (Array.isArray(obj.e)) return obj;
+
+   // Look for nested exercise arrays in common AI response patterns
+   const exerciseArray = findExerciseArray(obj);
+   if (exerciseArray) {
+      return { e: exerciseArray.map(normalizeExercise) };
+   }
+
+   return json;
+}
+
+function findExerciseArray(obj: Record<string, unknown>): unknown[] | null {
+   // Check known nested keys: treino.exercicios, exercises, workout.exercises, etc.
+   for (const key of Object.keys(obj)) {
+      const val = obj[key];
+      if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') return val;
+      if (typeof val === 'object' && val !== null) {
+         const nested = val as Record<string, unknown>;
+         for (const nk of Object.keys(nested)) {
+            if (Array.isArray(nested[nk]) && (nested[nk] as unknown[]).length > 0) return nested[nk] as unknown[];
+         }
+      }
+   }
+   return null;
+}
+
+function normalizeExercise(ex: unknown): unknown {
+   if (typeof ex !== 'object' || ex === null) return ex;
+   const e = ex as Record<string, unknown>;
+   const rawW = e.w !== undefined ? e.w : e.weight ?? e.carga;
+   const w = typeof rawW === 'number' ? rawW : undefined;
+   const rawR = e.r ?? e.reps ?? e.repeticoes ?? e.repetitions;
+   // Map verbose keys to compact keys
+   return {
+      i: e.i ?? e.id ?? e.index,
+      s: e.s ?? e.series ?? e.sets,
+      r: typeof rawR === 'number' ? String(rawR) : String(rawR ?? ''),
+      d: e.d ?? e.descanso ?? e.rest ?? e.restSeconds,
+      ...(w !== undefined && { w }),
+   };
+}
+
 export const aiWorkoutService = {
    async generate(userId: string, input: GenerateInput) {
       if (!config.llmApiKey) {
@@ -190,7 +238,8 @@ export const aiWorkoutService = {
 
          try {
             const json = JSON.parse(text);
-            parsed = aiResponseSchema.parse(json);
+            const normalized = normalizeAiResponse(json);
+            parsed = aiResponseSchema.parse(normalized);
          } catch (err) {
             logger.warn({ attempt, err }, 'AI response validation failed');
             if (attempt === 2) {

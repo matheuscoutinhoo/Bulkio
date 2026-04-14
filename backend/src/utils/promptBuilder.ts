@@ -98,7 +98,9 @@ export function buildPrompt(
 
    lines.push('#|Nome|G|T|E');
    lines.push(exerciseList);
+   lines.push('Responda SOMENTE com JSON neste formato exato, sem texto extra:');
    lines.push('{"e":[{"i":0,"s":3,"r":"8-12","d":90,"w":40}]}');
+   lines.push('i=índice da lista,s=séries,r=reps(string),d=descanso seg,w=carga kg.');
 
    return lines.join('\n');
 }

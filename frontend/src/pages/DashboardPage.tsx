@@ -181,6 +181,7 @@ export default function DashboardPage() {
                                  paddingAngle={2}
                                  dataKey="sets"
                                  nameKey="name"
+                                 stroke="none"
                                  activeShape={(props: any) => <Sector {...props} stroke="none" />}
                               >
                                  {muscleData.map((entry, index) => (
