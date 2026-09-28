@@ -78,6 +78,7 @@ export const authService = {
             goal: user.goal,
             initialWeight: user.initialWeight,
             targetWeight: user.targetWeight,
+            height: user.height,
             createdAt: user.createdAt,
          },
          ...tokens,

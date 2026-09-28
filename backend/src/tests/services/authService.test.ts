@@ -146,6 +146,7 @@ describe('authService', () => {
             goal: user.goal,
             initialWeight: user.initialWeight,
             targetWeight: user.targetWeight,
+            height: user.height,
             createdAt: user.createdAt,
          });
          expect(result.accessToken).toBeDefined();

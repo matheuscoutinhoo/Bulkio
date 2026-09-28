@@ -42,8 +42,12 @@ export default function BodyWeightPage() {
       setLoading(true);
       setLoadError(false);
       try {
-         const res = await bodyWeightApi.getAll({ limit: 100 });
-         setRecords(res.data.data);
+         const [recordsResponse, profileResponse] = await Promise.all([
+            bodyWeightApi.getAll({ limit: 100 }),
+            authApi.getProfile(),
+         ]);
+         setRecords(recordsResponse.data.data);
+         setUser(profileResponse.data.data);
       } catch (err) {
          console.error(err);
          setLoadError(true);
@@ -51,7 +55,7 @@ export default function BodyWeightPage() {
       } finally {
          setLoading(false);
       }
-   }, []);
+   }, [setUser]);
 
    useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
