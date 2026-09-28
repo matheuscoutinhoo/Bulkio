@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Activity, Dumbbell, ShieldCheck, Sparkles } from 'lucide-react';
+import { Activity, ShieldCheck, Sparkles } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 export function AuthShell({ children }: { children: ReactNode }) {
    return (
@@ -8,9 +9,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             <div className="absolute -left-28 top-1/3 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" aria-hidden="true" />
             <div className="absolute -right-24 -top-20 h-72 w-72 rounded-full bg-orange-500/15 blur-3xl" aria-hidden="true" />
             <div className="relative flex items-center gap-3">
-               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10">
-                  <Dumbbell className="h-6 w-6 text-violet-200" aria-hidden="true" />
-               </span>
+               <BrandLogo className="h-11 w-11" />
                <div><p className="text-xl font-bold tracking-[-0.03em]">Bulkio</p><p className="text-xs text-violet-200/75">Treino & progresso</p></div>
             </div>
             <div className="relative max-w-lg">
@@ -29,7 +28,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent lg:hidden" aria-hidden="true" />
             <div className="relative w-full max-w-md">
                <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-                  <span className="brand-mark icon-gradient flex h-10 w-10 items-center justify-center rounded-xl"><Dumbbell className="h-6 w-6" aria-hidden="true" /></span>
+                  <BrandLogo className="h-10 w-10" />
                   <span className="text-xl font-bold tracking-[-0.03em]">Bulkio</span>
                </div>
                {children}

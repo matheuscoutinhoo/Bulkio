@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
 import {
    LayoutDashboard,
-   Dumbbell,
    ClipboardList,
    History,
    Scale,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 const navItems = [
    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -42,9 +42,7 @@ export function Sidebar() {
       <>
          <div className="px-5 pb-5 pt-6">
             <Link to="/dashboard" className="group flex items-center gap-3 rounded-xl">
-               <span className="brand-mark icon-gradient flex h-10 w-10 items-center justify-center rounded-xl">
-                  <Dumbbell className="h-6 w-6" aria-hidden="true" />
-               </span>
+               <BrandLogo className="h-10 w-10" />
                <span>
                   <span className="block text-xl font-bold tracking-[-0.03em]">Bulkio</span>
                   <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Treino & progresso</span>
@@ -105,9 +103,7 @@ export function Sidebar() {
          {/* Mobile header */}
          <div className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-border/70 bg-background/90 px-4 backdrop-blur-xl lg:hidden">
             <Link to="/dashboard" className="flex items-center gap-2">
-               <span className="brand-mark icon-gradient flex h-9 w-9 items-center justify-center rounded-xl">
-                  <Dumbbell className="h-5 w-5" aria-hidden="true" />
-               </span>
+               <BrandLogo className="h-9 w-9" />
                <span className="text-lg font-bold tracking-[-0.03em]">Bulkio</span>
             </Link>
             <button type="button" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'} className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground">

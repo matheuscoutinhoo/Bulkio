@@ -91,9 +91,16 @@ body::before {
   background: color-mix(in srgb, var(--color-primary) 24%, transparent);
 }
 
-:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 1px solid color-mix(in srgb, var(--color-ring) 70%, transparent);
   outline-offset: 3px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }
 
 .skip-link {
