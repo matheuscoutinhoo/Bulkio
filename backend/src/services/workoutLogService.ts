@@ -58,10 +58,15 @@ export const workoutLogService = {
 
       if (log.isComplete && (data.exercises || data.isComplete === true)) {
          const logDate = new Date(log.date);
-         const exercises = (data.exercises ?? log.exercises).map((exercise) => ({
-            exerciseId: 'exerciseId' in exercise ? exercise.exerciseId : exercise.exercise.id,
-            sets: exercise.sets,
-         }));
+         const exercises = data.exercises
+            ? data.exercises.map((exercise) => ({
+               exerciseId: exercise.exerciseId,
+               sets: exercise.sets,
+            }))
+            : log.exercises.map((exercise) => ({
+               exerciseId: exercise.exercise.id,
+               sets: exercise.sets,
+            }));
          await personalRecordService.updateFromExercises(userId, exercises, logDate);
       }
 

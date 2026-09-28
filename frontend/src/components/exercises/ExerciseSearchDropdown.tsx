@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Exercise } from '@/services/exerciseService';
+import { muscleGroupLabels } from '@/lib/exerciseLabels';
 
 interface ExerciseSearchDropdownProps {
    exercises: Exercise[];
@@ -25,6 +26,8 @@ export function ExerciseSearchDropdown({
    const [search, setSearch] = useState('');
    const [showDropdown, setShowDropdown] = useState(false);
    const dropdownRef = useRef<HTMLDivElement>(null);
+   const inputId = useId();
+   const listboxId = `${inputId}-listbox`;
 
    useEffect(() => {
       function handleClickOutside(e: MouseEvent) {
@@ -48,33 +51,47 @@ export function ExerciseSearchDropdown({
 
    return (
       <div className="space-y-2">
-         <Label>{label}</Label>
+         <Label htmlFor={inputId}>{label}</Label>
          <div className="relative" ref={dropdownRef}>
             <Input
+               id={inputId}
+               role="combobox"
+               aria-expanded={showDropdown && !!search}
+               aria-controls={listboxId}
+               aria-autocomplete="list"
                placeholder={placeholder}
                value={search}
                onChange={(e) => { setSearch(e.target.value); setShowDropdown(true); }}
                onFocus={() => search && setShowDropdown(true)}
+               onKeyDown={(event) => {
+                  if (event.key === 'Escape') setShowDropdown(false);
+                  if (event.key === 'Enter' && filtered.length > 0 && search) {
+                     event.preventDefault();
+                     handleSelect(filtered[0]);
+                  }
+               }}
             />
             {showDropdown && search && (
-               <div className={`absolute z-10 w-full mt-1 ${maxHeight} overflow-y-auto rounded-md border bg-background shadow-lg`}>
+               <div id={listboxId} role="listbox" className={`absolute z-20 mt-2 w-full ${maxHeight} overflow-y-auto rounded-xl border bg-popover p-1.5 shadow-xl`}>
                   {filtered.slice(0, maxResults).map((ex) => (
                      <button
                         key={ex.id}
                         type="button"
+                        role="option"
+                        aria-selected="false"
                         onClick={() => handleSelect(ex)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        className="min-h-11 w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
                      >
                         {ex.name}
                         {showMuscleGroup && (
                            <span className="text-muted-foreground text-xs ml-1">
-                              ({ex.muscleGroup})
+                              ({muscleGroupLabels[ex.muscleGroup] || ex.muscleGroup})
                            </span>
                         )}
                      </button>
                   ))}
                   {filtered.length === 0 && (
-                     <p className="px-3 py-2 text-sm text-muted-foreground">Nenhum encontrado</p>
+                     <p className="px-3 py-3 text-sm text-muted-foreground">Nenhum exercício encontrado</p>
                   )}
                </div>
             )}

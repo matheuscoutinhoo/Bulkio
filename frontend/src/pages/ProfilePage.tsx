@@ -11,6 +11,10 @@ import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { User, Mail, Calendar, Pencil, Trash2, LogOut, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PageHeader } from '@/components/ui/page-header';
+import { toast } from '@/stores/toastStore';
+import { getApiErrorMessage } from '@/lib/api';
+import { ErrorState } from '@/components/ui/feedback';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -23,6 +27,7 @@ export default function ProfilePage() {
    const { user, setUser, logout } = useAuthStore();
    const [loading, setLoading] = useState(true);
    const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+   const [loadError, setLoadError] = useState(false);
 
    // Username editing
    const [editingUsername, setEditingUsername] = useState(false);
@@ -40,7 +45,7 @@ export default function ProfilePage() {
          .then((res) => {
             setProfile(res.data.data);
          })
-         .catch(console.error)
+         .catch(() => setLoadError(true))
          .finally(() => setLoading(false));
    }, []);
 
@@ -83,9 +88,9 @@ export default function ProfilePage() {
          setUser(res.data.data);
          setProfile(res.data.data);
          setEditingUsername(false);
+         toast.success('Nome de usuário atualizado');
       } catch (err: unknown) {
-         const error = err as { response?: { data?: { message?: string } } };
-         const message = error.response?.data?.message || 'Erro ao atualizar';
+         const message = getApiErrorMessage(err, 'Não foi possível atualizar o nome de usuário.');
          if (message.toLowerCase().includes('username already taken')) {
             setUsernameError('Nome de usuário já está em uso');
          } else {
@@ -115,6 +120,7 @@ export default function ProfilePage() {
       } catch (err) {
          console.error(err);
          setDeleting(false);
+         toast.error('Não foi possível apagar a conta');
       }
    };
 
@@ -135,16 +141,17 @@ export default function ProfilePage() {
       );
    }
 
+   if (loadError) {
+      return <div className="mx-auto max-w-2xl"><ErrorState message="Não foi possível carregar seu perfil." onRetry={() => window.location.reload()} /></div>;
+   }
+
    const createdAt = profile?.createdAt
       ? format(new Date(profile.createdAt as string), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
       : '-';
 
    return (
       <div className="space-y-6 max-w-2xl mx-auto animate-fade-in-up">
-         <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Perfil</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas informações</p>
-         </div>
+         <PageHeader title="Perfil" description="Gerencie suas informações pessoais e preferências da conta." />
 
          {/* User info card */}
          <Card>
@@ -158,10 +165,11 @@ export default function ProfilePage() {
                {/* Username */}
                <div className="flex items-center justify-between">
                   <div className="space-y-1 flex-1">
-                     <Label className="text-muted-foreground text-xs uppercase tracking-wide">Nome de Usuário</Label>
+                     <Label htmlFor={editingUsername ? 'profile-username' : undefined} className="text-muted-foreground text-xs uppercase tracking-wide">Nome de usuário</Label>
                      {editingUsername ? (
                         <div className="flex items-center gap-2">
                            <Input
+                              id="profile-username"
                               value={newUsername}
                               onChange={(e) => setNewUsername(e.target.value)}
                               className="max-w-xs"
@@ -171,32 +179,44 @@ export default function ProfilePage() {
                                  if (e.key === 'Escape') handleCancelEditing();
                               }}
                            />
-                           <button
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={handleSaveUsername}
                               disabled={savingUsername}
-                              className="p-2 rounded-md hover:bg-accent transition-colors text-success"
+                              className="h-10 w-10 text-success"
                               title="Salvar"
+                              aria-label="Salvar nome de usuário"
                            >
                               <Check className="h-4 w-4" />
-                           </button>
-                           <button
+                           </Button>
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={handleCancelEditing}
-                              className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground"
+                              className="h-10 w-10"
                               title="Cancelar"
+                              aria-label="Cancelar edição"
                            >
                               <X className="h-4 w-4" />
-                           </button>
+                           </Button>
                         </div>
                      ) : (
                         <div className="flex items-center gap-2">
                            <p className="text-base font-medium">{user?.username}</p>
-                           <button
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={handleStartEditing}
-                              className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
+                              className="h-10 w-10 hover:text-primary"
                               title="Editar nome de usuário"
+                              aria-label="Editar nome de usuário"
                            >
                               <Pencil className="h-3.5 w-3.5" />
-                           </button>
+                           </Button>
                         </div>
                      )}
                      {usernameError && (
@@ -238,7 +258,7 @@ export default function ProfilePage() {
          </Card>
 
          {/* Actions card */}
-         <Card>
+         <Card className="border-destructive/15">
             <CardHeader>
                <CardTitle className="text-lg">Ações</CardTitle>
             </CardHeader>
@@ -268,10 +288,11 @@ export default function ProfilePage() {
                   Esta ação é <span className="font-semibold text-foreground">irreversível</span>. Todos os seus dados serão apagados permanentemente, incluindo fichas de treino, histórico, registros de peso e recordes pessoais.
                </p>
                <div className="space-y-2">
-                  <Label>
+                  <Label htmlFor="delete-confirmation">
                      Digite <span className="font-mono font-bold text-destructive">APAGAR</span> para confirmar
                   </Label>
                   <Input
+                     id="delete-confirmation"
                      value={deleteConfirmation}
                      onChange={(e) => setDeleteConfirmation(e.target.value)}
                      placeholder="APAGAR"

@@ -8,10 +8,13 @@ import WorkoutPlansPage from "@/pages/WorkoutPlansPage";
 import WorkoutLogsPage from "@/pages/WorkoutLogsPage";
 import BodyWeightPage from "@/pages/BodyWeightPage";
 import ProfilePage from "@/pages/ProfilePage";
+import { Toaster } from "@/components/ui/toaster";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       {/* Hidden SVG gradient definitions — referenced by .icon-gradient */}
       <svg width="0" height="0" className="absolute">
         <defs>
@@ -42,9 +45,9 @@ function App() {
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }
 
 export default App;
-

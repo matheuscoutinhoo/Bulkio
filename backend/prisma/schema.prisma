@@ -8,22 +8,22 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  username       String          @unique
-  password       String
-  goal           String?         // BULK, CUT, MAINTAIN
-  initialWeight  Float?
-  targetWeight   Float?
-  height         Float?          // Height in cm for BMI calculation
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  password      String
+  goal          String? // BULK, CUT, MAINTAIN
+  initialWeight Float?
+  targetWeight  Float?
+  height        Float? // Height in cm for BMI calculation
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  workoutPlans   WorkoutPlan[]
-  workoutLogs    WorkoutLog[]
-  bodyWeights    BodyWeight[]
+  workoutPlans    WorkoutPlan[]
+  workoutLogs     WorkoutLog[]
+  bodyWeights     BodyWeight[]
   personalRecords PersonalRecord[]
-  refreshTokens  RefreshToken[]
+  refreshTokens   RefreshToken[]
 
   @@index([email])
   @@index([username])
@@ -32,11 +32,11 @@ model User {
 model Exercise {
   id          String   @id @default(uuid())
   name        String   @unique
-  muscleGroup String   // CHEST, BACK, LEGS, SHOULDERS, BICEPS, TRICEPS, ABS, CARDIO, GLUTES, FOREARMS, TRAPS, CALVES, FULL_BODY
-  type        String   // COMPOUND, ISOLATED, CARDIO
-  equipment   String   // BARBELL, DUMBBELL, MACHINE, CABLE, BODYWEIGHT, KETTLEBELL, BAND, OTHER
+  muscleGroup String // CHEST, BACK, LEGS, SHOULDERS, BICEPS, TRICEPS, ABS, CARDIO, GLUTES, FOREARMS, TRAPS, CALVES, FULL_BODY
+  type        String // COMPOUND, ISOLATED, CARDIO
+  equipment   String // BARBELL, DUMBBELL, MACHINE, CABLE, BODYWEIGHT, KETTLEBELL, BAND, OTHER
   description String?
-  videoUrl    String?  // YouTube video URL demonstrating the exercise
+  videoUrl    String? // YouTube video URL demonstrating the exercise
   createdAt   DateTime @default(now())
 
   workoutPlanExercises WorkoutPlanExercise[]
@@ -48,33 +48,33 @@ model Exercise {
 }
 
 model WorkoutPlan {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String?
   userId      String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exercises  WorkoutPlanExercise[]
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises   WorkoutPlanExercise[]
   workoutLogs WorkoutLog[]
 
   @@index([userId])
 }
 
 model WorkoutPlanExercise {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   workoutPlanId String
   exerciseId    String
   sets          Int
-  reps          String   // Can be "8-12" range or "10"
-  restSeconds   Int      @default(60)
-  weight        Float?   // Suggested load in kg (AI-generated or manual)
+  reps          String // Can be "8-12" range or "10"
+  restSeconds   Int     @default(60)
+  weight        Float? // Suggested load in kg
   order         Int
   notes         String?
 
-  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
-  exercise      Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  workoutPlan WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  exercise    Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
   @@index([workoutPlanId])
   @@index([exerciseId])
@@ -91,9 +91,9 @@ model WorkoutLog {
   notes         String?
   createdAt     DateTime  @default(now())
 
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workoutPlan   WorkoutPlan?    @relation(fields: [workoutPlanId], references: [id], onDelete: SetNull)
-  exercises     WorkoutLogExercise[]
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutPlan WorkoutPlan?         @relation(fields: [workoutPlanId], references: [id], onDelete: SetNull)
+  exercises   WorkoutLogExercise[]
 
   @@index([userId])
   @@index([date])
@@ -101,29 +101,29 @@ model WorkoutLog {
 }
 
 model WorkoutLogExercise {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   workoutLogId String
   exerciseId   String
   order        Int
   notes        String?
 
-  workoutLog   WorkoutLog       @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
-  exercise     Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  sets         WorkoutLogSet[]
+  workoutLog WorkoutLog      @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  exercise   Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sets       WorkoutLogSet[]
 
   @@index([workoutLogId])
   @@index([exerciseId])
 }
 
 model WorkoutLogSet {
-  id                    String   @id @default(uuid())
-  workoutLogExerciseId  String
-  setNumber             Int
-  reps                  Int
-  weight                Float
-  notes                 String?
+  id                   String  @id @default(uuid())
+  workoutLogExerciseId String
+  setNumber            Int
+  reps                 Int
+  weight               Float
+  notes                String?
 
-  workoutLogExercise    WorkoutLogExercise @relation(fields: [workoutLogExerciseId], references: [id], onDelete: Cascade)
+  workoutLogExercise WorkoutLogExercise @relation(fields: [workoutLogExerciseId], references: [id], onDelete: Cascade)
 
   @@index([workoutLogExerciseId])
 }
@@ -135,7 +135,7 @@ model BodyWeight {
   date      DateTime @default(now())
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -150,12 +150,12 @@ model PersonalRecord {
   date       DateTime @default(now())
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, exerciseId])
   @@index([userId])
   @@index([exerciseId])
-  @@unique([userId, exerciseId])
 }
 
 model RefreshToken {
@@ -165,7 +165,7 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])

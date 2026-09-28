@@ -64,12 +64,19 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
    }, [running, finished, playBeep]);
 
    useEffect(() => {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (event: KeyboardEvent) => {
+         if (event.key === 'Escape') onClose();
+      };
+      document.addEventListener('keydown', handleKeyDown);
       return () => {
+         document.body.style.overflow = '';
+         document.removeEventListener('keydown', handleKeyDown);
          if (audioRef.current) {
             audioRef.current.close();
          }
       };
-   }, []);
+   }, [onClose]);
 
    const handleReset = () => {
       setRemaining(totalSeconds);
@@ -92,22 +99,27 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
 
    return createPortal(
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-         <div className="fixed inset-0 bg-black/60 animate-fade-in" onClick={onClose} />
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] animate-fade-in" onClick={onClose} aria-hidden="true" />
          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rest-timer-title"
             className={cn(
                'relative z-50 w-full sm:w-auto sm:min-w-80 rounded-t-2xl sm:rounded-2xl border bg-background p-6 shadow-2xl animate-timer-slide-up sm:animate-scale-in',
                finished && 'animate-timer-pulse',
             )}
          >
             <button
+               type="button"
                onClick={onClose}
-               className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+               aria-label="Fechar cronômetro"
+               className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
             >
                <X className="h-4 w-4" />
             </button>
 
             <div className="text-center space-y-1 mb-5">
-               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Descanso</p>
+               <p id="rest-timer-title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Descanso</p>
                <p className="text-sm font-medium text-foreground truncate max-w-60 mx-auto">{exerciseName}</p>
             </div>
 
@@ -138,6 +150,7 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                      <span
+                        aria-live={finished ? 'assertive' : 'off'}
                         className={cn(
                            'text-3xl sm:text-4xl font-bold tabular-nums',
                            finished && 'text-success',

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { workoutPlanService } from '../services/workoutPlanService';
-import { aiWorkoutService } from '../services/aiWorkoutService';
 import { createResponse, createPaginatedResponse } from '../models/types';
 import { asyncHandler } from '../utils/asyncHandler';
 
@@ -43,10 +42,5 @@ export const workoutPlanController = {
    delete: asyncHandler(async (req: Request, res: Response) => {
       await workoutPlanService.delete(req.user!.userId, req.params.id as string);
       res.json(createResponse(null, 'Workout plan deleted'));
-   }),
-
-   generate: asyncHandler(async (req: Request, res: Response) => {
-      const plan = await aiWorkoutService.generate(req.user!.userId, req.body);
-      res.status(201).json(createResponse(plan, 'Workout plan generated'));
    }),
 };

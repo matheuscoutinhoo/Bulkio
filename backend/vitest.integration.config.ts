@@ -9,7 +9,7 @@ export default defineConfig({
       hookTimeout: 30000,
       fileParallelism: false,
       env: {
-         DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bulkio_test?schema=public',
+         DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://bulkio:bulkio@localhost:5433/bulkio_test?schema=public',
          NODE_ENV: 'test',
       },
    },

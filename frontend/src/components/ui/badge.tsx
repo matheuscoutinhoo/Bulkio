@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
    variant?: 'default' | 'secondary' | 'destructive' | 'outline';
 }
 
@@ -14,9 +14,9 @@ const variantClasses: Record<string, string> = {
 
 function Badge({ className, variant = 'default', ...props }: BadgeProps) {
    return (
-      <div
+      <span
          className={cn(
-            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors',
+            'inline-flex min-h-6 items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold leading-none transition-colors',
             variantClasses[variant],
             className,
          )}

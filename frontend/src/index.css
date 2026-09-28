@@ -2,8 +2,8 @@
 
 @theme {
   /* Light mode (default) — warm lavender palette */
-  --color-background: #f5f3f7;
-  --color-foreground: #1c1527;
+  --color-background: #f7f6fa;
+  --color-foreground: #20182d;
   --color-card: #ffffff;
   --color-card-foreground: #1c1527;
   --color-popover: #ffffff;
@@ -13,13 +13,13 @@
   --color-secondary: #ece8f4;
   --color-secondary-foreground: #1c1527;
   --color-muted: #e8e4f0;
-  --color-muted-foreground: #65607a;
+  --color-muted-foreground: #676178;
   --color-accent: #ece8f4;
   --color-accent-foreground: #1c1527;
   --color-destructive: #dc2626;
   --color-destructive-foreground: #fafafa;
-  --color-border: #ddd8e8;
-  --color-input: #ddd8e8;
+  --color-border: #e1ddea;
+  --color-input: #d7d1e3;
   --color-ring: #7c3aed;
   --color-success: #16a34a;
   --color-warning: #ca8a04;
@@ -27,10 +27,10 @@
   --color-chart-axis: #65607a;
   --color-chart-tooltip-bg: #ffffff;
   --color-chart-tooltip-border: #ddd8e8;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
 /* Dark mode overrides */
@@ -69,9 +69,50 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
   overflow-x: hidden;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 85% -10%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 28rem),
+    radial-gradient(circle at -10% 90%, color-mix(in srgb, #f97316 5%, transparent), transparent 24rem);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 #root {
@@ -344,4 +385,26 @@ select {
 
 .icon-gradient svg {
   stroke: url(#iconGrad);
+}
+
+.brand-mark {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--grad-from) 18%, transparent), color-mix(in srgb, var(--grad-to) 12%, transparent));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.surface-subtle {
+  background: color-mix(in srgb, var(--color-card) 82%, var(--color-primary) 2%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

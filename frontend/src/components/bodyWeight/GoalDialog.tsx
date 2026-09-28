@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getApiErrorMessage } from '@/lib/api';
 
 interface GoalDialogProps {
    open: boolean;
@@ -15,9 +16,12 @@ interface GoalDialogProps {
 
 export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight }: GoalDialogProps) {
    const [form, setForm] = useState({ goal: '', initialWeight: '', targetWeight: '', height: '' });
+   const [submitting, setSubmitting] = useState(false);
+   const [error, setError] = useState('');
 
    useEffect(() => {
       if (open) {
+         setError('');
          setForm({
             goal: defaultValues?.goal || '',
             initialWeight: defaultValues?.initialWeight?.toString()
@@ -35,21 +39,28 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      await onSave(form);
-      handleClose();
+      setSubmitting(true);
+      setError('');
+      try {
+         await onSave(form);
+         handleClose();
+      } catch (err: unknown) {
+         setError(getApiErrorMessage(err, 'Não foi possível salvar sua meta.'));
+      } finally {
+         setSubmitting(false);
+      }
    };
 
-   if (!open) return null;
-
-   return createPortal(
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-         <div className="fixed inset-0 bg-black/80 animate-fade-in" onClick={handleClose} />
-         <div className="relative z-50 w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg border bg-background p-4 sm:p-6 shadow-lg mx-auto animate-scale-in">
-            <h2 className="text-lg font-semibold mb-4">Definir Meta</h2>
+   return (
+      <Dialog open={open} onClose={handleClose} className="sm:max-w-md">
+            <DialogHeader>
+               <DialogTitle>Definir meta</DialogTitle>
+               <p className="text-sm text-muted-foreground">Use estes dados para contextualizar sua evolução.</p>
+            </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
                <div className="space-y-2">
-                  <Label>Objetivo</Label>
-                  <Select value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })}>
+                  <Label htmlFor="goal">Objetivo</Label>
+                  <Select id="goal" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })}>
                      <option value="">Selecione</option>
                      <option value="BULK">Ganho de Massa</option>
                      <option value="CUT">Perda de Gordura</option>
@@ -58,8 +69,9 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                </div>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
-                     <Label>Peso Inicial (kg)</Label>
+                     <Label htmlFor="initial-weight">Peso inicial (kg)</Label>
                      <Input
+                        id="initial-weight"
                         type="number"
                         step="0.1"
                         value={form.initialWeight}
@@ -67,8 +79,9 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                      />
                   </div>
                   <div className="space-y-2">
-                     <Label>Peso Alvo (kg)</Label>
+                     <Label htmlFor="target-weight">Peso alvo (kg)</Label>
                      <Input
+                        id="target-weight"
                         type="number"
                         step="0.1"
                         value={form.targetWeight}
@@ -77,8 +90,9 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                   </div>
                </div>
                <div className="space-y-2">
-                  <Label>Altura (cm)</Label>
+                  <Label htmlFor="height">Altura (cm)</Label>
                   <Input
+                     id="height"
                      type="number"
                      step="1"
                      placeholder="Ex: 175"
@@ -86,13 +100,12 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                      onChange={(e) => setForm({ ...form, height: e.target.value })}
                   />
                </div>
-               <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
-                  <Button type="submit">Salvar</Button>
+               {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button type="button" variant="outline" onClick={handleClose} disabled={submitting}>Cancelar</Button>
+                  <Button type="submit" disabled={submitting}>{submitting ? 'Salvando…' : 'Salvar meta'}</Button>
                </div>
             </form>
-         </div>
-      </div>,
-      document.body,
+      </Dialog>
    );
 }

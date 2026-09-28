@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Trash2 } from 'lucide-react';
 import { ExerciseSearchDropdown } from '@/components/exercises/ExerciseSearchDropdown';
-import { muscleGroupLabels } from '@/lib/exerciseLabels';
+import { toast } from '@/stores/toastStore';
+import { getApiErrorMessage } from '@/lib/api';
 
 interface CreateWorkoutPlanDialogProps {
    open: boolean;
@@ -24,6 +25,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
    >([]);
    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
    const [submitting, setSubmitting] = useState(false);
+   const [error, setError] = useState('');
 
    const isEdit = !!editPlan;
 
@@ -31,6 +33,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
       setName('');
       setDescription('');
       setExercises([]);
+      setError('');
    };
 
    const handleClose = () => {
@@ -116,8 +119,9 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
          }
          handleClose();
          onCreated();
-      } catch (err) {
-         console.error(err);
+         toast.success(isEdit ? 'Ficha atualizada' : 'Ficha criada');
+      } catch (err: unknown) {
+         setError(getApiErrorMessage(err, 'Não foi possível salvar a ficha.'));
       } finally {
          setSubmitting(false);
       }
@@ -131,8 +135,9 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
          <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <div className="space-y-2">
-                  <Label>Nome da Ficha</Label>
+                  <Label htmlFor="plan-name">Nome da ficha</Label>
                   <Input
+                     id="plan-name"
                      placeholder="Ex: Treino A - Peito/Tríceps"
                      value={name}
                      onChange={(e) => setName(e.target.value)}
@@ -140,8 +145,9 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                   />
                </div>
                <div className="space-y-2">
-                  <Label>Descrição (opcional)</Label>
+                  <Label htmlFor="plan-description">Descrição (opcional)</Label>
                   <Input
+                     id="plan-description"
                      placeholder="Descrição breve"
                      value={description}
                      onChange={(e) => setDescription(e.target.value)}
@@ -180,6 +186,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               value={ex.sets}
                               onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
                               min={1}
+                              aria-label={`Séries de ${ex.exerciseName}`}
                            />
                            <span className="text-xs text-muted-foreground">×</span>
                            <Input
@@ -187,6 +194,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               value={ex.reps}
                               onChange={(e) => updateExercise(i, 'reps', e.target.value)}
                               placeholder="10"
+                              aria-label={`Repetições de ${ex.exerciseName}`}
                            />
                            <span className="text-xs text-muted-foreground">•</span>
                            <Input
@@ -196,6 +204,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               onChange={(e) => updateExercise(i, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
                               min={0}
                               placeholder="kg"
+                              aria-label={`Carga de ${ex.exerciseName} em quilos`}
                            />
                            <span className="text-xs text-muted-foreground">•</span>
                            <Input
@@ -205,6 +214,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               onChange={(e) => updateExercise(i, 'restSeconds', parseInt(e.target.value) || 0)}
                               min={0}
                               max={600}
+                              aria-label={`Descanso de ${ex.exerciseName} em segundos`}
                            />
                            <span className="text-xs text-muted-foreground">s</span>
                         </div>
@@ -213,7 +223,8 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!name || submitting}>
                   {submitting ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Ficha'}

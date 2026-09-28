@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ComponentProps } from 'react';
 import { dashboardApi, type DashboardStats } from '@/services/dashboardService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgre
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState, ErrorState } from '@/components/ui/feedback';
 
 // Purple shades: darkest → lightest (readable in both themes)
 const PURPLE_SHADES = [
@@ -28,15 +30,20 @@ function getShadeByPercent(percent: number, maxPercent: number): string {
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
    const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(false);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
    const chart = useChartColors();
 
-   useEffect(() => {
+   const loadStats = useCallback(() => {
+      setLoading(true);
+      setError(false);
       dashboardApi.getStats()
          .then((res) => setStats(res.data.data))
-         .catch(console.error)
+         .catch(() => setError(true))
          .finally(() => setLoading(false));
    }, []);
+
+   useEffect(() => { loadStats(); }, [loadStats]);
 
    if (loading) {
       return (
@@ -68,7 +75,7 @@ export default function DashboardPage() {
       );
    }
 
-   if (!stats) return <p className="text-muted-foreground">Erro ao carregar dashboard.</p>;
+   if (error || !stats) return <ErrorState message="Não foi possível carregar seu painel." onRetry={loadStats} />;
 
    const muscleDataRaw = Object.entries(stats.muscleDistribution).map(([key, value]) => ({
       name: muscleGroupLabels[key] || key,
@@ -92,10 +99,7 @@ export default function DashboardPage() {
 
    return (
       <div className="space-y-3 sm:space-y-6 animate-fade-in-up">
-         <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Visão geral do seu progresso</p>
-         </div>
+         <PageHeader title="Seu progresso" description="Uma visão clara da sua consistência, volume e evolução recente." />
 
          {/* Stats cards */}
          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
@@ -169,7 +173,11 @@ export default function DashboardPage() {
                </CardHeader>
                <CardContent>
                   {muscleData.length > 0 ? (
-                     <div className="w-full aspect-4/3 min-h-50 max-h-70">
+                     <div
+                        className="w-full aspect-4/3 min-h-50 max-h-70"
+                        role="img"
+                        aria-label="Distribuição de séries por grupo muscular nos últimos 30 dias"
+                     >
                         <ResponsiveContainer width="100%" height="100%">
                            <PieChart>
                               <Pie
@@ -182,7 +190,7 @@ export default function DashboardPage() {
                                  dataKey="sets"
                                  nameKey="name"
                                  stroke="none"
-                                 activeShape={(props: any) => <Sector {...props} stroke="none" />}
+                                 activeShape={(props: ComponentProps<typeof Sector>) => <Sector {...props} stroke="none" />}
                               >
                                  {muscleData.map((entry, index) => (
                                     <Cell key={index} fill={getShadeByPercent(entry.percent, maxPercent)} />
@@ -216,7 +224,7 @@ export default function DashboardPage() {
                         </ResponsiveContainer>
                      </div>
                   ) : (
-                     <p className="text-muted-foreground text-sm text-center py-12">Nenhum treino registrado</p>
+                     <EmptyState compact icon={Dumbbell} title="Sem dados de treino" description="Conclua um treino para visualizar a distribuição muscular." />
                   )}
                </CardContent>
             </Card>
@@ -228,7 +236,11 @@ export default function DashboardPage() {
                </CardHeader>
                <CardContent>
                   {bodyWeightData.length > 0 ? (
-                     <div className="w-full aspect-video min-h-45 max-h-75">
+                     <div
+                        className="w-full aspect-video min-h-45 max-h-75"
+                        role="img"
+                        aria-label="Evolução do peso corporal"
+                     >
                         <ResponsiveContainer width="100%" height="100%">
                            <AreaChart data={bodyWeightData}>
                               <defs>
@@ -257,7 +269,7 @@ export default function DashboardPage() {
                         </ResponsiveContainer>
                      </div>
                   ) : (
-                     <p className="text-muted-foreground text-sm text-center py-12">Nenhum registro de peso</p>
+                     <EmptyState compact icon={Scale} title="Sem registros de peso" description="Registre seu peso para acompanhar a tendência aqui." />
                   )}
                </CardContent>
             </Card>
@@ -271,7 +283,11 @@ export default function DashboardPage() {
                   <p className="text-xs text-muted-foreground mt-0.5">Séries nos últimos 30 dias</p>
                </CardHeader>
                <CardContent>
-                  <div className="w-full aspect-5/2 min-h-45 max-h-75">
+                  <div
+                     className="w-full aspect-5/2 min-h-45 max-h-75"
+                     role="img"
+                     aria-label="Volume de séries por grupo muscular nos últimos 30 dias"
+                  >
                      <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={muscleData} barCategoryGap="25%">
                            <defs>
@@ -327,7 +343,7 @@ export default function DashboardPage() {
                      {stats.personalRecords.map((pr) => (
                         <div key={pr.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] gap-3 sm:gap-4 items-center px-4 py-3 hover:bg-secondary/20 transition-colors">
                            <div className="min-w-0">
-                              <p className="font-medium text-sm cursor-pointer hover:text-primary transition-colors truncate" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</p>
+                              <button type="button" className="block max-w-full truncate text-left text-sm font-medium hover:text-primary" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</button>
                               <Badge variant="secondary" className="mt-1 text-xs">
                                  {muscleGroupLabels[pr.exercise.muscleGroup] || pr.exercise.muscleGroup}
                               </Badge>

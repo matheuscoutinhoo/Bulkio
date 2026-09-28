@@ -2,6 +2,16 @@ import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
 import { CreateWorkoutPlanInput, UpdateWorkoutPlanInput } from '../models/schemas';
 
+type ExerciseCreateInput = {
+   exerciseId: string;
+   sets: number;
+   reps: string;
+   restSeconds: number;
+   weight?: number | null;
+   order: number;
+   notes?: string | null;
+};
+
 const exercisesInclude = {
    exercises: {
       include: { exercise: true },
@@ -9,7 +19,7 @@ const exercisesInclude = {
    },
 };
 
-function toExerciseCreateData(exercises: CreateWorkoutPlanInput['exercises']) {
+function toExerciseCreateData(exercises?: ExerciseCreateInput[]) {
    if (!exercises) return undefined;
    return {
       create: exercises.map((e) => ({

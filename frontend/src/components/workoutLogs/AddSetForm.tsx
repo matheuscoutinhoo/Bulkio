@@ -59,10 +59,10 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
    };
 
    return (
-      <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
+      <div className="space-y-4 rounded-xl border border-primary/25 bg-primary/5 p-4">
          <div className="space-y-2">
-            <Label className="text-xs">Exercício</Label>
-            <Select value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
+            <Label htmlFor="set-exercise">Exercício</Label>
+            <Select id="set-exercise" value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
                <option value="">Selecione o exercício</option>
                {planExercises.map((pe) => (
                   <option key={pe.exerciseId} value={pe.exerciseId}>
@@ -101,17 +101,17 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
 
          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-               <Label className="text-xs">Repetições</Label>
-               <Input type="number" value={reps} onChange={(e) => setReps(e.target.value)} min={0} />
+               <Label htmlFor="set-reps" className="text-xs">Repetições</Label>
+               <Input id="set-reps" type="number" value={reps} onChange={(e) => setReps(e.target.value)} min={1} inputMode="numeric" />
             </div>
             <div className="space-y-1">
-               <Label className="text-xs">Carga (kg)</Label>
-               <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} min={0} step={0.5} />
+               <Label htmlFor="set-weight" className="text-xs">Carga (kg)</Label>
+               <Input id="set-weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} min={0} step={0.5} inputMode="decimal" />
             </div>
          </div>
-         <div className="flex gap-2">
+         <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button size="sm" className="flex-1" onClick={handleSave} disabled={!exerciseId || saving}>
-               {saving ? 'Salvando...' : 'Salvar Série'}
+               {saving ? 'Salvando…' : 'Salvar série'}
             </Button>
             <Button size="sm" variant="outline" onClick={onCancel}>
                Cancelar

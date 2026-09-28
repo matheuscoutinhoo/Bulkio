@@ -61,12 +61,14 @@ export function ExerciseDetailModal({ exercise, open, onClose }: ExerciseDetailM
                         />
                      ) : (
                         <button
+                           type="button"
                            onClick={() => setPlaying(true)}
                            className="w-full h-full relative group cursor-pointer"
+                           aria-label={`Reproduzir demonstração de ${exercise.name}`}
                         >
                            <img
                               src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                              alt={exercise.name}
+                              alt=""
                               className="w-full h-full object-cover"
                            />
                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">

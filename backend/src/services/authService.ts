@@ -107,7 +107,7 @@ export const authService = {
          await storeRefreshToken(tokens.refreshToken, user.id);
 
          return tokens;
-      } catch (error) {
+      } catch {
          // If JWT verify fails, delete the stored token too
          await refreshTokenRepository.deleteByHash(tokenHash);
          throw new UnauthorizedError('Invalid refresh token');

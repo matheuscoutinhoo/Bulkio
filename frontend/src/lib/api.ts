@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 
+export function getApiErrorMessage(error: unknown, fallback: string) {
+   if (axios.isAxiosError(error) && typeof error.response?.data?.message === 'string') {
+      return error.response.data.message;
+   }
+   return fallback;
+}
+
 const api = axios.create({
    baseURL: '/api/v1',
    withCredentials: true,

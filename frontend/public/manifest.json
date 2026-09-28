@@ -1,7 +1,7 @@
 {
    "name": "Bulkio",
    "short_name": "Bulkio",
-   "description": "Seu app de treinos com IA",
+   "description": "Gerencie seus treinos e acompanhe sua evolução",
    "start_url": "/",
    "display": "standalone",
    "background_color": "#09090b",

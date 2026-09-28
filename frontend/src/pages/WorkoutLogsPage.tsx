@@ -4,7 +4,7 @@ import { workoutPlanApi, type WorkoutPlanExercise } from '@/services/workoutPlan
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle, History } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
@@ -13,14 +13,21 @@ import { RestTimer } from '@/components/workoutLogs/RestTimer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from '@/stores/toastStore';
 
 export default function WorkoutLogsPage() {
    const [logs, setLogs] = useState<WorkoutLog[]>([]);
    const [loading, setLoading] = useState(true);
+   const [loadError, setLoadError] = useState(false);
    const [expandedLog, setExpandedLog] = useState<string | null>(null);
    const [showCreate, setShowCreate] = useState(false);
    const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
+   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+   const [deleting, setDeleting] = useState(false);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
    const [progressionExercise, setProgressionExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
 
@@ -33,12 +40,15 @@ export default function WorkoutLogsPage() {
 
    const fetchLogs = useCallback(async (silent = false) => {
       if (!silent) setLoading(true);
+      setLoadError(false);
       try {
          const res = await workoutLogApi.getAll({ page, limit: 20 });
          setLogs(res.data.data);
          setTotalPages(res.data.pagination.totalPages);
       } catch (err) {
          console.error(err);
+         setLoadError(true);
+         toast.error('Não foi possível carregar o histórico');
       } finally {
          setLoading(false);
       }
@@ -46,12 +56,19 @@ export default function WorkoutLogsPage() {
 
    useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
-   const handleDelete = async (id: string) => {
+   const handleDelete = async () => {
+      if (!deleteTarget) return;
+      setDeleting(true);
       try {
-         await workoutLogApi.delete(id);
-         fetchLogs(true);
+         await workoutLogApi.delete(deleteTarget);
+         setDeleteTarget(null);
+         await fetchLogs(true);
+         toast.success('Treino excluído do histórico');
       } catch (err) {
          console.error(err);
+         toast.error('Não foi possível excluir o treino');
+      } finally {
+         setDeleting(false);
       }
    };
 
@@ -108,6 +125,7 @@ export default function WorkoutLogsPage() {
       if (planEx && planEx.restSeconds > 0) {
          setRestTimer({ seconds: planEx.restSeconds, exerciseName: planEx.exercise.name });
       }
+      toast.success('Série registrada');
    };
 
    const handleCompleteWorkout = async (logId: string) => {
@@ -116,8 +134,10 @@ export default function WorkoutLogsPage() {
          const res = await workoutLogApi.update(logId, { isComplete: true, endTime: now });
          setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
          setAddingSetFor(null);
+         toast.success('Treino finalizado', 'Seu progresso e recordes foram atualizados.');
       } catch (err) {
          console.error(err);
+         toast.error('Não foi possível finalizar o treino');
       }
    };
 
@@ -125,46 +145,40 @@ export default function WorkoutLogsPage() {
       try {
          const res = await workoutLogApi.update(logId, { isComplete: false, endTime: null });
          setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
+         toast.info('Treino reaberto');
       } catch (err) {
          console.error(err);
+         toast.error('Não foi possível reabrir o treino');
       }
    };
 
    return (
       <div className="space-y-6 animate-fade-in-up">
-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-               <h1 className="text-2xl sm:text-3xl font-bold">Histórico de Treinos</h1>
-               <p className="text-muted-foreground text-sm sm:text-base">Todos os treinos realizados</p>
-            </div>
-            <Button onClick={() => setShowCreate(true)}>
-               <Plus className="h-4 w-4 mr-2" /> Registrar Treino
-            </Button>
-         </div>
+         <PageHeader title="Histórico de treinos" description="Registre séries, acompanhe sessões em andamento e consulte sua evolução." actions={<Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" /> Registrar treino</Button>} />
 
          {loading ? (
-            <div className="flex justify-center py-12">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
+            <LoadingState label="Carregando seu histórico" />
+         ) : loadError ? (
+            <ErrorState message="Não foi possível carregar seu histórico." onRetry={() => fetchLogs()} />
          ) : logs.length === 0 ? (
             <Card>
-               <CardContent className="p-5 sm:p-6 py-12 text-center">
-                  <p className="text-muted-foreground">Nenhum treino registrado ainda.</p>
-                  <Button className="mt-4" onClick={() => setShowCreate(true)}>
-                     Registrar Primeiro Treino
-                  </Button>
+               <CardContent className="p-0">
+                  <EmptyState icon={History} title="Seu histórico começa aqui" description="Registre um treino para acompanhar séries, cargas, duração e recordes pessoais." actionLabel="Registrar primeiro treino" onAction={() => setShowCreate(true)} />
                </CardContent>
             </Card>
          ) : (
             <>
                <div className="space-y-3">
                   {logs.map((log) => (
-                     <Card key={log.id}>
+                     <Card key={log.id} className="overflow-hidden">
                         <CardHeader className="pb-3">
                            <div className="flex items-center justify-between">
-                              <div
-                                 className="flex items-center gap-3 cursor-pointer flex-1"
+                              <button
+                                 type="button"
+                                 className="flex min-h-11 flex-1 items-center gap-3 rounded-lg text-left"
                                  onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
+                                 aria-expanded={expandedLog === log.id}
+                                 aria-controls={`log-${log.id}`}
                               >
                                  {expandedLog === log.id ? (
                                     <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -204,13 +218,14 @@ export default function WorkoutLogsPage() {
                                        )}
                                     </div>
                                  </div>
-                              </div>
+                              </button>
                               <div className="flex gap-1">
                                  <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleDelete(log.id)}
-                                    className="hover:text-primary"
+                                    onClick={() => setDeleteTarget(log.id)}
+                                    className="hover:text-destructive"
+                                    aria-label="Excluir treino"
                                  >
                                     <Trash2 className="h-4 w-4" />
                                  </Button>
@@ -218,7 +233,7 @@ export default function WorkoutLogsPage() {
                            </div>
                         </CardHeader>
                         {expandedLog === log.id && (
-                           <CardContent className="animate-fade-in-down">
+                           <CardContent id={`log-${log.id}`} className="animate-fade-in-down border-t border-border/60 pt-4 sm:pt-5">
                               {log.notes && (
                                  <p className="text-sm text-muted-foreground mb-3 p-2 bg-secondary/30 rounded">
                                     📝 {log.notes}
@@ -246,6 +261,7 @@ export default function WorkoutLogsPage() {
                                                    size="icon"
                                                    className="h-6 w-6 shrink-0 hover:text-primary"
                                                    onClick={() => setSelectedExercise(logEx.exercise)}
+                                                   aria-label={`Ver detalhes de ${logEx.exercise.name}`}
                                                 >
                                                    <HelpCircle className="h-3.5 w-3.5" />
                                                 </Button>
@@ -287,7 +303,7 @@ export default function WorkoutLogsPage() {
                                           onCancel={() => setAddingSetFor(null)}
                                        />
                                     ) : (
-                                       <div className="flex gap-2">
+                                       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                                           <Button
                                              variant="outline"
                                              className="flex-1"
@@ -361,6 +377,8 @@ export default function WorkoutLogsPage() {
                onClose={() => setRestTimer(null)}
             />
          )}
+
+         <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} title="Excluir treino do histórico?" description="As séries, cargas e recordes vinculados a este treino serão removidos. Esta ação não pode ser desfeita." />
       </div>
    );
 }

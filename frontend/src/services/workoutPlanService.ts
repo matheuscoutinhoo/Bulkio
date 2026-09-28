@@ -43,12 +43,6 @@ export interface CreateWorkoutPlanData {
    }[];
 }
 
-export interface GenerateWorkoutData {
-   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-   focus: string;
-   description?: string;
-}
-
 export const workoutPlanApi = {
    getAll: (params?: { page?: number; limit?: number }) =>
       api.get('/workouts', { params }),
@@ -58,5 +52,4 @@ export const workoutPlanApi = {
       api.patch(`/workouts/${id}`, data),
    duplicate: (id: string) => api.post(`/workouts/${id}/duplicate`),
    delete: (id: string) => api.delete(`/workouts/${id}`),
-   generate: (data: GenerateWorkoutData) => api.post('/workouts/generate', data),
 };

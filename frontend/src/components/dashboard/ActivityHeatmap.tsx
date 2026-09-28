@@ -38,7 +38,6 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
       const year = viewDate.getFullYear();
       const month = viewDate.getMonth();
       const firstDayOfWeek = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const toDateKey = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
@@ -102,14 +101,14 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
             )}
 
             {/* Month navigation */}
-            <div className="flex items-center justify-center gap-4">
-               <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8">
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+               <Button variant="ghost" size="icon" onClick={prevMonth} className="h-10 w-10" aria-label="Ver mês anterior">
                   <ChevronLeft className="h-4 w-4" />
                </Button>
                <span className="text-sm font-semibold min-w-36 text-center">
                   {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
                </span>
-               <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8">
+               <Button variant="ghost" size="icon" onClick={nextMonth} className="h-10 w-10" aria-label="Ver próximo mês">
                   <ChevronRight className="h-4 w-4" />
                </Button>
             </div>
@@ -122,7 +121,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
             </div>
 
             {/* Calendar grid */}
-            <div>
+            <div role="grid" aria-label={`Atividade em ${MONTH_NAMES[viewDate.getMonth()]} de ${viewDate.getFullYear()}`}>
                {calendarData.map((week, rowIdx) => (
                   <div key={rowIdx} className="grid grid-cols-7">
                      {week.map((cell, colIdx) => {

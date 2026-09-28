@@ -13,7 +13,7 @@ import {
    Moon,
    UserCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -29,40 +29,56 @@ export function Sidebar() {
    const { theme, toggleTheme } = useThemeStore();
    const [mobileOpen, setMobileOpen] = useState(false);
 
+   useEffect(() => {
+      if (!mobileOpen) return;
+      const handleKeyDown = (event: KeyboardEvent) => {
+         if (event.key === 'Escape') setMobileOpen(false);
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+   }, [mobileOpen]);
+
    const navContent = (
       <>
-         <div className="p-6">
-            <Link to="/dashboard" className="flex items-center gap-2">
-               <Dumbbell className="h-8 w-8 icon-gradient" />
-               <span className="text-xl font-bold">Bulkio</span>
+         <div className="px-5 pb-5 pt-6">
+            <Link to="/dashboard" className="group flex items-center gap-3 rounded-xl focus-visible:ring-2 focus-visible:ring-ring">
+               <span className="brand-mark icon-gradient flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Dumbbell className="h-6 w-6" aria-hidden="true" />
+               </span>
+               <span>
+                  <span className="block text-xl font-bold tracking-[-0.03em]">Bulkio</span>
+                  <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Treino & progresso</span>
+               </span>
             </Link>
          </div>
 
-         <nav className="flex-1 px-4 space-y-1">
+         <nav aria-label="Navegação principal" className="flex-1 space-y-1 px-4">
             {navItems.map((item) => (
                <Link
                   key={item.to}
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
+                  aria-current={location.pathname === item.to || location.pathname.startsWith(item.to + '/') ? 'page' : undefined}
                   className={cn(
-                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                     'group flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all',
                      location.pathname === item.to || location.pathname.startsWith(item.to + '/')
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   )}
                >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-[18px] w-[18px]" aria-hidden="true" />
                   {item.label}
                </Link>
             ))}
          </nav>
 
-         <div className="p-4 border-t">
+         <div className="border-t border-border/70 p-4">
             <div className="flex items-center justify-between">
                <Link
                   to="/profile"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 min-w-0 flex-1 p-1 rounded-md hover:bg-accent transition-colors"
+                  aria-current={location.pathname === '/profile' ? 'page' : undefined}
+                  className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-2 hover:bg-accent transition-colors"
                >
                   <UserCircle className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="min-w-0">
@@ -71,9 +87,11 @@ export function Sidebar() {
                   </div>
                </Link>
                <button
+                  type="button"
                   onClick={toggleTheme}
-                  className="p-2 rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                   title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+                  aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
                >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                </button>
@@ -85,12 +103,14 @@ export function Sidebar() {
    return (
       <>
          {/* Mobile header */}
-         <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-background border-b px-4 h-14">
+         <div className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-border/70 bg-background/90 px-4 backdrop-blur-xl lg:hidden">
             <Link to="/dashboard" className="flex items-center gap-2">
-               <Dumbbell className="h-6 w-6 icon-gradient" />
-               <span className="text-lg font-bold">Bulkio</span>
+               <span className="brand-mark icon-gradient flex h-9 w-9 items-center justify-center rounded-xl">
+                  <Dumbbell className="h-5 w-5" aria-hidden="true" />
+               </span>
+               <span className="text-lg font-bold tracking-[-0.03em]">Bulkio</span>
             </Link>
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
+            <button type="button" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'} className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground">
                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
          </div>
@@ -100,11 +120,13 @@ export function Sidebar() {
             <div
                className="lg:hidden fixed inset-0 z-30 bg-black/50 animate-fade-in"
                onClick={() => setMobileOpen(false)}
+               aria-hidden="true"
             />
          )}
          <div
+            id="mobile-navigation"
             className={cn(
-               'lg:hidden fixed top-14 left-0 bottom-0 z-30 w-64 max-w-[80vw] bg-background border-r flex flex-col transition-transform duration-250 ease-out',
+               'fixed bottom-0 left-0 top-16 z-30 flex w-72 max-w-[86vw] flex-col border-r border-border/70 bg-background shadow-2xl transition-transform duration-200 ease-out lg:hidden',
                mobileOpen ? 'translate-x-0' : '-translate-x-full',
             )}
          >
@@ -112,9 +134,9 @@ export function Sidebar() {
          </div>
 
          {/* Desktop sidebar */}
-         <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
+         <aside className="fixed inset-y-0 hidden w-72 flex-col border-r border-border/70 bg-background/85 backdrop-blur-xl lg:flex">
             {navContent}
-         </div>
+         </aside>
       </>
    );
 }

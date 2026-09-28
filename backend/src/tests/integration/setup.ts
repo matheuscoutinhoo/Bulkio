@@ -1,14 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
 import path from 'path';
-import fs from 'fs';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import app from '../../app';
 import { config } from '../../config';
 
-const TEST_DB_PATH = path.join(__dirname, '..', '..', '..', 'prisma', 'test.db');
-const TEST_DB_URL = `file:${TEST_DB_PATH}`;
+const TEST_DB_URL = process.env.TEST_DATABASE_URL
+   || process.env.DATABASE_URL
+   || 'postgresql://bulkio:bulkio@localhost:5433/bulkio_test?schema=public';
 
 let prisma: PrismaClient;
 
@@ -21,20 +21,9 @@ export function getApp() {
 }
 
 export async function setupTestDb() {
-   // Remove old test DB if exists
-   if (fs.existsSync(TEST_DB_PATH)) {
-      fs.unlinkSync(TEST_DB_PATH);
-   }
-   // Also remove journal files
-   const journalPath = TEST_DB_PATH + '-journal';
-   if (fs.existsSync(journalPath)) {
-      fs.unlinkSync(journalPath);
-   }
-
    process.env.DATABASE_URL = TEST_DB_URL;
 
-   // Push schema to create test DB
-   execSync('npx prisma db push --skip-generate --accept-data-loss', {
+   execSync('npx prisma migrate reset --force --skip-seed', {
       cwd: path.join(__dirname, '..', '..', '..'),
       env: { ...process.env, DATABASE_URL: TEST_DB_URL },
       stdio: 'pipe',
@@ -50,19 +39,6 @@ export async function setupTestDb() {
 export async function teardownTestDb() {
    if (prisma) {
       await prisma.$disconnect();
-   }
-   // Give SQLite time to release file locks
-   await new Promise((resolve) => setTimeout(resolve, 200));
-   try {
-      if (fs.existsSync(TEST_DB_PATH)) {
-         fs.unlinkSync(TEST_DB_PATH);
-      }
-      const journalPath = TEST_DB_PATH + '-journal';
-      if (fs.existsSync(journalPath)) {
-         fs.unlinkSync(journalPath);
-      }
-   } catch {
-      // File may still be locked by another test suite — ignore
    }
 }
 

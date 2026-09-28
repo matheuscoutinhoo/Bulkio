@@ -3,32 +3,39 @@ import { workoutPlanApi, type WorkoutPlan } from '@/services/workoutPlanService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Pencil, HelpCircle, Sparkles } from 'lucide-react';
+import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Pencil, HelpCircle, ClipboardList } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { ScrollText } from '@/components/ui/scroll-text';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
-import { GenerateWorkoutDialog } from '@/components/workoutPlans/GenerateWorkoutDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from '@/stores/toastStore';
 
 export default function WorkoutPlansPage() {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
    const [loading, setLoading] = useState(true);
+   const [loadError, setLoadError] = useState(false);
    const [showCreate, setShowCreate] = useState(false);
-   const [showGenerate, setShowGenerate] = useState(false);
    const [editPlan, setEditPlan] = useState<WorkoutPlan | null>(null);
    const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
    const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; muscleGroup: string; type?: string; equipment?: string } | null>(null);
    const [progressionExercise, setProgressionExercise] = useState<{ id: string; name: string; muscleGroup: string } | null>(null);
    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+   const [deleting, setDeleting] = useState(false);
 
    const fetchPlans = useCallback(async () => {
       setLoading(true);
+      setLoadError(false);
       try {
          const res = await workoutPlanApi.getAll({ limit: 50 });
          setPlans(res.data.data);
       } catch (err) {
          console.error(err);
+         setLoadError(true);
+         toast.error('Não foi possível carregar as fichas', 'Verifique sua conexão e tente novamente.');
       } finally {
          setLoading(false);
       }
@@ -39,62 +46,64 @@ export default function WorkoutPlansPage() {
    const handleDuplicate = async (id: string) => {
       try {
          await workoutPlanApi.duplicate(id);
-         fetchPlans();
+         await fetchPlans();
+         toast.success('Ficha duplicada', 'Uma cópia foi adicionada à sua lista.');
       } catch (err) {
          console.error(err);
+         toast.error('Não foi possível duplicar a ficha');
       }
    };
 
    const handleDelete = async () => {
       if (!deleteTarget) return;
+      setDeleting(true);
       try {
          await workoutPlanApi.delete(deleteTarget);
          setDeleteTarget(null);
-         fetchPlans();
+         await fetchPlans();
+         toast.success('Ficha excluída');
       } catch (err) {
          console.error(err);
+         toast.error('Não foi possível excluir a ficha');
+      } finally {
+         setDeleting(false);
       }
    };
 
    return (
       <div className="space-y-6 animate-fade-in-up">
-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-               <h1 className="text-2xl sm:text-3xl font-bold">Fichas de Treino</h1>
-               <p className="text-muted-foreground text-sm sm:text-base">{plans.length} fichas ativas</p>
-            </div>
-            <div className="flex gap-2">
-               <Button variant="outline" onClick={() => setShowGenerate(true)}>
-                  <Sparkles className="h-4 w-4 mr-2" /> Gerar com IA
-               </Button>
+         <PageHeader
+            title="Fichas de treino"
+            description={loading ? 'Organize sua rotina por objetivo e grupo muscular.' : `${plans.length} ${plans.length === 1 ? 'ficha ativa' : 'fichas ativas'} para organizar sua rotina.`}
+            actions={<>
                <Button onClick={() => setShowCreate(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Nova Ficha
+                  <Plus className="h-4 w-4" /> Nova ficha
                </Button>
-            </div>
-         </div>
+            </>}
+         />
 
          {loading ? (
-            <div className="flex justify-center py-12">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
+            <LoadingState label="Carregando suas fichas" />
+         ) : loadError ? (
+            <ErrorState message="Não foi possível carregar suas fichas." onRetry={fetchPlans} />
          ) : plans.length === 0 ? (
             <Card>
-               <CardContent className="p-5 sm:p-6 py-12 text-center">
-                  <p className="text-muted-foreground">Nenhuma ficha criada ainda.</p>
-                  <Button className="mt-4" onClick={() => setShowCreate(true)}>
-                     Criar Primeira Ficha
-                  </Button>
+               <CardContent className="p-0">
+                  <EmptyState icon={ClipboardList} title="Crie sua primeira ficha" description="Monte uma sequência de exercícios para organizar sua rotina." actionLabel="Criar ficha" onAction={() => setShowCreate(true)} />
                </CardContent>
             </Card>
          ) : (
             <div className="space-y-4">
                {plans.map((plan) => (
-                  <Card key={plan.id}>
+                  <Card key={plan.id} className="overflow-hidden">
                      <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                           <div
-                              className="flex flex-wrap items-center gap-2 cursor-pointer flex-1"
+                           <button
+                              type="button"
+                              className="flex min-h-11 flex-1 flex-wrap items-center gap-2 rounded-lg text-left"
                               onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
+                              aria-expanded={expandedPlan === plan.id}
+                              aria-controls={`plan-${plan.id}`}
                            >
                               {expandedPlan === plan.id ? (
                                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -110,15 +119,15 @@ export default function WorkoutPlansPage() {
                                     {plan._count.workoutLogs} treinos
                                  </Badge>
                               )}
-                           </div>
+                           </button>
                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar" className="hover:text-primary">
+                              <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar" aria-label={`Editar ${plan.name}`} className="hover:text-primary">
                                  <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar" className="hover:text-primary">
+                              <Button variant="ghost" size="icon" onClick={() => handleDuplicate(plan.id)} title="Duplicar" aria-label={`Duplicar ${plan.name}`} className="hover:text-primary">
                                  <Copy className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(plan.id)} title="Excluir" className="hover:text-destructive">
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(plan.id)} title="Excluir" aria-label={`Excluir ${plan.name}`} className="hover:text-destructive">
                                  <Trash2 className="h-4 w-4" />
                               </Button>
                            </div>
@@ -128,7 +137,7 @@ export default function WorkoutPlansPage() {
                         )}
                      </CardHeader>
                      {expandedPlan === plan.id && (
-                        <CardContent className="animate-fade-in-down">
+                        <CardContent id={`plan-${plan.id}`} className="animate-fade-in-down border-t border-border/60 pt-4 sm:pt-5">
                            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wide text-gradient hidden sm:grid">
                               <span className="w-6">#</span>
                               <span>Exercício</span>
@@ -158,6 +167,7 @@ export default function WorkoutPlansPage() {
                                        size="icon"
                                        className="h-7 w-7 shrink-0 hover:text-primary"
                                        onClick={() => setSelectedExercise(pe.exercise)}
+                                       aria-label={`Ver detalhes de ${pe.exercise.name}`}
                                     >
                                        <HelpCircle className="h-4 w-4" />
                                     </Button>
@@ -195,31 +205,7 @@ export default function WorkoutPlansPage() {
             onClose={() => setProgressionExercise(null)}
          />
 
-         <GenerateWorkoutDialog
-            open={showGenerate}
-            onClose={() => setShowGenerate(false)}
-            onGenerated={fetchPlans}
-         />
-
-         {/* Delete confirmation modal */}
-         {deleteTarget && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteTarget(null)}>
-               <div className="bg-card border rounded-lg p-6 mx-4 max-w-sm w-full shadow-lg" onClick={(e) => e.stopPropagation()}>
-                  <h3 className="text-lg font-semibold mb-2">Excluir ficha</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                     Tem certeza que deseja excluir esta ficha de treino? Esta ação não pode ser desfeita.
-                  </p>
-                  <div className="flex justify-end gap-2">
-                     <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-                        Cancelar
-                     </Button>
-                     <Button variant="destructive" size="sm" onClick={handleDelete}>
-                        Excluir
-                     </Button>
-                  </div>
-               </div>
-            </div>
-         )}
+         <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} title="Excluir ficha?" description="A ficha será removida permanentemente. Os treinos já registrados continuarão no seu histórico." />
       </div>
    );
 }

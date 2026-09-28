@@ -16,6 +16,7 @@ import {
    Tooltip,
    ResponsiveContainer,
 } from 'recharts';
+import { ErrorState, LoadingState } from '@/components/ui/feedback';
 
 interface ExerciseProgressionDialogProps {
    exercise: { id: string; name: string; muscleGroup: string } | null;
@@ -26,15 +27,17 @@ interface ExerciseProgressionDialogProps {
 export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseProgressionDialogProps) {
    const [data, setData] = useState<ExerciseProgression[]>([]);
    const [loading, setLoading] = useState(false);
+   const [error, setError] = useState(false);
    const colors = useChartColors();
 
    useEffect(() => {
       if (open && exercise) {
          setLoading(true);
+         setError(false);
          dashboardApi
             .getExerciseProgression(exercise.id)
             .then((res) => setData(res.data.data))
-            .catch(console.error)
+            .catch(() => setError(true))
             .finally(() => setLoading(false));
       } else {
          setData([]);
@@ -91,9 +94,9 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
          </DialogHeader>
 
          {loading ? (
-            <div className="flex justify-center py-12">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
+            <LoadingState label="Carregando progressão" />
+         ) : error ? (
+            <ErrorState message="Não foi possível carregar a progressão deste exercício." />
          ) : data.length === 0 ? (
             <div className="text-center py-12">
                <p className="text-muted-foreground">Nenhum treino registrado para este exercício.</p>
@@ -173,7 +176,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                {/* Weight progression chart */}
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Carga Máxima</h3>
-                  <div className="aspect-video w-full">
+                  <div className="aspect-video w-full" role="img" aria-label={`Gráfico de evolução de carga para ${exercise.name}`}>
                      <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                            <defs>
@@ -230,7 +233,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Volume Total</h3>
                   <p className="text-xs text-muted-foreground mb-2">Volume = Σ(repetições × carga) por sessão</p>
-                  <div className="aspect-video w-full">
+                  <div className="aspect-video w-full" role="img" aria-label={`Gráfico de volume total para ${exercise.name}`}>
                      <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                            <defs>

@@ -138,13 +138,6 @@ export const workoutLogQuerySchema = paginationSchema.extend({
 
 export const workoutPlanQuerySchema = paginationSchema.extend({});
 
-// ========== AI GENERATION ==========
-export const generateWorkoutSchema = z.object({
-   level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
-   focus: z.string().min(1).max(100),
-   description: z.string().max(500).optional(),
-});
-
 // ========== TYPES ==========
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -155,4 +148,3 @@ export type CreateWorkoutLogInput = z.infer<typeof createWorkoutLogSchema>;
 export type UpdateWorkoutLogInput = z.infer<typeof updateWorkoutLogSchema>;
 export type CreateBodyWeightInput = z.infer<typeof createBodyWeightSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
-export type GenerateWorkoutInput = z.infer<typeof generateWorkoutSchema>;

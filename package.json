@@ -7,16 +7,18 @@
       "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
       "dev:backend": "cd backend && npm run dev",
       "dev:frontend": "cd frontend && npm run dev",
-      "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
+      "build": "npm run build:backend && npm run build:frontend",
       "build:backend": "cd backend && npm run build",
       "build:frontend": "cd frontend && npm run build",
-      "test": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+      "test": "npm run test:backend",
       "test:backend": "cd backend && npm run test",
-      "test:frontend": "cd frontend && npm run test",
-      "lint": "concurrently \"npm run lint:backend\" \"npm run lint:frontend\"",
+      "test:integration": "cd backend && npm run test:integration",
+      "lint": "npm run lint:backend && npm run lint:frontend",
       "lint:backend": "cd backend && npm run lint",
       "lint:frontend": "cd frontend && npm run lint",
-      "setup": "npm install && cd backend && npm install && npx prisma generate && npx prisma db push && npx prisma db seed && cd ../frontend && npm install"
+      "setup": "node scripts/setup.mjs",
+      "db:up": "docker compose up -d postgres",
+      "db:down": "docker compose down"
    },
    "devDependencies": {
       "concurrently": "^8.2.2",
