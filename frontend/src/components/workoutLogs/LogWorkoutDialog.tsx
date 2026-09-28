@@ -71,7 +71,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             <DialogTitle>Iniciar treino</DialogTitle>
             <p className="text-sm text-muted-foreground">Escolha uma ficha e registre as séries conforme avança.</p>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4">
+         <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
                <Label htmlFor="workout-plan">Ficha de treino</Label>
                <Select id="workout-plan" value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} required>
@@ -88,7 +88,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             </div>
 
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!selectedPlan || submitting}>
                   {submitting ? 'Iniciando…' : 'Iniciar treino'}

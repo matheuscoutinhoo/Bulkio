@@ -41,7 +41,7 @@ export function Sidebar() {
    const navContent = (
       <>
          <div className="px-5 pb-5 pt-6">
-            <Link to="/dashboard" className="group flex items-center gap-3 rounded-xl focus-visible:ring-2 focus-visible:ring-ring">
+            <Link to="/dashboard" className="group flex items-center gap-3 rounded-xl">
                <span className="brand-mark icon-gradient flex h-10 w-10 items-center justify-center rounded-xl">
                   <Dumbbell className="h-6 w-6" aria-hidden="true" />
                </span>

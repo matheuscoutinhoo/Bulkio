@@ -137,11 +137,11 @@ export default function BodyWeightPage() {
    };
 
    return (
-      <div className="space-y-3 sm:space-y-6 animate-fade-in-up">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Peso corporal" description="Acompanhe tendências com contexto e mantenha sua meta sempre visível." actions={<Button variant="outline" onClick={() => setShowGoals(true)}><Target className="h-4 w-4" /> Definir meta</Button>} />
 
          {/* Stats */}
-         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5 stagger-children">
+         <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5 stagger-children">
             <Card className="min-w-0">
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
@@ -212,7 +212,7 @@ export default function BodyWeightPage() {
          {/* Add weight form */}
          <Card>
             <CardContent className="pt-6">
-               <form onSubmit={handleAddWeight} className="flex flex-col sm:flex-row gap-3 sm:items-end">
+               <form onSubmit={handleAddWeight} className="flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="flex-1 space-y-2">
                      <Label htmlFor="new-weight">Peso de hoje (kg)</Label>
                      <Input

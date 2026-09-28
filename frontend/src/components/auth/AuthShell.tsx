@@ -25,10 +25,10 @@ export function AuthShell({ children }: { children: ReactNode }) {
             </div>
             <p className="relative text-xs text-violet-200/50">Treine com intenção. Meça o que importa.</p>
          </section>
-         <section className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-8 lg:py-12">
+         <section className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 sm:py-12 lg:py-16">
             <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent lg:hidden" aria-hidden="true" />
             <div className="relative w-full max-w-md">
-               <div className="mb-7 flex items-center justify-center gap-2 lg:hidden">
+               <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
                   <span className="brand-mark icon-gradient flex h-10 w-10 items-center justify-center rounded-xl"><Dumbbell className="h-6 w-6" aria-hidden="true" /></span>
                   <span className="text-xl font-bold tracking-[-0.03em]">Bulkio</span>
                </div>

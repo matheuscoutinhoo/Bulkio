@@ -153,7 +153,7 @@ export default function WorkoutLogsPage() {
    };
 
    return (
-      <div className="space-y-6 animate-fade-in-up">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Histórico de treinos" description="Registre séries, acompanhe sessões em andamento e consulte sua evolução." actions={<Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" /> Registrar treino</Button>} />
 
          {loading ? (
@@ -168,7 +168,7 @@ export default function WorkoutLogsPage() {
             </Card>
          ) : (
             <>
-               <div className="space-y-3">
+               <div className="space-y-4">
                   {logs.map((log) => (
                      <Card key={log.id} className="overflow-hidden">
                         <CardHeader className="pb-3">

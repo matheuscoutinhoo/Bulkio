@@ -57,7 +57,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                <DialogTitle>Definir meta</DialogTitle>
                <p className="text-sm text-muted-foreground">Use estes dados para contextualizar sua evolução.</p>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
                <div className="space-y-2">
                   <Label htmlFor="goal">Objetivo</Label>
                   <Select id="goal" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })}>
@@ -67,7 +67,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                      <option value="MAINTAIN">Manutenção</option>
                   </Select>
                </div>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                      <Label htmlFor="initial-weight">Peso inicial (kg)</Label>
                      <Input
@@ -101,7 +101,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                   />
                </div>
                {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+               <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
                   <Button type="button" variant="outline" onClick={handleClose} disabled={submitting}>Cancelar</Button>
                   <Button type="submit" disabled={submitting}>{submitting ? 'Salvando…' : 'Salvar meta'}</Button>
                </div>

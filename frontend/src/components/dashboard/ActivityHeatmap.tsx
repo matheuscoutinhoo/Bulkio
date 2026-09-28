@@ -154,7 +154,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
                                     : cell.isToday && cell.active
                                        ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30'
                                        : cell.isToday
-                                          ? 'ring-2 ring-orange-500 text-foreground font-bold'
+                                          ? 'ring-1 ring-orange-500 text-foreground font-bold'
                                           : cell.active
                                              ? 'bg-primary text-primary-foreground font-medium'
                                              : 'text-foreground'

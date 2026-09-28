@@ -132,8 +132,8 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
          <DialogHeader>
             <DialogTitle>{isEdit ? 'Editar Ficha de Treino' : 'Nova Ficha de Treino'}</DialogTitle>
          </DialogHeader>
-         <form onSubmit={handleSubmit} className="space-y-4 flex flex-col min-h-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+         <form onSubmit={handleSubmit} className="flex min-h-0 flex-col space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                <div className="space-y-2">
                   <Label htmlFor="plan-name">Nome da ficha</Label>
                   <Input
@@ -165,7 +165,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             {exercises.length > 0 && (
                <div className="space-y-2 overflow-y-auto max-h-[40vh] pr-1">
                   {exercises.map((ex, i) => (
-                     <div key={i} className="flex flex-col gap-1.5 p-3 rounded-lg bg-secondary/30">
+                     <div key={i} className="flex flex-col gap-2 rounded-lg bg-secondary/30 p-4">
                         <div className="flex items-center gap-2">
                            <span className="text-sm text-muted-foreground w-6 shrink-0">{i + 1}.</span>
                            <span className="text-sm font-medium truncate">{ex.exerciseName}</span>
@@ -224,7 +224,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             )}
 
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                <Button type="submit" disabled={!name || submitting}>
                   {submitting ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Ficha'}

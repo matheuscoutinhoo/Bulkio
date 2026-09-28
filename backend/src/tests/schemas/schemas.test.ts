@@ -72,6 +72,25 @@ describe('registerSchema', () => {
       expect(result.success).toBe(true);
    });
 
+   it('should accept username with spaces and accented letters', () => {
+      const result = registerSchema.safeParse({
+         email: 'a@b.com',
+         username: 'João da Silva',
+         password: 'password123',
+      });
+      expect(result.success).toBe(true);
+   });
+
+   it('should trim surrounding spaces from username', () => {
+      const result = registerSchema.safeParse({
+         email: 'a@b.com',
+         username: '  Maria Souza  ',
+         password: 'password123',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.username).toBe('Maria Souza');
+   });
+
    it('should reject short password (< 8)', () => {
       const result = registerSchema.safeParse({
          email: 'a@b.com',
@@ -105,6 +124,11 @@ describe('updateProfileSchema', () => {
    it('should accept partial fields', () => {
       expect(updateProfileSchema.safeParse({ goal: 'BULK' }).success).toBe(true);
       expect(updateProfileSchema.safeParse({}).success).toBe(true);
+   });
+
+   it('should accept a username with spaces', () => {
+      const result = updateProfileSchema.safeParse({ username: 'Maria Souza' });
+      expect(result.success).toBe(true);
    });
 
    it('should accept valid goal enum values', () => {

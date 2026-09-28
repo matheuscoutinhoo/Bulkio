@@ -71,8 +71,8 @@ export default function ProfilePage() {
          setUsernameError('Máximo de 30 caracteres');
          return;
       }
-      if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
-         setUsernameError('Apenas letras, números e underscores');
+      if (!/^[\p{L}\p{N}_ ]+$/u.test(trimmed)) {
+         setUsernameError('Apenas letras, números, espaços e underscores');
          return;
       }
       if (trimmed === user?.username) {
@@ -126,7 +126,7 @@ export default function ProfilePage() {
 
    if (loading) {
       return (
-         <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+         <div className="mx-auto max-w-2xl space-y-6 sm:space-y-8 animate-fade-in">
             <div>
                <div className="skeleton h-8 w-32 mb-2" />
                <div className="skeleton h-4 w-48" />
@@ -150,7 +150,7 @@ export default function ProfilePage() {
       : '-';
 
    return (
-      <div className="space-y-6 max-w-2xl mx-auto animate-fade-in-up">
+      <div className="mx-auto max-w-2xl space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Perfil" description="Gerencie suas informações pessoais e preferências da conta." />
 
          {/* User info card */}
@@ -161,7 +161,7 @@ export default function ProfilePage() {
                   Informações da Conta
                </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6">
                {/* Username */}
                <div className="flex items-center justify-between">
                   <div className="space-y-1 flex-1">
@@ -262,7 +262,7 @@ export default function ProfilePage() {
             <CardHeader>
                <CardTitle className="text-lg">Ações</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
                <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2 text-orange-500" />
                   Sair da conta

@@ -7,11 +7,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantClasses: Record<string, string> = {
-   default: 'border border-primary/80 bg-primary text-primary-foreground shadow-sm shadow-primary/15 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20',
-   destructive: 'border border-destructive/80 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-   outline: 'border border-input bg-card/70 shadow-sm hover:border-primary/30 hover:bg-accent hover:text-accent-foreground',
-   secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-   ghost: 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+   default: 'bg-primary text-primary-foreground shadow-sm shadow-primary/10 hover:bg-primary/90 focus-visible:ring-1 focus-visible:ring-primary/60',
+   destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus-visible:ring-1 focus-visible:ring-destructive/60',
+   outline: 'border border-border/70 bg-card/60 hover:border-primary/45 hover:bg-accent hover:text-accent-foreground focus-visible:border-primary/70',
+   secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:ring-1 focus-visible:ring-ring/50',
+   ghost: 'text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring/50',
    link: 'text-primary underline-offset-4 hover:underline',
 };
 
@@ -28,7 +28,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
          <button
             className={cn(
                'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-150 active:scale-[0.98]',
-               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+               'focus-visible:outline-none',
                'disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none',
                variantClasses[variant],
                sizeClasses[size],

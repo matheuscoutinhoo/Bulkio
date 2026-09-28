@@ -71,7 +71,7 @@ export default function WorkoutPlansPage() {
    };
 
    return (
-      <div className="space-y-6 animate-fade-in-up">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader
             title="Fichas de treino"
             description={loading ? 'Organize sua rotina por objetivo e grupo muscular.' : `${plans.length} ${plans.length === 1 ? 'ficha ativa' : 'fichas ativas'} para organizar sua rotina.`}

@@ -92,7 +92,7 @@ body::before {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ring);
+  outline: 1px solid color-mix(in srgb, var(--color-ring) 70%, transparent);
   outline-offset: 3px;
 }
 

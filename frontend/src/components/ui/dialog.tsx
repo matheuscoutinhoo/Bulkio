@@ -75,7 +75,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
             aria-labelledby={titleId}
             tabIndex={-1}
             className={cn(
-               'relative z-50 max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] w-[calc(100%-1.5rem)] sm:w-full max-w-lg rounded-2xl border border-border/80 bg-background p-4 sm:p-6 shadow-2xl shadow-black/20 flex flex-col mx-auto animate-scale-in overflow-hidden focus:outline-none',
+               'relative z-50 max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] w-[calc(100%-1.5rem)] sm:w-full max-w-lg rounded-2xl border border-border/60 bg-background p-5 sm:p-7 shadow-2xl shadow-black/15 flex flex-col mx-auto animate-scale-in overflow-hidden focus:outline-none',
                className,
             )}
          >
@@ -83,7 +83,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
                type="button"
                onClick={onClose}
                aria-label="Fechar diálogo"
-               className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+               className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
             >
                <X className="h-5 w-5" />
             </button>
@@ -95,7 +95,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
 }
 
 export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-   return <div className={cn('flex flex-col space-y-1.5 mb-5 pr-10', className)} {...props} />;
+   return <div className={cn('mb-6 flex flex-col space-y-2 pr-10', className)} {...props} />;
 }
 
 export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {

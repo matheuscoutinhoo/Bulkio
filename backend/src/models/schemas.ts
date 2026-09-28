@@ -5,9 +5,10 @@ export const registerSchema = z.object({
    email: z.string().email('Invalid email address'),
    username: z
       .string()
+      .trim()
       .min(3, 'Username must be at least 3 characters')
       .max(30, 'Username must be at most 30 characters')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+      .regex(/^[\p{L}\p{N}_ ]+$/u, 'Username can only contain letters, numbers, spaces, and underscores'),
    password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -22,9 +23,10 @@ export const loginSchema = z.object({
 export const updateProfileSchema = z.object({
    username: z
       .string()
+      .trim()
       .min(3)
       .max(30)
-      .regex(/^[a-zA-Z0-9_]+$/)
+      .regex(/^[\p{L}\p{N}_ ]+$/u)
       .optional(),
    goal: z.enum(['BULK', 'CUT', 'MAINTAIN']).optional().nullable(),
    initialWeight: z.number().positive().optional().nullable(),

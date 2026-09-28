@@ -47,12 +47,12 @@ export default function DashboardPage() {
 
    if (loading) {
       return (
-         <div className="space-y-3 sm:space-y-6 animate-fade-in">
+         <div className="space-y-6 sm:space-y-8 animate-fade-in">
             <div>
                <div className="skeleton h-8 w-40 mb-2" />
                <div className="skeleton h-4 w-56" />
             </div>
-            <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 stagger-children">
                {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="rounded-lg border bg-card p-5 sm:p-6 space-y-3">
                      <div className="skeleton h-4 w-24" />
@@ -98,11 +98,11 @@ export default function DashboardPage() {
    const weekDiff = stats.weeklyWorkouts.current - stats.weeklyWorkouts.previous;
 
    return (
-      <div className="space-y-3 sm:space-y-6 animate-fade-in-up">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Seu progresso" description="Uma visão clara da sua consistência, volume e evolução recente." />
 
          {/* Stats cards */}
-         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
+         <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 stagger-children">
             <Card>
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
          <ActivityHeatmap yearlyActivity={stats.yearlyActivity} />
 
          {/* Charts */}
-         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+         <div className="grid gap-5 sm:gap-6 lg:grid-cols-2">
             {/* Muscle distribution */}
             <Card>
                <CardHeader>

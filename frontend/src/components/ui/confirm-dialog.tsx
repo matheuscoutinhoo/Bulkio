@@ -24,7 +24,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
             <DialogTitle>{title}</DialogTitle>
             <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
          </DialogHeader>
-         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+         <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
             <Button variant="outline" onClick={onClose} disabled={loading}>Cancelar</Button>
             <Button variant="destructive" onClick={onConfirm} disabled={loading}>
                {loading ? 'Aguarde…' : confirmLabel}

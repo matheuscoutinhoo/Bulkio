@@ -48,7 +48,7 @@ export default function RegisterPage() {
                <CardDescription className="text-sm leading-relaxed">Comece a organizar seus treinos e acompanhar sua evolução.</CardDescription>
             </CardHeader>
             <CardContent>
-               <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+               <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
                   {error && <div role="alert" className="rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
                   <div className="space-y-2">
                      <Label htmlFor="username">Nome de usuário</Label>
@@ -60,7 +60,7 @@ export default function RegisterPage() {
                      <Input id="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'register-email-error' : undefined} {...register('email')} />
                      {errors.email?.message && <FieldMessage id="register-email-error">{errors.email.message}</FieldMessage>}
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-5 sm:grid-cols-2">
                      <div className="space-y-2">
                         <Label htmlFor="password">Senha</Label>
                         <div className="relative">
