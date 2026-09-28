@@ -29,4 +29,4 @@ COPY backend/prisma ./prisma
 COPY --from=frontend-build /app/frontend/dist ./public
 
 EXPOSE 3001
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "npm run db:deploy && npm run db:seed && exec node dist/server.js"]
