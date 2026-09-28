@@ -60,7 +60,7 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
 
    return (
       <div className="space-y-5 rounded-xl border border-primary/20 bg-primary/5 p-5">
-         <div className="space-y-2">
+         <div className="form-field">
             <Label htmlFor="set-exercise">Exercício</Label>
             <Select id="set-exercise" value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
                <option value="">Selecione o exercício</option>
@@ -100,11 +100,11 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
          )}
 
          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="form-field">
                <Label htmlFor="set-reps" className="text-xs">Repetições</Label>
                <Input id="set-reps" type="number" value={reps} onChange={(e) => setReps(e.target.value)} min={1} inputMode="numeric" />
             </div>
-            <div className="space-y-1">
+            <div className="form-field">
                <Label htmlFor="set-weight" className="text-xs">Carga (kg)</Label>
                <Input id="set-weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} min={0} step={0.5} inputMode="decimal" />
             </div>

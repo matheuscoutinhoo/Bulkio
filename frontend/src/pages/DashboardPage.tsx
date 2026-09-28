@@ -104,7 +104,7 @@ export default function DashboardPage() {
          {/* Stats cards */}
          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 stagger-children">
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Treinos na Semana</CardTitle>
                   <Activity className="h-4 w-4 text-blue-500" />
                </CardHeader>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Streak</CardTitle>
                   <Flame className="h-4 w-4 text-orange-500" />
                </CardHeader>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Volume Total (30d)</CardTitle>
                   <Dumbbell className="h-4 w-4 icon-gradient" />
                </CardHeader>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card>
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
                   <Scale className="h-4 w-4 text-emerald-500" />
                </CardHeader>

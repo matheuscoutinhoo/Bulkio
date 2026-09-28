@@ -50,7 +50,7 @@ export function ExerciseSearchDropdown({
    };
 
    return (
-      <div className="space-y-2">
+      <div className="form-field">
          <Label htmlFor={inputId}>{label}</Label>
          <div className="relative" ref={dropdownRef}>
             <Input

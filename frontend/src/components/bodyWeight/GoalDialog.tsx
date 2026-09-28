@@ -58,7 +58,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                <p className="text-sm text-muted-foreground">Use estes dados para contextualizar sua evolução.</p>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-5">
-               <div className="space-y-2">
+               <div className="form-field">
                   <Label htmlFor="goal">Objetivo</Label>
                   <Select id="goal" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })}>
                      <option value="">Selecione</option>
@@ -68,7 +68,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                   </Select>
                </div>
                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="initial-weight">Peso inicial (kg)</Label>
                      <Input
                         id="initial-weight"
@@ -78,7 +78,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                         onChange={(e) => setForm({ ...form, initialWeight: e.target.value })}
                      />
                   </div>
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="target-weight">Peso alvo (kg)</Label>
                      <Input
                         id="target-weight"
@@ -89,7 +89,7 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                      />
                   </div>
                </div>
-               <div className="space-y-2">
+               <div className="form-field">
                   <Label htmlFor="height">Altura (cm)</Label>
                   <Input
                      id="height"

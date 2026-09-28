@@ -36,19 +36,19 @@ export default function LoginPage() {
    return (
       <AuthShell>
          <Card className="border-border/70 bg-card/90 shadow-xl shadow-primary/5 backdrop-blur">
-            <CardHeader className="pb-5 text-center sm:text-left">
+            <CardHeader className="text-center sm:text-left">
                <CardTitle className="text-2xl sm:text-3xl">Bem-vindo de volta</CardTitle>
                <CardDescription className="text-sm leading-relaxed">Entre para continuar acompanhando seus treinos.</CardDescription>
             </CardHeader>
             <CardContent>
                <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
                   {error && <div role="alert" className="rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="email">Email</Label>
                      <Input id="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'email-error' : undefined} {...register('email')} />
                      {errors.email?.message && <FieldMessage id="email-error">{errors.email.message}</FieldMessage>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="password">Senha</Label>
                      <div className="relative">
                         <Input id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="pr-12" aria-invalid={!!errors.password} aria-describedby={errors.password ? 'password-error' : undefined} {...register('password')} />

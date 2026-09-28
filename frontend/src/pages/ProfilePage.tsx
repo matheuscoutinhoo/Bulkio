@@ -164,7 +164,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
                {/* Username */}
                <div className="flex items-center justify-between">
-                  <div className="space-y-1 flex-1">
+                  <div className="form-field flex-1">
                      <Label htmlFor={editingUsername ? 'profile-username' : undefined} className="text-muted-foreground text-xs uppercase tracking-wide">Nome de usuário</Label>
                      {editingUsername ? (
                         <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                <p className="text-sm text-muted-foreground">
                   Esta ação é <span className="font-semibold text-foreground">irreversível</span>. Todos os seus dados serão apagados permanentemente, incluindo fichas de treino, histórico, registros de peso e recordes pessoais.
                </p>
-               <div className="space-y-2">
+               <div className="form-field">
                   <Label htmlFor="delete-confirmation">
                      Digite <span className="font-mono font-bold text-destructive">APAGAR</span> para confirmar
                   </Label>

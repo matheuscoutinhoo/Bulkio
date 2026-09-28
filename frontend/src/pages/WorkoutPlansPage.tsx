@@ -96,7 +96,7 @@ export default function WorkoutPlansPage() {
             <div className="space-y-4">
                {plans.map((plan) => (
                   <Card key={plan.id} className="overflow-hidden">
-                     <CardHeader className="pb-3">
+                     <CardHeader>
                         <div className="flex items-center justify-between">
                            <button
                               type="button"

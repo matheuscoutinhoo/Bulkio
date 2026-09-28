@@ -81,7 +81,7 @@ export function ActivityHeatmap({ yearlyActivity }: Props) {
 
    return (
       <Card>
-         <CardHeader className="pb-3">
+         <CardHeader>
             <div className="flex items-center justify-between">
                <CardTitle className="text-lg flex items-center gap-2">
                   <CalendarDays className="h-5 w-5 icon-gradient" />

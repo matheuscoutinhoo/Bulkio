@@ -103,6 +103,13 @@ textarea:focus-visible {
   outline: none;
 }
 
+.form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
 .skip-link {
   position: fixed;
   left: 1rem;

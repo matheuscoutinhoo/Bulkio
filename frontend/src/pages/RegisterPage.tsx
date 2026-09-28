@@ -43,25 +43,25 @@ export default function RegisterPage() {
    return (
       <AuthShell>
          <Card className="border-border/70 bg-card/90 shadow-xl shadow-primary/5 backdrop-blur">
-            <CardHeader className="pb-5 text-center sm:text-left">
+            <CardHeader className="text-center sm:text-left">
                <CardTitle className="text-2xl sm:text-3xl">Crie sua conta</CardTitle>
                <CardDescription className="text-sm leading-relaxed">Comece a organizar seus treinos e acompanhar sua evolução.</CardDescription>
             </CardHeader>
             <CardContent>
                <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
                   {error && <div role="alert" className="rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="username">Nome de usuário</Label>
                      <Input id="username" autoComplete="username" placeholder="Como quer ser chamado" aria-invalid={!!errors.username} aria-describedby={errors.username ? 'username-error' : undefined} {...register('username')} />
                      {errors.username?.message && <FieldMessage id="username-error">{errors.username.message}</FieldMessage>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="form-field">
                      <Label htmlFor="email">Email</Label>
                      <Input id="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'register-email-error' : undefined} {...register('email')} />
                      {errors.email?.message && <FieldMessage id="register-email-error">{errors.email.message}</FieldMessage>}
                   </div>
                   <div className="grid gap-5 sm:grid-cols-2">
-                     <div className="space-y-2">
+                     <div className="form-field">
                         <Label htmlFor="password">Senha</Label>
                         <div className="relative">
                            <Input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className="pr-12" aria-invalid={!!errors.password} aria-describedby={errors.password ? 'register-password-error' : undefined} {...register('password')} />
@@ -69,7 +69,7 @@ export default function RegisterPage() {
                         </div>
                         {errors.password?.message && <FieldMessage id="register-password-error">{errors.password.message}</FieldMessage>}
                      </div>
-                     <div className="space-y-2">
+                     <div className="form-field">
                         <Label htmlFor="confirmPassword">Confirmar senha</Label>
                         <div className="relative">
                            <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" className="pr-12" aria-invalid={!!errors.confirmPassword} aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined} {...register('confirmPassword')} />

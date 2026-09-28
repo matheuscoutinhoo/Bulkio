@@ -72,7 +72,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             <p className="text-sm text-muted-foreground">Escolha uma ficha e registre as séries conforme avança.</p>
          </DialogHeader>
          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
+            <div className="form-field">
                <Label htmlFor="workout-plan">Ficha de treino</Label>
                <Select id="workout-plan" value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} required>
                   <option value="">Selecione uma ficha</option>
@@ -82,7 +82,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
                </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="form-field">
                <Label htmlFor="workout-notes">Observações (opcional)</Label>
                <Textarea id="workout-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Como você está se sentindo hoje?" />
             </div>

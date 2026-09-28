@@ -143,7 +143,7 @@ export default function BodyWeightPage() {
          {/* Stats */}
          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5 stagger-children">
             <Card className="min-w-0">
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Peso Atual</CardTitle>
                   <Scale className="h-4 w-4 text-emerald-500" />
                </CardHeader>
@@ -153,7 +153,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card className="min-w-0">
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Variação</CardTitle>
                   <ArrowUpDown className="h-4 w-4 text-blue-500" />
                </CardHeader>
@@ -170,7 +170,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card className="min-w-0">
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Objetivo</CardTitle>
                   <Goal className="h-4 w-4 text-orange-500" />
                </CardHeader>
@@ -182,7 +182,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card className="min-w-0">
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">Meta</CardTitle>
                   <Crosshair className="h-4 w-4 icon-gradient" />
                </CardHeader>
@@ -194,7 +194,7 @@ export default function BodyWeightPage() {
                </CardContent>
             </Card>
             <Card className="min-w-0">
-               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+               <CardHeader className="flex-row items-start justify-between gap-3">
                   <CardTitle className="text-xs sm:text-sm font-medium">IMC</CardTitle>
                   <Activity className="h-4 w-4 text-cyan-500" />
                </CardHeader>
@@ -211,9 +211,9 @@ export default function BodyWeightPage() {
 
          {/* Add weight form */}
          <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-5 sm:p-6">
                <form onSubmit={handleAddWeight} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                  <div className="flex-1 space-y-2">
+                  <div className="form-field flex-1">
                      <Label htmlFor="new-weight">Peso de hoje (kg)</Label>
                      <Input
                         id="new-weight"

@@ -134,7 +134,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
          </DialogHeader>
          <form onSubmit={handleSubmit} className="flex min-h-0 flex-col space-y-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-               <div className="space-y-2">
+               <div className="form-field">
                   <Label htmlFor="plan-name">Nome da ficha</Label>
                   <Input
                      id="plan-name"
@@ -144,7 +144,7 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                      required
                   />
                </div>
-               <div className="space-y-2">
+               <div className="form-field">
                   <Label htmlFor="plan-description">Descrição (opcional)</Label>
                   <Input
                      id="plan-description"
@@ -163,9 +163,9 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
             />
 
             {exercises.length > 0 && (
-               <div className="space-y-2 overflow-y-auto max-h-[40vh] pr-1">
+               <div className="max-h-[40vh] space-y-3 overflow-y-auto pr-1">
                   {exercises.map((ex, i) => (
-                     <div key={i} className="flex flex-col gap-2 rounded-lg bg-secondary/30 p-4">
+                     <div key={i} className="flex flex-col gap-4 rounded-xl border border-border/60 bg-secondary/20 p-4">
                         <div className="flex items-center gap-2">
                            <span className="text-sm text-muted-foreground w-6 shrink-0">{i + 1}.</span>
                            <span className="text-sm font-medium truncate">{ex.exerciseName}</span>
@@ -179,44 +179,52 @@ export function CreateWorkoutPlanDialog({ open, onClose, onCreated, editPlan }: 
                               <Trash2 className="h-3 w-3" />
                            </Button>
                         </div>
-                        <div className="flex items-center gap-2 pl-8">
-                           <Input
-                              type="number"
-                              className="w-14 h-8 text-xs"
-                              value={ex.sets}
-                              onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
-                              min={1}
-                              aria-label={`Séries de ${ex.exerciseName}`}
-                           />
-                           <span className="text-xs text-muted-foreground">×</span>
-                           <Input
-                              className="w-16 h-8 text-xs"
-                              value={ex.reps}
-                              onChange={(e) => updateExercise(i, 'reps', e.target.value)}
-                              placeholder="10"
-                              aria-label={`Repetições de ${ex.exerciseName}`}
-                           />
-                           <span className="text-xs text-muted-foreground">•</span>
-                           <Input
-                              type="number"
-                              className="w-14 h-8 text-xs"
-                              value={ex.weight ?? ''}
-                              onChange={(e) => updateExercise(i, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
-                              min={0}
-                              placeholder="kg"
-                              aria-label={`Carga de ${ex.exerciseName} em quilos`}
-                           />
-                           <span className="text-xs text-muted-foreground">•</span>
-                           <Input
-                              type="number"
-                              className="w-14 h-8 text-xs"
-                              value={ex.restSeconds}
-                              onChange={(e) => updateExercise(i, 'restSeconds', parseInt(e.target.value) || 0)}
-                              min={0}
-                              max={600}
-                              aria-label={`Descanso de ${ex.exerciseName} em segundos`}
-                           />
-                           <span className="text-xs text-muted-foreground">s</span>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:pl-8">
+                           <div className="form-field">
+                              <Label htmlFor={`exercise-${i}-sets`} className="text-xs text-muted-foreground">Séries</Label>
+                              <Input
+                                 id={`exercise-${i}-sets`}
+                                 type="number"
+                                 className="h-10 min-h-10 px-3 text-xs"
+                                 value={ex.sets}
+                                 onChange={(e) => updateExercise(i, 'sets', parseInt(e.target.value) || 1)}
+                                 min={1}
+                              />
+                           </div>
+                           <div className="form-field">
+                              <Label htmlFor={`exercise-${i}-reps`} className="text-xs text-muted-foreground">Repetições</Label>
+                              <Input
+                                 id={`exercise-${i}-reps`}
+                                 className="h-10 min-h-10 px-3 text-xs"
+                                 value={ex.reps}
+                                 onChange={(e) => updateExercise(i, 'reps', e.target.value)}
+                                 placeholder="10"
+                              />
+                           </div>
+                           <div className="form-field">
+                              <Label htmlFor={`exercise-${i}-weight`} className="text-xs text-muted-foreground">Carga (kg)</Label>
+                              <Input
+                                 id={`exercise-${i}-weight`}
+                                 type="number"
+                                 className="h-10 min-h-10 px-3 text-xs"
+                                 value={ex.weight ?? ''}
+                                 onChange={(e) => updateExercise(i, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
+                                 min={0}
+                                 placeholder="0"
+                              />
+                           </div>
+                           <div className="form-field">
+                              <Label htmlFor={`exercise-${i}-rest`} className="text-xs text-muted-foreground">Descanso (s)</Label>
+                              <Input
+                                 id={`exercise-${i}-rest`}
+                                 type="number"
+                                 className="h-10 min-h-10 px-3 text-xs"
+                                 value={ex.restSeconds}
+                                 onChange={(e) => updateExercise(i, 'restSeconds', parseInt(e.target.value) || 0)}
+                                 min={0}
+                                 max={600}
+                              />
+                           </div>
                         </div>
                      </div>
                   ))}
