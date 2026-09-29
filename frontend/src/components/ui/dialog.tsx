@@ -44,10 +44,14 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
          }
          const first = focusable[0];
          const last = focusable[focusable.length - 1];
-         if (event.shiftKey && document.activeElement === first) {
+         const activeElement = document.activeElement;
+         if (activeElement === dialogRef.current || !dialogRef.current.contains(activeElement)) {
+            event.preventDefault();
+            (event.shiftKey ? last : first).focus();
+         } else if (event.shiftKey && activeElement === first) {
             event.preventDefault();
             last.focus();
-         } else if (!event.shiftKey && document.activeElement === last) {
+         } else if (!event.shiftKey && activeElement === last) {
             event.preventDefault();
             first.focus();
          }
@@ -75,7 +79,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
             aria-labelledby={titleId}
             tabIndex={-1}
             className={cn(
-               'relative z-50 max-h-[calc(100dvh-2rem)] sm:max-h-[90vh] w-[calc(100%-1.5rem)] sm:w-full max-w-lg rounded-2xl border border-border/60 bg-background p-5 sm:p-7 shadow-2xl shadow-black/15 flex flex-col mx-auto animate-scale-in overflow-hidden focus:outline-none',
+               'relative z-50 max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] w-[calc(100%-1rem)] sm:w-full max-w-lg rounded-2xl border border-border/60 bg-background p-4 sm:p-7 shadow-2xl shadow-black/15 flex flex-col mx-auto animate-scale-in overflow-y-auto overscroll-contain focus:outline-none',
                className,
             )}
          >
@@ -83,7 +87,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
                type="button"
                onClick={onClose}
                aria-label="Fechar diálogo"
-               className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
+               className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
             >
                <X className="h-5 w-5" />
             </button>

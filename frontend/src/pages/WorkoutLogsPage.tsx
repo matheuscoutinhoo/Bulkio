@@ -172,10 +172,10 @@ export default function WorkoutLogsPage() {
                   {logs.map((log) => (
                      <Card key={log.id} className="overflow-hidden">
                         <CardHeader>
-                           <div className="flex items-center justify-between">
+                           <div className="flex min-w-0 items-center justify-between gap-2">
                               <button
                                  type="button"
-                                 className="flex min-h-11 flex-1 items-center gap-3 rounded-lg text-left"
+                                 className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-lg text-left"
                                  onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
                                  aria-expanded={expandedLog === log.id}
                                  aria-controls={`log-${log.id}`}
@@ -185,7 +185,7 @@ export default function WorkoutLogsPage() {
                                  ) : (
                                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                  )}
-                                 <div>
+                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
                                        <CardTitle className="text-sm sm:text-base">
                                           {format(new Date(log.date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
@@ -219,7 +219,7 @@ export default function WorkoutLogsPage() {
                                     </div>
                                  </div>
                               </button>
-                              <div className="flex gap-1">
+                              <div className="flex shrink-0 gap-1">
                                  <Button
                                     variant="ghost"
                                     size="icon"
@@ -259,7 +259,7 @@ export default function WorkoutLogsPage() {
                                                 <Button
                                                    variant="ghost"
                                                    size="icon"
-                                                   className="h-6 w-6 shrink-0 hover:text-primary"
+                                                   className="h-11 w-11 shrink-0 hover:text-primary sm:h-8 sm:w-8"
                                                    onClick={() => setSelectedExercise(logEx.exercise)}
                                                    aria-label={`Ver detalhes de ${logEx.exercise.name}`}
                                                 >

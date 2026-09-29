@@ -62,8 +62,10 @@
   --color-chart-tooltip-border: #27272a;
 }
 
-* {
-  border-color: var(--color-border);
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 }
 
 body {

@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
+import { formatRestDuration } from '@/lib/workoutForm';
 
 export default function WorkoutPlansPage() {
    const [plans, setPlans] = useState<WorkoutPlan[]>([]);
@@ -97,10 +98,10 @@ export default function WorkoutPlansPage() {
                {plans.map((plan) => (
                   <Card key={plan.id} className="overflow-hidden">
                      <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                            <button
                               type="button"
-                              className="flex min-h-11 flex-1 flex-wrap items-center gap-2 rounded-lg text-left"
+                              className="flex min-h-11 w-full min-w-0 flex-1 flex-wrap items-center gap-2 rounded-lg text-left"
                               onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
                               aria-expanded={expandedPlan === plan.id}
                               aria-controls={`plan-${plan.id}`}
@@ -120,7 +121,7 @@ export default function WorkoutPlansPage() {
                                  </Badge>
                               )}
                            </button>
-                           <div className="flex gap-1">
+                           <div className="flex shrink-0 self-end gap-1 sm:self-auto">
                               <Button variant="ghost" size="icon" onClick={() => setEditPlan(plan)} title="Editar" aria-label={`Editar ${plan.name}`} className="hover:text-primary">
                                  <Pencil className="h-4 w-4" />
                               </Button>
@@ -156,7 +157,7 @@ export default function WorkoutPlansPage() {
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           {pe.weight != null && <span>• {pe.weight}kg</span>}
-                                          <span>• {pe.restSeconds}s descanso</span>
+                                          <span>• {formatRestDuration(pe.restSeconds)} de descanso</span>
                                        </div>
                                     </div>
                                     <Badge variant="outline" className="text-xs w-fit">

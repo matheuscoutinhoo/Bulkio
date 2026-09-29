@@ -72,7 +72,7 @@ export function ExerciseSearchDropdown({
                }}
             />
             {showDropdown && search && (
-               <div id={listboxId} role="listbox" className={`absolute z-20 mt-2 w-full ${maxHeight} overflow-y-auto rounded-xl border bg-popover p-1.5 shadow-xl`}>
+               <div id={listboxId} role="listbox" className={`relative z-20 mt-2 w-full ${maxHeight} overflow-y-auto rounded-xl border bg-popover p-1.5 shadow-xl sm:absolute`}>
                   {filtered.slice(0, maxResults).map((ex) => (
                      <button
                         key={ex.id}
