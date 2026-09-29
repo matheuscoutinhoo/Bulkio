@@ -1,22 +1,13 @@
+import { formatInTimeZone } from 'date-fns-tz';
+
 const MS_PER_DAY = 86400000;
 
-export function calculateStreak(workoutDates: Date[]): number {
+export function calculateStreak(workoutDates: Date[], timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone): number {
    if (workoutDates.length === 0) return 0;
 
-   const today = new Date();
-   today.setHours(0, 0, 0, 0);
-
-   const uniqueDates: number[] = [];
-   for (const date of workoutDates) {
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      const t = d.getTime();
-      if (uniqueDates.length === 0 || uniqueDates[uniqueDates.length - 1] !== t) {
-         uniqueDates.push(t);
-      }
-   }
-
-   let anchor = today.getTime();
+   const calendarDay = (date: Date) => Date.parse(formatInTimeZone(date, timeZone, 'yyyy-MM-dd'));
+   const uniqueDates = [...new Set(workoutDates.map(calendarDay))].sort((first, second) => second - first);
+   let anchor = calendarDay(new Date());
    if (uniqueDates[0] !== anchor) {
       const yesterday = anchor - MS_PER_DAY;
       if (uniqueDates[0] === yesterday) {

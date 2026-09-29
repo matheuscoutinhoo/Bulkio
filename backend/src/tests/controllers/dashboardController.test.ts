@@ -38,7 +38,7 @@ describe('dashboardController', () => {
 
          await dashboardController.getStats(req, res, next);
 
-         expect(mockService.getStats).toHaveBeenCalledWith('user-1');
+         expect(mockService.getStats).toHaveBeenCalledWith('user-1', 'UTC');
          expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({ success: true, data: stats }),
          );
@@ -54,6 +54,33 @@ describe('dashboardController', () => {
          await dashboardController.getStats(req, res, next);
 
          expect(next).toHaveBeenCalledTimes(1);
+      });
+
+      it('should pass the requested time zone to the service', async () => {
+         mockService.getStats.mockReset();
+         const req = mockRequest({
+            user: { userId: 'user-1', email: 'a@b.com' },
+            query: { timeZone: 'America/Sao_Paulo' },
+         });
+         const next = mockNext();
+
+         await dashboardController.getStats(req, mockResponse(), next);
+
+         expect(mockService.getStats).toHaveBeenCalledWith('user-1', 'America/Sao_Paulo');
+         expect(next).not.toHaveBeenCalled();
+      });
+
+      it('should reject an invalid time zone', async () => {
+         const req = mockRequest({
+            user: { userId: 'user-1', email: 'a@b.com' },
+            query: { timeZone: 'invalid/zone' },
+         });
+         const next = mockNext();
+
+         await dashboardController.getStats(req, mockResponse(), next);
+
+         expect(mockService.getStats).not.toHaveBeenCalled();
+         expect(next).toHaveBeenCalledWith(expect.objectContaining({ name: 'ZodError' }));
       });
    });
 

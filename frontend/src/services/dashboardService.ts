@@ -30,7 +30,9 @@ export interface ExerciseProgression {
 }
 
 export const dashboardApi = {
-   getStats: () => api.get('/dashboard/stats'),
+   getStats: () => api.get('/dashboard/stats', {
+      params: { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+   }),
    getExerciseProgression: (exerciseId: string) =>
       api.get(`/dashboard/exercise-progression/${exerciseId}`),
 };

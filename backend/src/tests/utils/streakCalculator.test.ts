@@ -10,6 +10,17 @@ describe('calculateStreak', () => {
       expect(calculateStreak([])).toBe(0);
    });
 
+   it('should count local consecutive days across daylight saving time', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-03-09T16:00:00Z'));
+
+      expect(calculateStreak([
+         new Date('2026-03-09T15:00:00Z'),
+         new Date('2026-03-08T16:00:00Z'),
+         new Date('2026-03-07T16:00:00Z'),
+      ], 'America/New_York')).toBe(3);
+   });
+
    it('should return 1 when only today has a workout', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date('2024-03-15T12:00:00'));

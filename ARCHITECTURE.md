@@ -79,11 +79,12 @@ Não se usa `prisma db push` no deploy. Produção é atualizada somente pelas m
 
 ## 5. Autenticação e segurança
 
-1. Registro ou login devolve um access token curto no corpo da resposta.
-2. O refresh token é armazenado em cookie `httpOnly`, `sameSite=strict` e `secure` em produção.
+1. Registro ou login devolve um access token de 15 minutos no corpo da resposta.
+2. O refresh token dura 30 dias e é armazenado em cookie `httpOnly`, `sameSite=strict` e `secure` em produção. Cookie, JWT e registro no banco usam a mesma validade, renovada a cada rotação.
 3. O frontend mantém o access token em memória e o envia como Bearer token.
-4. Diante de `401`, apenas uma renovação é executada; requisições concorrentes aguardam o novo token.
+4. Ao recarregar a página sem access token, as chamadas protegidas aguardam uma única renovação pelo cookie. O mesmo mecanismo coordena a renovação diante de `401` por token expirado.
 5. Refresh tokens são persistidos como hash e podem ser revogados no logout.
+6. Falhas de rede, `429` e erros temporários do servidor não apagam a sessão local. A renovação usa o limite geral da API, sem consumir as dez tentativas reservadas a login e cadastro.
 
 Outras proteções:
 
@@ -122,6 +123,8 @@ Todos os recursos protegidos exigem `Authorization: Bearer <token>`.
 
 Respostas de sucesso seguem `{ success, data, message?, pagination? }`. Erros seguem `{ success: false, data: null, message, errors? }`.
 
+Datas de treino permanecem como instantes UTC no banco e na API. O frontend envia o fuso IANA do navegador em `GET /api/v1/dashboard/stats?timeZone=America/Sao_Paulo`. A API valida o fuso e o aplica ao calendário, aos limites semanais e anuais e à sequência de dias. Sem o parâmetro, usa UTC. Isso também corrige o agrupamento de treinos antigos, sem alterar seus horários gravados.
+
 ## 7. Execução e deploy
 
 ### Docker Compose
@@ -148,6 +151,7 @@ O pre-deploy falha antes da troca de versão se uma migration ou seed falhar. O 
 ## 8. Testes
 
 - Testes unitários usam Vitest e mocks nos limites de serviço/repositório.
+- `npm test` executa as suítes do backend e do frontend, incluindo restauração de sessão e regressões de fuso horário.
 - Testes de integração usam Supertest e um PostgreSQL dedicado.
 - `prisma migrate reset` recria o schema do banco de teste antes das suítes.
 - `TEST_DATABASE_URL` nunca deve apontar para desenvolvimento ou produção.

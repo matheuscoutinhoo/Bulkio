@@ -13,7 +13,7 @@ export const config = {
       return 'dev-fallback-refresh-secret';
    })(),
    jwtAccessExpiry: '15m',
-   jwtRefreshExpiry: '7d',
+   jwtRefreshExpiry: 30 * 24 * 60 * 60,
    corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
    staticFilesPath: process.env.STATIC_FILES_PATH || '',
    bcryptSaltRounds: 12,

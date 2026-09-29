@@ -54,7 +54,7 @@ describe('authController', () => {
          expect(res.cookie).toHaveBeenCalledWith(
             'refreshToken',
             'refresh-tok',
-            expect.objectContaining({ httpOnly: true, sameSite: 'strict' }),
+            expect.objectContaining({ httpOnly: true, sameSite: 'strict', maxAge: 30 * 24 * 60 * 60 * 1000 }),
          );
       });
 
@@ -118,7 +118,7 @@ describe('authController', () => {
          expect(res.cookie).toHaveBeenCalledWith(
             'refreshToken',
             'refresh-tok',
-            expect.objectContaining({ httpOnly: true }),
+            expect.objectContaining({ httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 }),
          );
       });
 
@@ -176,7 +176,7 @@ describe('authController', () => {
          expect(res.cookie).toHaveBeenCalledWith(
             'refreshToken',
             'new-refresh',
-            expect.objectContaining({ httpOnly: true }),
+            expect.objectContaining({ httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 }),
          );
       });
 

@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { fromZonedTime } from 'date-fns-tz';
 
 export const dashboardRepository = {
    getWeeklyWorkouts(userId: string, startDate: Date, endDate: Date) {
@@ -73,14 +74,14 @@ export const dashboardRepository = {
       });
    },
 
-   getYearlyWorkoutDays(userId: string, year: number) {
-      const startDate = new Date(year, 0, 1);
-      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+   getYearlyWorkoutDays(userId: string, year: number, timeZone: string) {
+      const startDate = fromZonedTime(`${year}-01-01T00:00:00`, timeZone);
+      const endDate = fromZonedTime(`${year + 1}-01-01T00:00:00`, timeZone);
       return prisma.workoutLog.findMany({
          where: {
             userId,
             isComplete: true,
-            date: { gte: startDate, lte: endDate },
+            date: { gte: startDate, lt: endDate },
          },
          select: { date: true },
       });

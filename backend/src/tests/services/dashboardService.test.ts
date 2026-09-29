@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dashboardService } from '../../services/dashboardService';
 import { createMockUser, createMockBodyWeight, createMockPR } from '../helpers';
 
@@ -50,8 +50,37 @@ describe('dashboardService', () => {
       vi.clearAllMocks();
    });
 
+   afterEach(() => {
+      vi.useRealTimers();
+   });
+
    // ========== getStats ==========
    describe('getStats', () => {
+      it('should group late-night workouts by the user time zone', async () => {
+         setupDefaultMocks();
+         mockDashRepo.getYearlyWorkoutDays.mockResolvedValue([
+            { date: new Date('2026-09-29T01:00:00.000Z') },
+         ]);
+
+         const result = await dashboardService.getStats('user-1', 'America/Sao_Paulo');
+
+         expect(result.yearlyActivity).toEqual({ '2026-09-28': 1 });
+      });
+
+      it('should use the local week and year across UTC midnight', async () => {
+         vi.useFakeTimers();
+         vi.setSystemTime(new Date('2026-01-01T01:00:00Z'));
+         setupDefaultMocks();
+         mockDashRepo.getStreak.mockResolvedValue([{ date: new Date('2025-12-30T23:00:00Z') }]);
+
+         const result = await dashboardService.getStats('user-1', 'America/Sao_Paulo');
+
+         expect(mockDashRepo.getWeeklyWorkouts).toHaveBeenNthCalledWith(1, 'user-1',
+            new Date('2025-12-28T03:00:00Z'), new Date('2026-01-04T02:59:59.999Z'));
+         expect(mockDashRepo.getYearlyWorkoutDays).toHaveBeenCalledWith('user-1', 2025, 'America/Sao_Paulo');
+         expect(result.streak).toBe(1);
+      });
+
       it('should return weeklyWorkouts with current and previous counts', async () => {
          setupDefaultMocks();
          mockDashRepo.getWeeklyWorkouts

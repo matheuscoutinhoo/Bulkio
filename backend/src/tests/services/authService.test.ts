@@ -132,6 +132,22 @@ describe('authService', () => {
    describe('login', () => {
       const validInput = { email: 'test@example.com', password: 'password123' };
 
+      it('should persist a 30-day refresh token with matching database expiry', async () => {
+         const user = createMockUser();
+         mockUserRepo.findByEmail.mockResolvedValue(user as any);
+         mockBcrypt.compare.mockResolvedValue(true as never);
+
+         const result = await authService.login(validInput);
+         const refreshPayload = jwt.decode(result.refreshToken) as jwt.JwtPayload;
+         const accessPayload = jwt.decode(result.accessToken) as jwt.JwtPayload;
+
+         expect(refreshPayload.exp! - refreshPayload.iat!).toBe(30 * 24 * 60 * 60);
+         expect(accessPayload.exp! - accessPayload.iat!).toBe(15 * 60);
+         expect(mockRefreshTokenRepo.create).toHaveBeenCalledWith(
+            expect.any(String), user.id, new Date(refreshPayload.exp! * 1000),
+         );
+      });
+
       it('should login successfully with valid credentials', async () => {
          const user = createMockUser();
          mockUserRepo.findByEmail.mockResolvedValue(user as any);

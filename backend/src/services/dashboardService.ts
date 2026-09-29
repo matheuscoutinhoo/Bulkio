@@ -2,28 +2,31 @@ import { dashboardRepository } from '../repositories/dashboardRepository';
 import { personalRecordRepository } from '../repositories/personalRecordRepository';
 import { userRepository } from '../repositories/userRepository';
 import { calculateStreak } from '../utils/streakCalculator';
+import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
 
-function getWeekBounds(weeksAgo: number = 0): { start: Date; end: Date } {
-   const now = new Date();
-   const dayOfWeek = now.getDay();
-   const startOfWeek = new Date(now);
-   startOfWeek.setDate(now.getDate() - dayOfWeek - weeksAgo * 7);
+function getWeekBounds(now: Date, timeZone: string, weeksAgo = 0): { start: Date; end: Date } {
+   const localNow = toZonedTime(now, timeZone);
+   const dayOfWeek = localNow.getDay();
+   const startOfWeek = new Date(localNow);
+   startOfWeek.setDate(localNow.getDate() - dayOfWeek - weeksAgo * 7);
    startOfWeek.setHours(0, 0, 0, 0);
 
    const endOfWeek = new Date(startOfWeek);
    endOfWeek.setDate(startOfWeek.getDate() + 6);
    endOfWeek.setHours(23, 59, 59, 999);
 
-   return { start: startOfWeek, end: endOfWeek };
+   return { start: fromZonedTime(startOfWeek, timeZone), end: fromZonedTime(endOfWeek, timeZone) };
 }
 
 export const dashboardService = {
-   async getStats(userId: string) {
-      const thisWeek = getWeekBounds(0);
-      const lastWeek = getWeekBounds(1);
+   async getStats(userId: string, timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+      const now = new Date();
+      const thisWeek = getWeekBounds(now, timeZone);
+      const lastWeek = getWeekBounds(now, timeZone, 1);
 
-      const thirtyDaysAgo = new Date();
+      const thirtyDaysAgo = toZonedTime(now, timeZone);
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const historyStart = fromZonedTime(thirtyDaysAgo, timeZone);
 
       const [
          thisWeekWorkouts,
@@ -38,13 +41,13 @@ export const dashboardService = {
       ] = await Promise.all([
          dashboardRepository.getWeeklyWorkouts(userId, thisWeek.start, thisWeek.end),
          dashboardRepository.getWeeklyWorkouts(userId, lastWeek.start, lastWeek.end),
-         dashboardRepository.getMuscleGroupVolume(userId, thirtyDaysAgo, new Date()),
+         dashboardRepository.getMuscleGroupVolume(userId, historyStart, now),
          dashboardRepository.getStreak(userId),
-         dashboardRepository.getTotalVolume(userId, thirtyDaysAgo, new Date()),
+         dashboardRepository.getTotalVolume(userId, historyStart, now),
          dashboardRepository.getBodyWeightHistory(userId, 30),
          personalRecordRepository.findAllByUser(userId),
          userRepository.findById(userId),
-         dashboardRepository.getYearlyWorkoutDays(userId, new Date().getFullYear()),
+         dashboardRepository.getYearlyWorkoutDays(userId, toZonedTime(now, timeZone).getFullYear(), timeZone),
       ]);
 
       // Calculate muscle group distribution
@@ -56,7 +59,7 @@ export const dashboardService = {
       }
 
       // Calculate streak
-      const currentStreak = calculateStreak(streak.map(s => s.date));
+      const currentStreak = calculateStreak(streak.map(s => s.date), timeZone);
 
       // Calculate total volume
       const totalVolume = volumeData.reduce((sum, set) => sum + set.reps * set.weight, 0);
@@ -68,8 +71,7 @@ export const dashboardService = {
       // Build yearly activity map: { 'YYYY-MM-DD': count }
       const yearlyActivity: Record<string, number> = {};
       for (const log of yearlyWorkouts) {
-         const d = new Date(log.date);
-         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+         const key = formatInTimeZone(log.date, timeZone, 'yyyy-MM-dd');
          yearlyActivity[key] = (yearlyActivity[key] || 0) + 1;
       }
 

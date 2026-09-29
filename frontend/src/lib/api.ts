@@ -14,67 +14,61 @@ const api = axios.create({
    headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use((config) => {
-   const token = useAuthStore.getState().accessToken;
+let refreshPromise: Promise<string> | null = null;
+
+function isPublicAuthRequest(url = '') {
+   return ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'].includes(url.split('?')[0]);
+}
+
+function refreshAccessToken(): Promise<string> {
+   if (!refreshPromise) {
+      refreshPromise = axios.post('/api/v1/auth/refresh', {}, { withCredentials: true })
+         .then(({ data }) => {
+            if (!useAuthStore.getState().isAuthenticated) throw new axios.CanceledError('Session ended');
+            const token: string = data.data.accessToken;
+            useAuthStore.getState().setAccessToken(token);
+            return token;
+         })
+         .catch((error: unknown) => {
+            if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+               useAuthStore.getState().logout();
+            }
+            throw error;
+         })
+         .finally(() => { refreshPromise = null; });
+   }
+   return refreshPromise;
+}
+
+api.interceptors.request.use(async (config) => {
+   const auth = useAuthStore.getState();
+   let token = auth.accessToken;
+   if (auth.isAuthenticated && !token && !isPublicAuthRequest(config.url)) {
+      token = await refreshAccessToken();
+   }
    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
    }
    return config;
 });
 
-// Mutex for token refresh to avoid race conditions
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-
-function onRefreshed(token: string) {
-   refreshSubscribers.forEach((cb) => cb(token));
-   refreshSubscribers = [];
-}
-
-function addRefreshSubscriber(cb: (token: string) => void) {
-   refreshSubscribers.push(cb);
-}
-
 api.interceptors.response.use(
    (response) => response,
    async (error) => {
       const originalRequest = error.config;
-      const requestUrl = originalRequest?.url || '';
-
-      // Don't intercept 401s from auth endpoints — let the caller handle them
-      const isAuthEndpoint = requestUrl.includes('/auth/login')
-         || requestUrl.includes('/auth/register')
-         || requestUrl.includes('/auth/refresh');
-
-      if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      if (error.response?.status === 401 && originalRequest && !originalRequest._retry
+         && !isPublicAuthRequest(originalRequest.url) && useAuthStore.getState().isAuthenticated) {
          originalRequest._retry = true;
 
-         if (isRefreshing) {
-            // Another request is already refreshing — wait for it
-            return new Promise((resolve) => {
-               addRefreshSubscriber((token: string) => {
-                  originalRequest.headers.Authorization = `Bearer ${token}`;
-                  resolve(api(originalRequest));
-               });
-            });
-         }
-
-         isRefreshing = true;
-
          try {
-            const { data } = await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
-            const newToken = data.data.accessToken;
-            useAuthStore.getState().setAccessToken(newToken);
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            onRefreshed(newToken);
+            const currentToken = useAuthStore.getState().accessToken;
+            const token = currentToken && originalRequest.headers.Authorization !== `Bearer ${currentToken}`
+               ? currentToken
+               : await refreshAccessToken();
+            originalRequest.headers.Authorization = `Bearer ${token}`;
             return api(originalRequest);
-         } catch {
-            refreshSubscribers = [];
-            useAuthStore.getState().logout();
-            window.location.href = '/login';
-            return Promise.reject(error);
-         } finally {
-            isRefreshing = false;
+         } catch (refreshError) {
+            return Promise.reject(refreshError);
          }
       }
 

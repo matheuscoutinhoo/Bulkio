@@ -24,7 +24,8 @@ function hashToken(token: string): string {
 
 async function storeRefreshToken(refreshToken: string, userId: string): Promise<void> {
    const tokenHash = hashToken(refreshToken);
-   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+   const payload = jwt.decode(refreshToken) as jwt.JwtPayload;
+   const expiresAt = new Date(payload.exp! * 1000);
    await refreshTokenRepository.create(tokenHash, userId, expiresAt);
 }
 
