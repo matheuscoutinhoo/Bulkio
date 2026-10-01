@@ -1,31 +1,19 @@
-import { useCallback, useEffect, useState, type ComponentProps } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dashboardApi, type DashboardStats } from '@/services/dashboardService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Flame, Trophy, Dumbbell, Activity, Scale } from 'lucide-react';
 import {
    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-   AreaChart, Area, PieChart, Pie, Cell, Legend, Sector,
+   AreaChart, Area,
 } from 'recharts';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
+import { MuscleBodyMap } from '@/components/dashboard/MuscleBodyMap';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState } from '@/components/ui/feedback';
-
-// Purple shades: darkest → lightest (readable in both themes)
-const PURPLE_SHADES = [
-   '#4c1d95', '#5b21b6', '#6d28d9', '#7c3aed',
-   '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe',
-];
-
-function getShadeByPercent(percent: number, maxPercent: number): string {
-   if (maxPercent === 0) return PURPLE_SHADES[Math.floor(PURPLE_SHADES.length / 2)];
-   const ratio = percent / maxPercent;
-   const index = Math.round((1 - ratio) * (PURPLE_SHADES.length - 1));
-   return PURPLE_SHADES[index];
-}
 
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -88,7 +76,6 @@ export default function DashboardPage() {
          percent: totalSets > 0 ? Math.round((d.sets / totalSets) * 100) : 0,
       }))
       .sort((a, b) => b.percent - a.percent);
-   const maxPercent = muscleData.length > 0 ? muscleData[0].percent : 0;
 
    const bodyWeightData = stats.bodyWeight.history.map((bw) => ({
       date: new Date(bw.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
@@ -164,71 +151,10 @@ export default function DashboardPage() {
          {/* Activity Heatmap */}
          <ActivityHeatmap yearlyActivity={stats.yearlyActivity} />
 
-         {/* Charts */}
-         <div className="grid gap-5 sm:gap-6 lg:grid-cols-2">
-            {/* Muscle distribution */}
-            <Card>
-               <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Distribuição Muscular (30d)</CardTitle>
-               </CardHeader>
-               <CardContent>
-                  {muscleData.length > 0 ? (
-                     <div
-                        className="w-full aspect-4/3 min-h-50 max-h-70"
-                        role="img"
-                        aria-label="Distribuição de séries por grupo muscular nos últimos 30 dias"
-                     >
-                        <ResponsiveContainer width="100%" height="100%">
-                           <PieChart>
-                              <Pie
-                                 data={muscleData}
-                                 cx="50%"
-                                 cy="50%"
-                                 innerRadius="40%"
-                                 outerRadius="70%"
-                                 paddingAngle={2}
-                                 dataKey="sets"
-                                 nameKey="name"
-                                 stroke="none"
-                                 activeShape={(props: ComponentProps<typeof Sector>) => <Sector {...props} stroke="none" />}
-                              >
-                                 {muscleData.map((entry, index) => (
-                                    <Cell key={index} fill={getShadeByPercent(entry.percent, maxPercent)} />
-                                 ))}
-                              </Pie>
-                              <Tooltip content={({ active, payload }) => {
-                                 if (!active || !payload?.length) return null;
-                                 const d = payload[0].payload;
-                                 return (
-                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
-                                       <p className="font-semibold">{d.name}</p>
-                                       <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
-                                          <span>{d.sets} séries</span>
-                                          <span className="text-[10px]">•</span>
-                                          <span className="font-medium text-foreground">{d.percent}%</span>
-                                       </div>
-                                    </div>
-                                 );
-                              }} />
-                              <Legend
-                                 verticalAlign="bottom"
-                                 iconType="circle"
-                                 iconSize={8}
-                                 wrapperStyle={{ fontSize: '12px', paddingTop: '12px', lineHeight: '22px' }}
-                                 formatter={(value: string) => {
-                                    const item = muscleData.find((d) => d.name === value);
-                                    return <span className="text-muted-foreground">{item ? `${value} ${item.percent}%` : value}</span>;
-                                 }}
-                              />
-                           </PieChart>
-                        </ResponsiveContainer>
-                     </div>
-                  ) : (
-                     <EmptyState compact icon={Dumbbell} title="Sem dados de treino" description="Conclua um treino para visualizar a distribuição muscular." />
-                  )}
-               </CardContent>
-            </Card>
+         <MuscleBodyMap distribution={stats.muscleDistribution} />
 
+         {/* Charts */}
+         <div className="grid gap-5 sm:gap-6">
             {/* Body weight chart */}
             <Card>
                <CardHeader>
@@ -273,56 +199,57 @@ export default function DashboardPage() {
                   )}
                </CardContent>
             </Card>
-         </div>
 
-         {/* Muscle volume bar chart */}
-         {muscleData.length > 0 && (
-            <Card>
-               <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Volume por Grupo Muscular</CardTitle>
-                  <p className="text-xs text-muted-foreground mt-0.5">Séries nos últimos 30 dias</p>
-               </CardHeader>
-               <CardContent>
-                  <div
-                     className="w-full aspect-5/2 min-h-45 max-h-75"
-                     role="img"
-                     aria-label="Volume de séries por grupo muscular nos últimos 30 dias"
-                  >
-                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={muscleData} barCategoryGap="25%">
-                           <defs>
-                              <linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">
-                                 <stop offset="0%" stopColor={chart.secondary} stopOpacity={0.95} />
-                                 <stop offset="100%" stopColor={chart.primary} stopOpacity={0.7} />
-                              </linearGradient>
-                           </defs>
-                           <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.5} />
-                           <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} height={32} />
-                           <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
-                           <Tooltip
-                              cursor={{ fill: chart.grid, opacity: 0.15 }}
-                              content={({ active, payload }) => {
-                                 if (!active || !payload?.length) return null;
-                                 const d = payload[0].payload;
-                                 return (
-                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
-                                       <p className="font-semibold">{d.name}</p>
-                                       <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
-                                          <span>{d.sets} séries</span>
-                                          <span className="text-[10px]">•</span>
-                                          <span className="font-medium text-foreground">{d.percent}%</span>
+            {/* Muscle volume bar chart */}
+            {muscleData.length > 0 && (
+               <Card>
+                  <CardHeader>
+                     <CardTitle className="text-base sm:text-lg">Volume por Grupo Muscular</CardTitle>
+                     <p className="text-xs text-muted-foreground mt-0.5">Séries nos últimos 30 dias</p>
+                  </CardHeader>
+                  <CardContent>
+                     <div
+                        className="w-full aspect-5/2 min-h-45 max-h-75"
+                        role="img"
+                        aria-label="Volume de séries por grupo muscular nos últimos 30 dias"
+                     >
+                        <ResponsiveContainer width="100%" height="100%">
+                           <BarChart data={muscleData} barCategoryGap="25%">
+                              <defs>
+                                 <linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor={chart.secondary} stopOpacity={0.95} />
+                                    <stop offset="100%" stopColor={chart.primary} stopOpacity={0.7} />
+                                 </linearGradient>
+                              </defs>
+                              <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.5} />
+                              <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} height={32} />
+                              <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                              <Tooltip
+                                 cursor={{ fill: chart.grid, opacity: 0.15 }}
+                                 content={({ active, payload }) => {
+                                    if (!active || !payload?.length) return null;
+                                    const d = payload[0].payload;
+                                    return (
+                                       <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                          <p className="font-semibold">{d.name}</p>
+                                          <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                                             <span>{d.sets} séries</span>
+                                             <span className="text-[10px]">•</span>
+                                             <span className="font-medium text-foreground">{d.percent}%</span>
+                                          </div>
                                        </div>
-                                    </div>
-                                 );
-                              }}
-                           />
-                           <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} maxBarSize={48} activeBar={false} />
-                        </BarChart>
-                     </ResponsiveContainer>
-                  </div>
-               </CardContent>
-            </Card>
-         )}
+                                    );
+                                 }}
+                              />
+                              <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} maxBarSize={48} activeBar={false} />
+                           </BarChart>
+                        </ResponsiveContainer>
+                     </div>
+                  </CardContent>
+               </Card>
+            )}
+
+         </div>
 
          {/* Personal Records */}
          {stats.personalRecords.length > 0 && (

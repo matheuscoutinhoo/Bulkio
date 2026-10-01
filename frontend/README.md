@@ -2,6 +2,12 @@
 
 SPA React responsável pelas telas de autenticação, fichas, registro de treinos, peso corporal, perfil e dashboard.
 
+O dashboard inclui um mapa corporal 3D rotacionável com Three.js. As séries dos
+últimos 30 dias definem a intensidade do roxo de cada grupo muscular. O modelo
+local, sua licença e o processo de regeneração estão documentados em
+[`public/models/README.md`](./public/models/README.md). O módulo 3D é carregado
+sob demanda, com lista de valores disponível também quando WebGL falha.
+
 ## Desenvolvimento
 
 Na raiz do projeto, suba o PostgreSQL e o backend antes do frontend:

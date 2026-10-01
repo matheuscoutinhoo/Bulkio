@@ -9,13 +9,13 @@ Aplicação web para criar fichas de musculação, registrar treinos e acompanha
 - registro de séries, repetições, carga, duração e observações;
 - histórico e progressão por exercício;
 - controle de peso corporal e metas;
-- dashboard com volume, sequência de treinos, recordes e mapa de atividade;
+- dashboard com volume, sequência de treinos, recordes, mapa de atividade e corpo 3D rotacionável com intensidade por grupo muscular;
 - autenticação com access token e refresh token em cookie `httpOnly`;
 - tema claro/escuro e suporte a instalação como PWA.
 
 ## Stack
 
-- Frontend: React 19, TypeScript, Vite, Tailwind CSS, Zustand e Recharts.
+- Frontend: React 19, TypeScript, Vite, Tailwind CSS, Zustand, Recharts e Three.js.
 - Backend: Node.js 20, Express, TypeScript, Zod e Prisma ORM.
 - Banco: PostgreSQL 16.
 - Produção: Docker e Railway.

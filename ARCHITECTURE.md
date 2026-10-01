@@ -34,6 +34,30 @@ Express ───── arquivos estáticos do React
 
 As URLs da API são relativas (`/api/v1`). Isso permite usar o proxy do Vite localmente e a mesma origem do Express em produção sem gerar um build específico por ambiente.
 
+#### Mapa muscular 3D
+
+O dashboard usa `components/dashboard/MuscleBodyMap.tsx` para apresentar a
+distribuição muscular. A transformação dos dados e a escala de cores ficam em
+`muscleDistribution.ts`; a cena Three.js e os controles ficam em
+`muscleBodyScene.ts`, importado sob demanda. O componente recebe
+`DashboardStats.muscleDistribution` do serviço existente e não consulta a API
+diretamente nem mantém estado global.
+
+A intensidade do roxo é proporcional às séries do grupo em relação ao maior
+valor entre os grupos anatômicos nos últimos 30 dias. Grupos sem séries ficam
+neutros; os percentuais da lista consideram todas as séries. Cardio, Full Body e
+categorias desconhecidas aparecem na lista, sem atribuição artificial a regiões
+do corpo. As regiões da malha são esquemáticas e seguem os grupos do catálogo.
+
+A malha `public/models/muscle-body.glb` é servida pela mesma origem, sem CDN, e
+tem sua procedência, licença CC0 e regeneração documentadas em
+`public/models/README.md`. O script `scripts/build-muscle-model.mjs` é usado
+somente para editar o asset, nunca no build ou no deploy. O renderizador desenha
+sob demanda, limita a densidade de pixels, acompanha o tamanho do container e
+libera controles, observadores, requisições e recursos de GPU ao desmontar.
+Mouse, toque, teclado e botões permitem girar o corpo; a lista permanece
+disponível em falhas de WebGL ou de carregamento do modelo.
+
 ### Backend
 
 - `routes`: declaração dos endpoints, autenticação e validação.
