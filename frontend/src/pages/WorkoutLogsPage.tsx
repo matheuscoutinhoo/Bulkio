@@ -4,12 +4,14 @@ import { workoutPlanApi, type WorkoutPlanExercise } from '@/services/workoutPlan
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle, History } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle, History, Pencil } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
 import { AddSetForm } from '@/components/workoutLogs/AddSetForm';
 import { RestTimer } from '@/components/workoutLogs/RestTimer';
+import { EditSetForm } from '@/components/workoutLogs/EditSetForm';
+import { formatKilograms } from '@/lib/workoutForm';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
@@ -34,6 +36,9 @@ export default function WorkoutLogsPage() {
    // Add set form state
    const [addingSetFor, setAddingSetFor] = useState<string | null>(null);
    const [planExercises, setPlanExercises] = useState<WorkoutPlanExercise[]>([]);
+   const [editingSet, setEditingSet] = useState<string | null>(null);
+   const [loadingPlan, setLoadingPlan] = useState(false);
+   const [savingSet, setSavingSet] = useState(false);
 
    // Rest timer state
    const [restTimer, setRestTimer] = useState<{ seconds: number; exerciseName: string } | null>(null);
@@ -77,15 +82,22 @@ export default function WorkoutLogsPage() {
          setAddingSetFor(null);
          return;
       }
-      setAddingSetFor(log.id);
+      setLoadingPlan(true);
+      setPlanExercises([]);
       if (log.workoutPlan) {
          try {
             const res = await workoutPlanApi.getById(log.workoutPlan.id);
             setPlanExercises(res.data.data.exercises);
+            setAddingSetFor(log.id);
          } catch (err) {
             console.error(err);
-            setPlanExercises([]);
+            toast.error('Não foi possível carregar os exercícios da ficha');
+         } finally {
+            setLoadingPlan(false);
          }
+      } else {
+         setLoadingPlan(false);
+         toast.info('Este treino não possui uma ficha vinculada');
       }
    };
 
@@ -101,24 +113,30 @@ export default function WorkoutLogsPage() {
             setNumber: s.setNumber,
             reps: s.reps,
             weight: s.weight,
+            notes: s.notes ?? undefined,
          })),
       }));
 
       const existingExIndex = existingExercises.findIndex((e) => e.exerciseId === exerciseId);
       if (existingExIndex >= 0) {
          const ex = existingExercises[existingExIndex];
-         ex.sets.push({ setNumber: ex.sets.length + 1, reps, weight });
+         ex.sets.push({ setNumber: ex.sets.length + 1, reps, weight, notes: undefined });
       } else {
          existingExercises.push({
             exerciseId,
             order: existingExercises.length,
             notes: undefined,
-            sets: [{ setNumber: 1, reps, weight }],
+            sets: [{ setNumber: 1, reps, weight, notes: undefined }],
          });
       }
 
-      const res = await workoutLogApi.update(logId, { exercises: existingExercises });
-      setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
+      setSavingSet(true);
+      try {
+         const res = await workoutLogApi.update(logId, { exercises: existingExercises });
+         setLogs((prev) => prev.map((l) => l.id === logId ? res.data.data : l));
+      } finally {
+         setSavingSet(false);
+      }
 
       // Trigger rest timer
       const planEx = planExercises.find((pe) => pe.exerciseId === exerciseId);
@@ -126,6 +144,24 @@ export default function WorkoutLogsPage() {
          setRestTimer({ seconds: planEx.restSeconds, exerciseName: planEx.exercise.name });
       }
       toast.success('Série registrada');
+   };
+
+   const handleUpdateSet = async (log: WorkoutLog, setId: string, reps: number, weight: number) => {
+      const exercises = log.exercises.map((exercise) => ({
+         exerciseId: exercise.exerciseId,
+         order: exercise.order,
+         notes: exercise.notes ?? undefined,
+         sets: exercise.sets.map((set) => ({
+            setNumber: set.setNumber,
+            reps: set.id === setId ? reps : set.reps,
+            weight: set.id === setId ? weight : set.weight,
+            notes: set.notes ?? undefined,
+         })),
+      }));
+      const res = await workoutLogApi.update(log.id, { exercises });
+      setLogs((previous) => previous.map((entry) => entry.id === log.id ? res.data.data : entry));
+      setEditingSet(null);
+      toast.success('Série atualizada');
    };
 
    const handleCompleteWorkout = async (logId: string) => {
@@ -226,6 +262,7 @@ export default function WorkoutLogsPage() {
                                     onClick={() => setDeleteTarget(log.id)}
                                     className="hover:text-destructive"
                                     aria-label="Excluir treino"
+                                    disabled={editingSet !== null}
                                  >
                                     <Trash2 className="h-4 w-4" />
                                  </Button>
@@ -245,14 +282,15 @@ export default function WorkoutLogsPage() {
                                  <div className="space-y-3 mb-4">
                                     {log.exercises.map((logEx) => (
                                        <div key={logEx.id} className="p-3 rounded-lg bg-secondary/30">
-                                          <div className="flex items-center justify-between gap-2 mb-2">
-                                             <div className="flex items-center gap-2 min-w-0">
-                                                <span
-                                                   className="font-medium text-sm cursor-pointer hover:text-primary transition-colors truncate"
+                                          <div className="flex items-start justify-between gap-2 mb-2">
+                                             <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                                <button
+                                                   type="button"
+                                                   className="min-h-11 w-full text-left font-medium text-sm hover:text-primary transition-colors break-words sm:w-auto"
                                                    onClick={() => setProgressionExercise(logEx.exercise)}
                                                 >
                                                    {logEx.exercise.name}
-                                                </span>
+                                                </button>
                                                 <Badge variant="outline" className="text-xs shrink-0">
                                                    {muscleGroupLabels[logEx.exercise.muscleGroup]}
                                                 </Badge>
@@ -266,21 +304,31 @@ export default function WorkoutLogsPage() {
                                                    <HelpCircle className="h-3.5 w-3.5" />
                                                 </Button>
                                              </div>
-                                             <Badge className="bg-primary/10 text-gradient text-xs">
+                                             <Badge className="shrink-0 bg-primary/10 text-gradient text-xs">
                                                 {logEx.sets.length} {logEx.sets.length === 1 ? 'série' : 'séries'}
                                              </Badge>
                                           </div>
-                                          <div className="grid grid-cols-3 gap-1 px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-gradient">
+                                          <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-1 py-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">
                                              <span>Série</span>
                                              <span>Reps</span>
                                              <span>Carga (kg)</span>
+                                             <span className="sr-only">Ações</span>
                                           </div>
                                           <div className="divide-y divide-border/50">
                                              {logEx.sets.map((set) => (
-                                                <div key={set.id} className="grid grid-cols-3 gap-1 px-2 py-1.5 text-sm">
-                                                   <span className="text-muted-foreground">{set.setNumber}</span>
-                                                   <span className="font-medium">{set.reps}</span>
-                                                   <span className="font-medium">{set.weight}kg</span>
+                                                <div key={set.id} className="py-1">
+                                                   {editingSet === set.id ? (
+                                                      <EditSetForm set={set} onSave={(reps, weight) => handleUpdateSet(log, set.id, reps, weight)} onCancel={() => setEditingSet(null)} />
+                                                   ) : (
+                                                      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-1 text-sm tabular-nums">
+                                                         <span className="text-muted-foreground">{set.setNumber}</span>
+                                                         <span className="font-medium">{set.reps}</span>
+                                                         <span className="font-medium break-words">{formatKilograms(set.weight)}</span>
+                                                         <Button type="button" variant="ghost" size="icon" disabled={editingSet !== null || savingSet} onClick={() => setEditingSet(set.id)} aria-label={`Editar série ${set.setNumber} de ${logEx.exercise.name}`} className="text-primary">
+                                                            <Pencil className="h-4 w-4" aria-hidden="true" />
+                                                         </Button>
+                                                      </div>
+                                                   )}
                                                 </div>
                                              ))}
                                           </div>
@@ -298,6 +346,7 @@ export default function WorkoutLogsPage() {
                                  <div className="space-y-3">
                                     {addingSetFor === log.id ? (
                                        <AddSetForm
+                                          disabled={editingSet !== null}
                                           planExercises={planExercises}
                                           onSave={(exerciseId, reps, weight) => handleSaveSet(log.id, exerciseId, reps, weight)}
                                           onCancel={() => setAddingSetFor(null)}
@@ -308,13 +357,15 @@ export default function WorkoutLogsPage() {
                                              variant="outline"
                                              className="flex-1"
                                              onClick={() => handleStartAddSet(log)}
+                                             disabled={editingSet !== null || loadingPlan}
                                           >
-                                             <Plus className="h-4 w-4 mr-2" /> Registrar Série
+                                             <Plus className="h-4 w-4" /> {loadingPlan ? 'Carregando…' : 'Registrar série'}
                                           </Button>
                                           {log.exercises.length > 0 && (
                                              <Button
                                                 variant="default"
                                                 onClick={() => handleCompleteWorkout(log.id)}
+                                                disabled={editingSet !== null}
                                              >
                                                 <CheckCircle className="h-4 w-4 mr-2" /> Finalizar
                                              </Button>
@@ -328,6 +379,7 @@ export default function WorkoutLogsPage() {
                                     size="sm"
                                     className="w-full mt-2"
                                     onClick={() => handleReopenWorkout(log.id)}
+                                    disabled={editingSet !== null}
                                  >
                                     Reabrir Treino
                                  </Button>

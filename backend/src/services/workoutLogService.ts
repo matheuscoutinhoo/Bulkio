@@ -53,20 +53,20 @@ export const workoutLogService = {
    },
 
    async update(userId: string, id: string, data: UpdateWorkoutLogInput) {
-      await assertLogOwnership(userId, id);
+      const previousLog = await assertLogOwnership(userId, id);
       const log = await workoutLogRepository.update(id, data);
 
-      if (log.isComplete && (data.exercises || data.isComplete === true)) {
+      if (data.exercises && (previousLog.isComplete || log.isComplete)) {
+         await personalRecordService.recalculateFromHistory(userId, [
+            ...previousLog.exercises.map((exercise) => exercise.exerciseId),
+            ...data.exercises.map((exercise) => exercise.exerciseId),
+         ]);
+      } else if (log.isComplete && data.isComplete === true) {
          const logDate = new Date(log.date);
-         const exercises = data.exercises
-            ? data.exercises.map((exercise) => ({
-               exerciseId: exercise.exerciseId,
-               sets: exercise.sets,
-            }))
-            : log.exercises.map((exercise) => ({
-               exerciseId: exercise.exercise.id,
-               sets: exercise.sets,
-            }));
+         const exercises = log.exercises.map((exercise) => ({
+            exerciseId: exercise.exerciseId,
+            sets: exercise.sets,
+         }));
          await personalRecordService.updateFromExercises(userId, exercises, logDate);
       }
 

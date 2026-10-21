@@ -8,11 +8,12 @@ interface DialogProps {
    onClose: () => void;
    children: React.ReactNode;
    className?: string;
+   dismissible?: boolean;
 }
 
 const DialogContext = React.createContext<{ titleId: string } | null>(null);
 
-export function Dialog({ open, onClose, children, className }: DialogProps) {
+export function Dialog({ open, onClose, children, className, dismissible = true }: DialogProps) {
    const titleId = React.useId();
    const dialogRef = React.useRef<HTMLDivElement>(null);
    const onCloseRef = React.useRef(onClose);
@@ -29,7 +30,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
       const handleKeyDown = (event: KeyboardEvent) => {
          if (event.key === 'Escape') {
             event.preventDefault();
-            onCloseRef.current();
+            if (dismissible) onCloseRef.current();
             return;
          }
 
@@ -65,13 +66,13 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
          document.removeEventListener('keydown', handleKeyDown);
          previousFocus?.focus();
       };
-   }, [open]);
+   }, [open, dismissible]);
 
    if (!open) return null;
 
    return createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] animate-fade-in" onClick={onClose} aria-hidden="true" />
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] animate-fade-in" onClick={dismissible ? onClose : undefined} aria-hidden="true" />
          <div
             ref={dialogRef}
             role="dialog"
@@ -83,14 +84,14 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
                className,
             )}
          >
-            <button
+            {dismissible && <button
                type="button"
                onClick={onClose}
                aria-label="Fechar diálogo"
                className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
             >
                <X className="h-5 w-5" />
-            </button>
+            </button>}
             <DialogContext.Provider value={{ titleId }}>{children}</DialogContext.Provider>
          </div>
       </div>,

@@ -19,9 +19,10 @@ interface AddSetFormProps {
    planExercises: WorkoutPlanExercise[];
    onSave: (exerciseId: string, reps: number, weight: number) => Promise<void>;
    onCancel: () => void;
+   disabled?: boolean;
 }
 
-export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps) {
+export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }: AddSetFormProps) {
    const [exerciseId, setExerciseId] = useState('');
    const [reps, setReps] = useState('10');
    const [weight, setWeight] = useState('');
@@ -161,6 +162,7 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
 
    return (
       <form onSubmit={handleSave} className="space-y-5 rounded-xl border border-primary/25 bg-primary/5 p-3.5 sm:p-5">
+         <fieldset disabled={disabled || saving} className="min-w-0 space-y-5">
          {bodyWeightStatus === 'loading' && (
             <p className="text-sm text-muted-foreground" role="status">Carregando peso corporal...</p>
          )}
@@ -269,6 +271,7 @@ export function AddSetForm({ planExercises, onSave, onCancel }: AddSetFormProps)
                Cancelar
             </Button>
          </div>
+         </fieldset>
       </form>
    );
 }

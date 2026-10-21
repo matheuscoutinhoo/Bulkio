@@ -17,6 +17,7 @@ vi.mock('../../repositories/workoutLogRepository', () => ({
 vi.mock('../../services/personalRecordService', () => ({
    personalRecordService: {
       updateFromExercises: vi.fn(),
+      recalculateFromHistory: vi.fn(),
    },
 }));
 
@@ -176,6 +177,17 @@ describe('workoutLogService', () => {
 
    // ========== update ==========
    describe('update', () => {
+      it('recalculates records when editing sets without reopening a completed workout', async () => {
+         const log = createMockWorkoutLog({ exercises: [{ exerciseId: 'ex-1' }] });
+         mockLogRepo.findById.mockResolvedValue(log as any);
+         mockLogRepo.update.mockResolvedValue(log as any);
+         const data = { exercises: [{ exerciseId: 'ex-1', order: 0, sets: [{ setNumber: 1, weight: 40, reps: 8 }] }] };
+         await workoutLogService.update('user-1', 'log-1', data);
+         expect(mockLogRepo.update).toHaveBeenCalledWith('log-1', data);
+         expect(mockPRService.recalculateFromHistory).toHaveBeenCalledWith('user-1', ['ex-1', 'ex-1']);
+         expect(mockPRService.updateFromExercises).not.toHaveBeenCalled();
+      });
+
       it('should update log when it belongs to user', async () => {
          mockLogRepo.findById.mockResolvedValue(createMockWorkoutLog() as any);
          const updated = createMockWorkoutLog({ isComplete: true });

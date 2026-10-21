@@ -6,6 +6,8 @@ vi.mock('../../repositories/personalRecordRepository', () => ({
    personalRecordRepository: {
       findByUserAndExercise: vi.fn(),
       upsert: vi.fn(),
+      findBestCompletedSet: vi.fn(),
+      deleteForExercise: vi.fn(),
    },
 }));
 
@@ -16,6 +18,22 @@ const mockPRRepo = vi.mocked(personalRecordRepository);
 describe('personalRecordService', () => {
    beforeEach(() => {
       vi.clearAllMocks();
+   });
+
+   describe('recalculateFromHistory', () => {
+      it('replaces an inflated record with the best remaining completed set', async () => {
+         const date = new Date('2026-10-20');
+         mockPRRepo.findBestCompletedSet.mockResolvedValue({ weight: 47.5, reps: 12, workoutLogExercise: { workoutLog: { date } } });
+         await personalRecordService.recalculateFromHistory('user-1', ['ex-1', 'ex-1']);
+         expect(mockPRRepo.findBestCompletedSet).toHaveBeenCalledTimes(1);
+         expect(mockPRRepo.upsert).toHaveBeenCalledWith('user-1', 'ex-1', 47.5, 12, date);
+      });
+
+      it('removes a record when no positive completed set remains', async () => {
+         mockPRRepo.findBestCompletedSet.mockResolvedValue(null);
+         await personalRecordService.recalculateFromHistory('user-1', ['ex-1']);
+         expect(mockPRRepo.deleteForExercise).toHaveBeenCalledWith('user-1', 'ex-1');
+      });
    });
 
    describe('checkAndUpdate', () => {

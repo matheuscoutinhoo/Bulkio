@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 import { useToastStore, type ToastVariant } from '@/stores/toastStore';
 import { cn } from '@/lib/utils';
+import { useLocation } from 'react-router-dom';
 
 const icons = { success: CheckCircle2, error: AlertCircle, info: Info };
 const styles: Record<ToastVariant, string> = {
@@ -12,9 +13,11 @@ const styles: Record<ToastVariant, string> = {
 export function Toaster() {
    const items = useToastStore((state) => state.items);
    const remove = useToastStore((state) => state.remove);
+   const { pathname } = useLocation();
+   const hasMobileNav = pathname !== '/login' && pathname !== '/register';
 
    return (
-      <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[80] flex flex-col items-end gap-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-96" aria-live="polite" aria-atomic="false">
+      <div className={cn('pointer-events-none fixed inset-x-3 z-[80] flex flex-col items-end gap-2 sm:inset-x-auto sm:right-5 sm:w-96 lg:bottom-5', hasMobileNav ? 'bottom-[calc(5.25rem+env(safe-area-inset-bottom))]' : 'bottom-3')} aria-live="polite" aria-atomic="false">
          {items.map((item) => {
             const Icon = icons[item.variant];
             return (
