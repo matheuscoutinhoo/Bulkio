@@ -9,7 +9,8 @@ import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal'
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
 import { AddSetForm } from '@/components/workoutLogs/AddSetForm';
-import { RestTimer } from '@/components/workoutLogs/RestTimer';
+import { useRestTimerStore } from '@/stores/restTimerStore';
+import { useAuthStore } from '@/stores/authStore';
 import { EditSetForm } from '@/components/workoutLogs/EditSetForm';
 import { formatKilograms } from '@/lib/workoutForm';
 import { format } from 'date-fns';
@@ -39,9 +40,6 @@ export default function WorkoutLogsPage() {
    const [editingSet, setEditingSet] = useState<string | null>(null);
    const [loadingPlan, setLoadingPlan] = useState(false);
    const [savingSet, setSavingSet] = useState(false);
-
-   // Rest timer state
-   const [restTimer, setRestTimer] = useState<{ seconds: number; exerciseName: string } | null>(null);
 
    const fetchLogs = useCallback(async (silent = false) => {
       if (!silent) setLoading(true);
@@ -140,8 +138,9 @@ export default function WorkoutLogsPage() {
 
       // Trigger rest timer
       const planEx = planExercises.find((pe) => pe.exerciseId === exerciseId);
-      if (planEx && planEx.restSeconds > 0) {
-         setRestTimer({ seconds: planEx.restSeconds, exerciseName: planEx.exercise.name });
+      const userId = useAuthStore.getState().user?.id;
+      if (userId && planEx && planEx.restSeconds > 0) {
+         useRestTimerStore.getState().start(userId, planEx.restSeconds, planEx.exercise.name);
       }
       toast.success('Série registrada');
    };
@@ -421,14 +420,6 @@ export default function WorkoutLogsPage() {
             open={!!progressionExercise}
             onClose={() => setProgressionExercise(null)}
          />
-
-         {restTimer && (
-            <RestTimer
-               initialSeconds={restTimer.seconds}
-               exerciseName={restTimer.exerciseName}
-               onClose={() => setRestTimer(null)}
-            />
-         )}
 
          <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} title="Excluir treino do histórico?" description="As séries, cargas e recordes vinculados a este treino serão removidos. Esta ação não pode ser desfeita." />
       </div>

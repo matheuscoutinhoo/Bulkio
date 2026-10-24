@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useRestTimerStore } from './restTimerStore';
 
 interface User {
    id: string;
@@ -31,8 +32,10 @@ export const useAuthStore = create<AuthState>()(
             set({ user, accessToken, isAuthenticated: true }),
          setAccessToken: (accessToken) => set({ accessToken }),
          setUser: (user) => set({ user }),
-         logout: () =>
-            set({ user: null, accessToken: null, isAuthenticated: false }),
+         logout: () => {
+            useRestTimerStore.getState().finish();
+            set({ user: null, accessToken: null, isAuthenticated: false });
+         },
       }),
       {
          name: 'bulkio-auth',

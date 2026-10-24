@@ -3,20 +3,21 @@ import { cn } from '@/lib/utils';
 import { Play, Pause, RotateCcw, Check, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import { getRestTimerRemaining, useRestTimerStore, type RestTimerSession } from '@/stores/restTimerStore';
+import { useAuthStore } from '@/stores/authStore';
 
-interface RestTimerProps {
-   initialSeconds: number;
-   exerciseName: string;
-   onClose: () => void;
+export function RestTimer() {
+   const timer = useRestTimerStore((state) => state.timer);
+   const userId = useAuthStore((state) => state.user?.id);
+   if (!timer || timer.ownerId !== userId) return null;
+   return <RestTimerContent key={timer.id} timer={timer} />;
 }
 
-export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerProps) {
-   const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
-   const [remaining, setRemaining] = useState(initialSeconds);
-   const [running, setRunning] = useState(initialSeconds > 0);
-   const [initialDeadline] = useState(() => Date.now() + initialSeconds * 1000);
+function RestTimerContent({ timer }: { timer: RestTimerSession }) {
+   const [remaining, setRemaining] = useState(() => getRestTimerRemaining(timer));
+   const { totalSeconds, exerciseName } = timer;
+   const running = timer.deadline != null;
    const finished = remaining === 0;
-   const deadlineRef = useRef<number | null>(initialSeconds > 0 ? initialDeadline : null);
    const audioRef = useRef<AudioContext | null>(null);
 
    const playBeep = useCallback(() => {
@@ -41,26 +42,25 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
    }, []);
 
    useEffect(() => {
-      if (!running) return;
       const tick = () => {
-         if (deadlineRef.current == null) return;
-         const secondsLeft = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
-         setRemaining(secondsLeft);
-         if (secondsLeft === 0) {
-            deadlineRef.current = null;
-            setRunning(false);
-            playBeep();
-         }
+         setRemaining(getRestTimerRemaining(timer));
+         if (useRestTimerStore.getState().completeIfElapsed(timer.id)) playBeep();
       };
+      tick();
+      if (timer.deadline == null) return;
       const interval = setInterval(tick, 250);
       document.addEventListener('visibilitychange', tick);
+      document.addEventListener('resume', tick);
       window.addEventListener('focus', tick);
+      window.addEventListener('pageshow', tick);
       return () => {
          clearInterval(interval);
          document.removeEventListener('visibilitychange', tick);
+         document.removeEventListener('resume', tick);
          window.removeEventListener('focus', tick);
+         window.removeEventListener('pageshow', tick);
       };
-   }, [running, playBeep]);
+   }, [timer, playBeep]);
 
    useEffect(() => {
       return () => {
@@ -68,32 +68,14 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
       };
    }, []);
 
-   const handleReset = () => {
-      deadlineRef.current = Date.now() + totalSeconds * 1000;
-      setRemaining(totalSeconds);
-      setRunning(true);
-   };
-
-   const handleAdjust = (delta: number) => {
-      const newTotal = Math.max(5, totalSeconds + delta);
-      const current = deadlineRef.current == null ? remaining : Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
-      const nextRemaining = Math.max(0, current + newTotal - totalSeconds);
-      const shouldRun = nextRemaining > 0 && (running || finished);
-      setTotalSeconds(newTotal);
-      setRemaining(nextRemaining);
-      deadlineRef.current = shouldRun ? Date.now() + nextRemaining * 1000 : null;
-      setRunning(shouldRun);
-   };
-
    const handleToggle = () => {
-      if (running) {
-         setRemaining(Math.max(0, Math.ceil(((deadlineRef.current ?? Date.now()) - Date.now()) / 1000)));
-         deadlineRef.current = null;
-      } else {
-         deadlineRef.current = Date.now() + remaining * 1000;
-      }
-      setRunning(!running);
+      const store = useRestTimerStore.getState();
+      if (running) store.pause();
+      else store.resume();
    };
+   const handleClose = useRestTimerStore((state) => state.finish);
+   const handleReset = useRestTimerStore((state) => state.restart);
+   const handleAdjust = useRestTimerStore((state) => state.adjust);
 
    const progress = totalSeconds > 0 ? remaining / totalSeconds : 0;
    const minutes = Math.floor(remaining / 60);
@@ -103,7 +85,7 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
    const strokeOffset = circumference * (1 - progress);
 
    return (
-         <Dialog open onClose={onClose} dismissible={false}
+         <Dialog open onClose={handleClose} dismissible={false}
             className={cn(
                'max-w-sm p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-6',
                finished && 'animate-timer-pulse',
@@ -210,7 +192,7 @@ export function RestTimer({ initialSeconds, exerciseName, onClose }: RestTimerPr
                      </Button>
                   </>
                )}
-               <Button size="lg" className="w-full rounded-full" onClick={onClose}>
+               <Button size="lg" className="w-full rounded-full" onClick={handleClose}>
                   <Check className="h-4 w-4" aria-hidden="true" /> Finalizar descanso
                </Button>
             </div>
