@@ -22,4 +22,16 @@ export interface ExerciseFilters {
 export const exerciseApi = {
    getAll: (filters?: ExerciseFilters) =>
       api.get('/exercises', { params: filters }),
+   getCatalog: async (): Promise<Exercise[]> => {
+      const exercises: Exercise[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+         const response = await api.get<{ data: Exercise[]; pagination: { totalPages: number } }>('/exercises', { params: { page, limit: 300 } });
+         exercises.push(...response.data.data);
+         totalPages = response.data.pagination.totalPages;
+         page++;
+      } while (page <= totalPages);
+      return [...new Map(exercises.map(exercise => [exercise.id, exercise])).values()];
+   },
 };

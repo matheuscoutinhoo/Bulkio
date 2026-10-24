@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { workoutLogApi, type WorkoutLog } from '@/services/workoutLogService';
 import { workoutPlanApi, type WorkoutPlanExercise } from '@/services/workoutPlanService';
+import { exerciseApi, type Exercise } from '@/services/exerciseService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,13 +44,14 @@ export default function WorkoutLogsPage() {
    // Add set form state
    const [addingSetFor, setAddingSetFor] = useState<string | null>(null);
    const [planExercises, setPlanExercises] = useState<WorkoutPlanExercise[]>([]);
+   const [catalogExercises, setCatalogExercises] = useState<Exercise[] | undefined>(undefined);
    const [editingSet, setEditingSet] = useState<string | null>(null);
    const [loadingPlan, setLoadingPlan] = useState(false);
    const [savingSet, setSavingSet] = useState(false);
    const [search, setSearch] = useState('');
    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'complete'>('all');
    const visibleLogs = logs.filter(log => (statusFilter === 'all' || log.isComplete === (statusFilter === 'complete'))
-      && normalizeSearch([log.workoutPlan?.name, log.notes, format(new Date(log.date), 'dd/MM/yyyy'), ...log.exercises.map(item => item.exercise.name)].join(' ')).includes(normalizeSearch(search)))
+      && normalizeSearch([log.workoutPlan?.name ?? 'Treino livre', log.notes, format(new Date(log.date), 'dd/MM/yyyy'), ...log.exercises.map(item => item.exercise.name)].join(' ')).includes(normalizeSearch(search)))
       .sort((a, b) => Number(a.isComplete) - Number(b.isComplete));
 
    const fetchLogs = useCallback(async (silent = false) => {
@@ -92,25 +94,26 @@ export default function WorkoutLogsPage() {
          return;
       }
       setLoadingPlan(true);
+      setAddingSetFor(null);
       setPlanExercises([]);
-      if (log.workoutPlan) {
-         try {
+      setCatalogExercises(undefined);
+      try {
+         if (log.workoutPlan) {
             const res = await workoutPlanApi.getById(log.workoutPlan.id);
             setPlanExercises(res.data.data.exercises);
-            setAddingSetFor(log.id);
-         } catch (err) {
-            console.error(err);
-            toast.error('Não foi possível carregar os exercícios da ficha');
-         } finally {
-            setLoadingPlan(false);
+         } else {
+            setCatalogExercises(await exerciseApi.getCatalog());
          }
-      } else {
+         setAddingSetFor(log.id);
+      } catch (err) {
+         console.error(err);
+         toast.error(log.workoutPlan ? 'Não foi possível carregar os exercícios da ficha' : 'Não foi possível carregar o catálogo de exercícios. Tente registrar a série novamente.');
+      } finally {
          setLoadingPlan(false);
-         toast.info('Este treino não possui uma ficha vinculada');
       }
    };
 
-   const handleSaveSet = async (logId: string, exerciseId: string, reps: number, weight: number) => {
+   const handleSaveSet = async (logId: string, exerciseId: string, reps: number, weight: number, restSeconds?: number) => {
       const log = logs.find((l) => l.id === logId);
       if (!log) return;
 
@@ -149,9 +152,11 @@ export default function WorkoutLogsPage() {
 
       // Trigger rest timer
       const planEx = planExercises.find((pe) => pe.exerciseId === exerciseId);
+      const rest = restSeconds ?? planEx?.restSeconds ?? 0;
+      const exerciseName = planEx?.exercise.name ?? catalogExercises?.find(exercise => exercise.id === exerciseId)?.name;
       const userId = useAuthStore.getState().user?.id;
-      if (userId && planEx && planEx.restSeconds > 0) {
-         useRestTimerStore.getState().start(userId, planEx.restSeconds, planEx.exercise.name);
+      if (userId && exerciseName && rest > 0) {
+         useRestTimerStore.getState().start(userId, rest, exerciseName);
       }
       toast.success('Série registrada');
    };
@@ -260,9 +265,7 @@ export default function WorkoutLogsPage() {
                                        )}
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
-                                       {log.workoutPlan && (
-                                          <span>{log.workoutPlan.name}</span>
-                                       )}
+                                       <span>{log.workoutPlan?.name ?? 'Treino livre'}</span>
                                        {log.exercises.length > 0 && (
                                           <span>{log.exercises.length} exercícios</span>
                                        )}
@@ -370,7 +373,8 @@ export default function WorkoutLogsPage() {
                                        <AddSetForm
                                           disabled={editingSet !== null}
                                           planExercises={planExercises}
-                                          onSave={(exerciseId, reps, weight) => handleSaveSet(log.id, exerciseId, reps, weight)}
+                                          catalogExercises={catalogExercises}
+                                          onSave={(exerciseId, reps, weight, restSeconds) => handleSaveSet(log.id, exerciseId, reps, weight, restSeconds)}
                                           onCancel={() => setAddingSetFor(null)}
                                        />
                                     ) : (
@@ -429,7 +433,14 @@ export default function WorkoutLogsPage() {
          <LogWorkoutDialog
             open={showCreate}
             onClose={() => setShowCreate(false)}
-            onCreated={(logId) => { setExpandedLog(logId); void fetchLogs(); }}
+            onCreated={log => {
+               setExpandedLog(log.id);
+               setSearch('');
+               setStatusFilter('all');
+               if (page === 1) void fetchLogs();
+               else setPage(1);
+               if (!log.workoutPlan) void handleStartAddSet(log);
+            }}
          />
 
          <ExerciseDetailModal

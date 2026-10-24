@@ -1,13 +1,15 @@
 import { test as base, expect } from '@playwright/test';
+import type { CreateWorkoutLogData, UpdateWorkoutLogData, WorkoutLog } from '../src/services/workoutLogService';
 
 export const user = { id: 'test-user', username: 'Matheus', email: 'matheus@example.test', goal: 'CUT', initialWeight: 84, targetWeight: 72, height: 176, createdAt: '2026-01-01T12:00:00Z' };
-const exercises = [
+export const exercises = [
    { id: 'ex-1', name: 'Supino reto com barra', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL' },
    { id: 'ex-2', name: 'Desenvolvimento de ombros com halteres', muscleGroup: 'SHOULDERS', type: 'COMPOUND', equipment: 'DUMBBELL' },
    { id: 'ex-3', name: 'Remada curvada com barra', muscleGroup: 'BACK', type: 'COMPOUND', equipment: 'BARBELL' },
    { id: 'ex-4', name: 'Rosca direta', muscleGroup: 'BICEPS', type: 'ISOLATION', equipment: 'BARBELL' },
    { id: 'ex-5', name: 'Agachamento livre', muscleGroup: 'LEGS', type: 'COMPOUND', equipment: 'BARBELL' },
    { id: 'ex-6', name: 'Elevação de panturrilhas', muscleGroup: 'CALVES', type: 'ISOLATION', equipment: 'MACHINE' },
+   { id: 'ex-7', name: 'Flexão de braços', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BODYWEIGHT' },
 ];
 export const plans = ['Peito e ombros', 'Costas e bíceps', 'Pernas e panturrilhas'].map((name, index) => ({
    id: `plan-${index + 1}`, name, description: 'Movimentos controlados, foco na execução e progressão consistente.', createdAt: '2026-10-01T12:00:00Z', updatedAt: '2026-10-24T12:00:00Z', _count: { workoutLogs: 4 },
@@ -22,19 +24,27 @@ export const dashboardStats = {
    personalRecords: [{ id: 'pr-1', weight: 80, reps: 8, date: '2026-10-24T12:00:00Z', exercise: exercises[0] }],
 };
 
+function loggedExercises(items: CreateWorkoutLogData['exercises'], prefix: string) {
+   return items.map((item, index) => ({
+      ...item, id: `${prefix}-ex-${index}`, exercise: exercises.find(exercise => exercise.id === item.exerciseId)!,
+      sets: item.sets.map((set, setIndex) => ({ ...set, id: `${prefix}-set-${index}-${setIndex}` })),
+   }));
+}
+
 export const test = base.extend({
    page: async ({ page }, runTest) => {
       await page.addInitScript(account => {
          localStorage.setItem('bulkio-auth', JSON.stringify({ state: { user: account, isAuthenticated: true }, version: 0 }));
          localStorage.setItem('bulkio-theme', JSON.stringify({ state: { theme: 'light' }, version: 0 }));
       }, user);
-      let logs = [false, true, true].map((isComplete, index) => ({
-         id: `log-${index}`, date: `2026-10-${24 - index}T12:00:00Z`, startTime: `2026-10-${24 - index}T12:00:00Z`, endTime: isComplete ? `2026-10-${24 - index}T13:00:00Z` : null,
+      let logs: WorkoutLog[] = [false, true, true].map((isComplete, index) => ({
+         id: `log-${index}`, date: `2026-10-${24 - index}T12:00:00Z`, startTime: `2026-10-${24 - index}T12:00:00Z`, endTime: isComplete ? `2026-10-${24 - index}T13:00:00Z` : undefined,
          isComplete, workoutPlan: { id: plans[index].id, name: plans[index].name }, createdAt: '2026-10-24T12:00:00Z',
          exercises: plans[index].exercises.map(item => ({ id: `le-${index}-${item.exerciseId}`, exerciseId: item.exerciseId, order: item.order, exercise: item.exercise, sets: [
             { id: `s-${index}-${item.exerciseId}-1`, setNumber: 1, reps: 12, weight: 40 }, { id: `s-${index}-${item.exerciseId}-2`, setNumber: 2, reps: 10, weight: 47.5 },
          ] })),
       }));
+      let updateVersion = 0;
       await page.route('**/api/v1/**', async route => {
          const request = route.request();
          const path = new URL(request.url()).pathname.replace('/api/v1', '');
@@ -46,16 +56,31 @@ export const test = base.extend({
             if (request.postDataJSON().currentPassword !== 'test-current-password') return route.fulfill({ status: 400, json: { success: false, data: null, message: 'Senha atual incorreta.' } });
          } else if (path === '/dashboard/stats') data = dashboardStats;
          else if (path.startsWith('/dashboard/exercise-progression/')) data = weights.map((item, index) => ({ date: item.date, maxWeight: 40 + index * 2.5, totalVolume: 1200 + index * 150, sets: [{ setNumber: 1, reps: 10, weight: 40 + index * 2.5 }] }));
+         else if (path === '/exercises') data = exercises;
          else if (path === '/workouts') data = plans;
          else if (path.startsWith('/workouts/')) data = plans.find(plan => plan.id === path.split('/').at(-1));
          else if (path === '/body-weight') data = [...weights].reverse();
          else if (path === '/workout-logs' && request.method() === 'POST') {
-            const body = request.postDataJSON();
-            const plan = plans.find(item => item.id === body.workoutPlanId)!;
-            const created = { ...logs[0], ...body, id: 'new-workout', workoutPlan: { id: plan.id, name: plan.name }, exercises: [] };
+            const body = request.postDataJSON() as CreateWorkoutLogData;
+            const plan = plans.find(item => item.id === body.workoutPlanId);
+            const created: WorkoutLog = {
+               id: 'new-workout', date: body.date ?? new Date().toISOString(), startTime: body.startTime ?? undefined, endTime: body.endTime ?? undefined,
+               isComplete: body.isComplete ?? false, notes: body.notes, createdAt: new Date().toISOString(),
+               workoutPlan: plan ? { id: plan.id, name: plan.name } : undefined, exercises: loggedExercises(body.exercises, 'new'),
+            };
             logs = [created, ...logs]; data = created;
          } else if (path === '/workout-logs') data = logs;
          else if (path.startsWith('/workout-logs/exercise-history/')) data = null;
+         else if (path.startsWith('/workout-logs/') && request.method() === 'PATCH') {
+            const previous = logs.find(log => log.id === path.split('/').at(-1));
+            if (!previous) return route.fulfill({ status: 404, json: { success: false, message: 'Treino não encontrado' } });
+            const body = request.postDataJSON() as UpdateWorkoutLogData;
+            const updated: WorkoutLog = {
+               ...previous, ...body, notes: body.notes ?? previous.notes, startTime: body.startTime ?? previous.startTime, endTime: body.endTime ?? previous.endTime,
+               exercises: body.exercises ? loggedExercises(body.exercises, `update-${++updateVersion}`) : previous.exercises,
+            };
+            logs = logs.map(log => log.id === updated.id ? updated : log); data = updated;
+         }
          else { status = 404; }
          await route.fulfill({ status, json: { success: status < 400, data, pagination: { page: 1, limit: 20, total: Array.isArray(data) ? data.length : 1, totalPages: 1 } } });
       });

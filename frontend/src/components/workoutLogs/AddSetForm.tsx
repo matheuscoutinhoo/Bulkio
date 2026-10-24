@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { History, RotateCcw, Scale } from 'lucide-react';
 import type { WorkoutPlanExercise } from '@/services/workoutPlanService';
+import type { Exercise } from '@/services/exerciseService';
+import { ExerciseSearchDropdown } from '@/components/exercises/ExerciseSearchDropdown';
+import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { workoutLogApi, type ExerciseLastSession } from '@/services/workoutLogService';
 import { bodyWeightApi } from '@/services/bodyWeightService';
 import { getApiErrorMessage } from '@/lib/api';
@@ -17,15 +20,17 @@ import {
 
 interface AddSetFormProps {
    planExercises: WorkoutPlanExercise[];
-   onSave: (exerciseId: string, reps: number, weight: number) => Promise<void>;
+   catalogExercises?: Exercise[];
+   onSave: (exerciseId: string, reps: number, weight: number, restSeconds?: number) => Promise<void>;
    onCancel: () => void;
    disabled?: boolean;
 }
 
-export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }: AddSetFormProps) {
+export function AddSetForm({ planExercises, catalogExercises, onSave, onCancel, disabled = false }: AddSetFormProps) {
    const [exerciseId, setExerciseId] = useState('');
    const [reps, setReps] = useState('10');
    const [weight, setWeight] = useState('');
+   const [restSeconds, setRestSeconds] = useState('60');
    const [bodyWeight, setBodyWeight] = useState('');
    const [bodyWeightStatus, setBodyWeightStatus] = useState<'loading' | 'recorded' | 'empty' | 'error'>('loading');
    const [bodyWeightAttempt, setBodyWeightAttempt] = useState(0);
@@ -37,8 +42,10 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
    const repsTouchedRef = useRef(false);
 
    const selectedPlanExercise = planExercises.find((exercise) => exercise.exerciseId === exerciseId);
+   const selectedExercise = selectedPlanExercise?.exercise ?? catalogExercises?.find(exercise => exercise.id === exerciseId);
+   const isFreeWorkout = catalogExercises !== undefined;
    const currentBodyWeight = parseOptionalNonNegativeNumber(bodyWeight);
-   const isBodyWeightExercise = selectedPlanExercise?.exercise.equipment === 'BODYWEIGHT';
+   const isBodyWeightExercise = selectedExercise?.equipment === 'BODYWEIGHT';
    const currentBodyWeightRef = useRef(currentBodyWeight);
 
    useEffect(() => {
@@ -82,7 +89,7 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
                   if (!repsTouchedRef.current) setReps(String(lastSet.reps));
                   if (!weightTouchedRef.current) {
                      const latestBodyWeight = currentBodyWeightRef.current;
-                     if (selectedPlanExercise?.exercise.equipment === 'BODYWEIGHT' && latestBodyWeight != null) {
+                     if (selectedExercise?.equipment === 'BODYWEIGHT' && latestBodyWeight != null) {
                         setWeight(formatNumberInput(latestBodyWeight));
                      } else {
                         setWeight(formatNumberInput(lastSet.weight));
@@ -95,7 +102,7 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
          .finally(() => { if (!cancelled) setLoadingHistory(false); });
 
       return () => { cancelled = true; };
-   }, [exerciseId, selectedPlanExercise?.exercise.equipment]);
+   }, [exerciseId, selectedExercise?.equipment]);
 
    useEffect(() => {
       if (isBodyWeightExercise && currentBodyWeight != null && !weightTouchedRef.current) {
@@ -105,23 +112,24 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
 
    const handleExerciseChange = (nextExerciseId: string) => {
       const planExercise = planExercises.find((exercise) => exercise.exerciseId === nextExerciseId);
+      const exercise = planExercise?.exercise ?? catalogExercises?.find(item => item.id === nextExerciseId);
       weightTouchedRef.current = false;
       repsTouchedRef.current = false;
       setExerciseId(nextExerciseId);
       setLastSession(null);
 
-      if (!planExercise) {
+      if (!exercise) {
          setReps('10');
          setWeight('');
          return;
       }
 
-      const plannedReps = Number.parseInt(planExercise.reps, 10);
+      const plannedReps = Number.parseInt(planExercise?.reps ?? '10', 10);
       setReps(Number.isFinite(plannedReps) && plannedReps > 0 ? String(plannedReps) : '10');
-      if (planExercise.exercise.equipment === 'BODYWEIGHT' && currentBodyWeight != null) {
+      if (exercise.equipment === 'BODYWEIGHT' && currentBodyWeight != null) {
          setWeight(formatNumberInput(currentBodyWeight));
       } else {
-         setWeight(planExercise.weight == null ? '' : formatNumberInput(planExercise.weight));
+         setWeight(planExercise?.weight == null ? '' : formatNumberInput(planExercise.weight));
       }
    };
 
@@ -144,11 +152,12 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
       event.preventDefault();
       const repsValue = Number(reps);
       const weightValue = parseOptionalNonNegativeNumber(weight);
-      if (!exerciseId || !Number.isInteger(repsValue) || repsValue <= 0 || weightValue == null || saving) return;
+      const restValue = isFreeWorkout ? Number(restSeconds) : selectedPlanExercise?.restSeconds;
+      if (!exerciseId || !Number.isInteger(repsValue) || repsValue <= 0 || weightValue == null || saving || !validRest) return;
       setError('');
       setSaving(true);
       try {
-         await onSave(exerciseId, repsValue, weightValue);
+         await onSave(exerciseId, repsValue, weightValue, restValue);
       } catch (err: unknown) {
          setError(getApiErrorMessage(err, 'Não foi possível salvar a série. Tente novamente.'));
       } finally {
@@ -158,10 +167,11 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
 
    const parsedReps = Number(reps);
    const parsedWeight = parseOptionalNonNegativeNumber(weight);
-   const canSave = !!exerciseId && Number.isInteger(parsedReps) && parsedReps > 0 && parsedWeight != null;
+   const validRest = !isFreeWorkout || (restSeconds.trim() !== '' && Number.isInteger(Number(restSeconds)) && Number(restSeconds) >= 0 && Number(restSeconds) <= 600);
+   const canSave = !!selectedExercise && Number.isInteger(parsedReps) && parsedReps > 0 && parsedWeight != null && validRest;
 
    return (
-      <form onSubmit={handleSave} className="space-y-5 rounded-xl border border-primary/25 bg-primary/5 p-3.5 sm:p-5">
+      <form onSubmit={handleSave} aria-label="Registrar série" className="space-y-5 rounded-xl border border-primary/25 bg-primary/5 p-3.5 sm:p-5">
          <fieldset disabled={disabled || saving} className="min-w-0 space-y-5">
          {bodyWeightStatus === 'loading' && (
             <p className="text-sm text-muted-foreground" role="status">Carregando peso corporal...</p>
@@ -169,7 +179,7 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
          {bodyWeightStatus === 'recorded' && currentBodyWeight != null && (
             <div className="flex items-start gap-2 text-sm text-muted-foreground">
                <Scale className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-               <p>Peso corporal registrado: <span className="font-medium text-foreground">{formatKilograms(currentBodyWeight)} kg</span></p>
+               <p>Peso corporal registrado: <span className="whitespace-nowrap font-medium text-foreground">{formatKilograms(currentBodyWeight)} kg</span></p>
             </div>
          )}
          {bodyWeightStatus === 'error' && (
@@ -203,7 +213,11 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
             </div>
          )}
 
-         <div className="form-field">
+         {isFreeWorkout ? <div className="space-y-3">
+            {selectedExercise && <div role="status" className="rounded-xl bg-background p-3 text-sm"><p className="font-semibold [overflow-wrap:anywhere]">{selectedExercise.name}</p><p className="mt-1 text-xs text-muted-foreground">{muscleGroupLabels[selectedExercise.muscleGroup] || selectedExercise.muscleGroup}</p></div>}
+            <ExerciseSearchDropdown exercises={catalogExercises} onSelect={exercise => handleExerciseChange(exercise.id)} label={selectedExercise ? 'Escolher outro exercício' : 'Escolher exercício'} placeholder="Buscar por nome, músculo ou equipamento" showMuscleGroup />
+            {catalogExercises.length === 0 && <p className="text-sm text-muted-foreground">Nenhum exercício disponível no catálogo.</p>}
+         </div> : <div className="form-field">
             <Label htmlFor="set-exercise">Exercício</Label>
             <Select id="set-exercise" value={exerciseId} onChange={(event) => handleExerciseChange(event.target.value)} required>
                <option value="">Selecione o exercício</option>
@@ -213,7 +227,7 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
                   </option>
                ))}
             </Select>
-         </div>
+         </div>}
 
          {/* Inline history */}
          {exerciseId && (
@@ -262,6 +276,11 @@ export function AddSetForm({ planExercises, onSave, onCancel, disabled = false }
                )}
             </div>
          </div>
+         {isFreeWorkout && <div className="form-field">
+            <Label htmlFor="set-rest">Descanso após a série (segundos)</Label>
+            <Input id="set-rest" type="number" min={0} max={600} step={1} inputMode="numeric" value={restSeconds} onChange={event => setRestSeconds(event.target.value)} required />
+            <p className="text-xs text-muted-foreground">Use 0 para registrar sem iniciar o timer de descanso.</p>
+         </div>}
          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <Button type="submit" size="sm" className="min-h-11 flex-1" disabled={!canSave || saving}>

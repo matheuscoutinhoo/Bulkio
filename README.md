@@ -7,6 +7,7 @@ Aplicação web para criar fichas de musculação, registrar treinos e acompanha
 - catálogo de exercícios por grupo muscular, tipo e equipamento;
 - criação, edição, duplicação e exclusão de fichas de treino;
 - registro de séries, repetições, carga, duração e observações;
+- treinos livres sem ficha, com seleção de exercícios do catálogo e intervalo de descanso por série;
 - histórico e progressão por exercício;
 - progressão com todo o histórico de séries salvas, incluindo sessões em andamento;
 - controle de peso corporal e metas;
