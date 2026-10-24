@@ -248,23 +248,23 @@ export default function DashboardPage() {
                <CardHeader>
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                      <Trophy className="h-5 w-5 text-yellow-500" />
-                     Records Pessoais
+                     Recordes pessoais
                   </CardTitle>
                </CardHeader>
                <CardContent>
-                  <Table aria-label="Recordes pessoais">
+                  <Table aria-label="Recordes pessoais" mobileLayout="cards">
                      <TableHeader><TableRow><TableHead>Exercício</TableHead><TableHead className="text-right">Carga</TableHead><TableHead className="text-right">Reps</TableHead></TableRow></TableHeader>
                      <TableBody>
                      {stats.personalRecords.map((pr) => (
                         <TableRow key={pr.id}>
-                           <TableCell className="w-full">
-                              <button type="button" className="min-h-11 text-left text-sm font-medium break-words hover:text-primary" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</button>
+                           <TableCell className="table-primary w-full">
+                              <button type="button" className="block min-h-11 w-full text-left text-sm font-semibold [overflow-wrap:anywhere] hover:text-primary" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</button>
                               <Badge variant="secondary" className="mt-1 text-xs">
                                  {muscleGroupLabels[pr.exercise.muscleGroup] || pr.exercise.muscleGroup}
                               </Badge>
                            </TableCell>
-                           <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">{pr.weight.toLocaleString('pt-BR')} kg</TableCell>
-                           <TableCell className="text-right tabular-nums">{pr.reps}</TableCell>
+                           <TableCell mobileLabel="Carga" className="table-stat text-right font-semibold tabular-nums whitespace-nowrap"><span className="text-lg sm:text-sm">{pr.weight.toLocaleString('pt-BR')}</span><span className="ml-1 text-xs font-normal text-muted-foreground">kg</span></TableCell>
+                           <TableCell mobileLabel="Repetições" className="table-stat text-right font-semibold tabular-nums"><span className="text-lg sm:text-sm">{pr.reps}</span></TableCell>
                         </TableRow>
                      ))}
                      </TableBody>

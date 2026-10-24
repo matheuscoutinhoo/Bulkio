@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { GoalDialog } from '@/components/bodyWeight/GoalDialog';
-import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair, Activity, ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { Plus, Trash2, Target, TrendingUp, TrendingDown, Scale, ArrowUpDown, Goal, Crosshair, Activity, ChartNoAxesColumnIncreasing, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -41,6 +42,10 @@ export default function BodyWeightPage() {
    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
    const [submitting, setSubmitting] = useState(false);
    const [deleting, setDeleting] = useState(false);
+   const [historyPage, setHistoryPage] = useState(1);
+   const historyPageSize = 10;
+   const historyPages = Math.max(1, Math.ceil(records.length / historyPageSize));
+   const visibleRecords = records.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
 
    const fetchRecords = useCallback(async () => {
       setLoading(true);
@@ -51,6 +56,7 @@ export default function BodyWeightPage() {
             authApi.getProfile(),
          ]);
          setRecords(recordsResponse);
+         setHistoryPage(1);
          setUser(profileResponse.data.data);
       } catch (err) {
          console.error(err);
@@ -293,6 +299,7 @@ export default function BodyWeightPage() {
          <Card>
             <CardHeader>
                <CardTitle className="text-base sm:text-lg">Histórico</CardTitle>
+               {!loading && !loadError && <p className="text-xs text-muted-foreground">{records.length} registros</p>}
             </CardHeader>
             <CardContent>
                {loading ? (
@@ -302,23 +309,31 @@ export default function BodyWeightPage() {
                ) : records.length === 0 ? (
                   <EmptyState compact icon={ChartNoAxesColumnIncreasing} title="Nenhum peso registrado" description="Adicione seu peso de hoje para começar a visualizar a tendência." />
                ) : (
-                  <Table aria-label="Histórico de peso corporal">
+                  <div className="space-y-4"><Table aria-label="Histórico de peso corporal" mobileLayout="cards">
                      <TableHeader><TableRow><TableHead className="text-right">Peso</TableHead><TableHead>Data</TableHead><TableHead className="w-12"><span className="sr-only">Ações</span></TableHead></TableRow></TableHeader>
                      <TableBody>
-                        {records.map((record) => (
-                           <TableRow key={record.id}>
-                              <TableCell className="text-right font-medium tabular-nums whitespace-nowrap">{record.weight.toLocaleString('pt-BR')} kg</TableCell>
-                              <TableCell className="text-muted-foreground">
+                        {visibleRecords.map((record) => (
+                           <TableRow key={record.id} className="table-weight-row">
+                              <TableCell className="table-weight-value text-right font-semibold tabular-nums whitespace-nowrap"><span className="text-xl sm:text-sm">{record.weight.toLocaleString('pt-BR')}</span><span className="ml-1 text-xs font-normal text-muted-foreground">kg</span></TableCell>
+                              <TableCell className="table-weight-date text-xs text-muted-foreground sm:text-sm">
                                  <span className="sm:hidden">{format(new Date(record.date), 'dd/MM/yyyy')}</span>
                                  <span className="hidden sm:inline">{format(new Date(record.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
                               </TableCell>
-                              <TableCell><Button variant="ghost" size="icon" className="hover:text-destructive" onClick={() => setDeleteTarget(record.id)} aria-label={`Excluir registro de ${record.weight}kg`}>
+                              <TableCell className="table-weight-actions"><Button variant="ghost" size="icon" className="bg-secondary/60 hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteTarget(record.id)} aria-label={`Excluir registro de ${record.weight}kg`}>
                                  <Trash2 className="h-3 w-3" />
                               </Button></TableCell>
                            </TableRow>
                         ))}
                      </TableBody>
                   </Table>
+                  {historyPages > 1 && <nav aria-label="Páginas do histórico de peso" className="flex items-center justify-between gap-2 border-t border-border/50 pt-3">
+                     <Button variant="outline" size="icon" disabled={historyPage === 1} onClick={() => setHistoryPage(page => page - 1)} aria-label="Página anterior de pesos"><ChevronLeft className="h-4 w-4" /></Button>
+                     <Select aria-label="Página do histórico de peso" value={historyPage} onChange={event => setHistoryPage(Number(event.target.value))} className="min-w-0 flex-1 text-xs sm:max-w-48">
+                        {Array.from({ length: historyPages }, (_, index) => <option key={index + 1} value={index + 1}>Página {index + 1} de {historyPages}</option>)}
+                     </Select>
+                     <Button variant="outline" size="icon" disabled={historyPage === historyPages} onClick={() => setHistoryPage(page => page + 1)} aria-label="Próxima página de pesos"><ChevronRight className="h-4 w-4" /></Button>
+                  </nav>}
+                  </div>
                )}
             </CardContent>
          </Card>

@@ -26,29 +26,44 @@ async function assertChartsFit(page: Page) {
    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 
+async function assertNoChartOutline(page: Page) {
+   const outlines = await page.locator('.chart-frame').evaluateAll(frames => frames.flatMap(frame => [...frame.querySelectorAll('*')].flatMap(element => {
+      const style = getComputedStyle(element);
+      return style.outlineStyle !== 'none' && Number.parseFloat(style.outlineWidth) > 0
+         ? [{ tag: element.tagName, class: element.getAttribute('class'), outline: style.outline }]
+         : [];
+   })));
+   expect(outlines).toEqual([]);
+}
+
 test('dashboard and weight charts fit; touches do not select the whole chart', async ({ page }, info) => {
    for (const path of ['/dashboard', '/body-weight']) {
       await page.goto(path);
       await assertChartsFit(page);
+      await assertTablesFit(page);
       for (const surface of await page.locator('.chart-frame svg.recharts-surface').all()) {
-      await surface.scrollIntoViewIfNeeded();
-      if (info.project.use.hasTouch) await surface.tap({ position: { x: 120, y: 70 } });
-      else await surface.click({ position: { x: 120, y: 70 } });
-      await surface.dblclick({ position: { x: 120, y: 70 } });
-      expect(await page.evaluate(() => window.getSelection()?.toString() || '')).toBe('');
-      expect(await surface.evaluate(element => getComputedStyle(element).userSelect)).toBe('none');
-      const borders = () => surface.evaluate(element => [element, element.closest('.recharts-wrapper')!].map(item => {
-         const style = getComputedStyle(item);
-         return { outline: style.outlineStyle, shadow: style.boxShadow, border: style.borderWidth };
-      }));
-      expect(await borders()).toEqual([{ outline: 'none', shadow: 'none', border: '0px' }, { outline: 'none', shadow: 'none', border: '0px' }]);
-      await surface.focus();
-      await page.keyboard.press('ArrowRight');
-      await expect(surface.locator('..').locator('.recharts-tooltip-wrapper')).toBeVisible();
-      expect((await borders()).every(style => style.outline === 'none' && style.shadow === 'none')).toBe(true);
+         await surface.scrollIntoViewIfNeeded();
+         // Different hit targets focus Recharts' grid and data <g> portals,
+         // even though those inner layers have tabindex=-1.
+         for (const position of [{ x: 120, y: 70 }, { x: 180, y: 150 }, { x: 100, y: 220 }]) {
+            if (info.project.use.hasTouch) await surface.tap({ position });
+            else await surface.click({ position });
+            await assertNoChartOutline(page);
+         }
+         await surface.dblclick({ position: { x: 120, y: 70 } });
+         expect(await page.evaluate(() => window.getSelection()?.toString() || '')).toBe('');
+         expect(await surface.evaluate(element => getComputedStyle(element).userSelect)).toBe('none');
+         await assertNoChartOutline(page);
+         await surface.locator('g[tabindex="-1"]').first().focus();
+         await assertNoChartOutline(page);
+         await surface.focus();
+         await page.keyboard.press('ArrowRight');
+         await expect(surface.locator('..').locator('.recharts-tooltip-wrapper')).toBeVisible();
+         await assertNoChartOutline(page);
       }
       await page.getByRole('heading', { level: 1 }).click();
       await assertChartsFit(page);
+      await page.getByRole('table').first().screenshot({ path: `test-results/table-${info.project.name}-${path.slice(1)}.png` });
       await page.screenshot({ path: `test-results/review-${info.project.name}-${path.slice(1)}.png`, fullPage: true });
    }
 });
@@ -61,6 +76,7 @@ test('workout library search, quick start, history filters and progression work'
    await page.getByRole('textbox', { name: 'Buscar fichas' }).fill('');
    await page.locator('button[aria-expanded="false"]').first().click();
    await assertTablesFit(page);
+   await page.getByRole('table').first().screenshot({ path: `test-results/table-${info.project.name}-workouts.png` });
    await page.screenshot({ path: `test-results/review-${info.project.name}-workouts.png`, fullPage: true });
    await page.getByRole('button', { name: 'Treinar agora' }).first().click();
    await expect(page).toHaveURL(/\/logs\?workout=new-workout/);
@@ -68,13 +84,15 @@ test('workout library search, quick start, history filters and progression work'
    await page.goto('/logs');
    await page.getByRole('button', { name: 'Concluídos', exact: true }).click();
    await expect(page.getByText('Completo', { exact: true })).toHaveCount(2);
-   await page.screenshot({ path: `test-results/review-${info.project.name}-logs.png`, fullPage: true });
    await page.locator('button[aria-expanded="false"]').first().click();
    await assertTablesFit(page);
    await page.getByRole('button', { name: /^Editar série 1 de/ }).first().click();
    await expect(page.getByRole('form', { name: 'Editar série 1' })).toBeVisible();
    await assertTablesFit(page);
+   await page.screenshot({ path: `test-results/review-${info.project.name}-edit-series.png`, fullPage: true });
    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+   await page.getByRole('table').first().screenshot({ path: `test-results/table-${info.project.name}-series.png` });
+   await page.screenshot({ path: `test-results/review-${info.project.name}-logs.png`, fullPage: true });
    await page.getByRole('button', { name: 'Remada curvada com barra', exact: true }).click();
    await expect(page.getByRole('dialog')).toBeVisible();
    await assertChartsFit(page);
@@ -137,6 +155,11 @@ async function assertTablesFit(page: Page) {
          : [{ name: table.querySelector('table')?.getAttribute('aria-label'), contentWidth: table.scrollWidth, availableWidth: table.clientWidth, right: bounds.right }];
    }))).toEqual([]);
    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+   expect(await page.locator('.data-table button').evaluateAll(buttons => buttons.flatMap(button => {
+      const bounds = button.getBoundingClientRect();
+      return bounds.width > 0 && (bounds.width < 44 || bounds.height < 44) ? [{ label: button.getAttribute('aria-label') || button.textContent, width: bounds.width, height: bounds.height }] : [];
+   }))).toEqual([]);
+   expect(await page.locator('.data-table--cards tbody tr').evaluateAll(rows => rows.every(row => getComputedStyle(row).display === (innerWidth < 640 ? 'grid' : 'table-row')))).toBe(true);
 }
 
 test('muscle list shows trained groups only and selections turn the model to the right side', async ({ page }, info) => {
@@ -185,7 +208,19 @@ test('weight progress includes records beyond the first page and uses the histor
    await page.goto('/body-weight');
    await expect(page.getByRole('progressbar', { name: 'Progresso até a meta de peso' })).toHaveAttribute('aria-valuenow', '50');
    await expect(page.getByText(/^Base: 90 kg, primeiro registro/)).toBeVisible();
-   await expect(page.getByRole('table', { name: 'Histórico de peso corporal' }).locator('tbody tr')).toHaveCount(101);
+   const table = page.getByRole('table', { name: 'Histórico de peso corporal' });
+   await expect(table.locator('tbody tr')).toHaveCount(10);
+   await expect(page.getByText('101 registros', { exact: true })).toBeVisible();
+   await expect(page.getByRole('button', { name: 'Página anterior de pesos' })).toBeDisabled();
+   await page.getByRole('button', { name: 'Próxima página de pesos' }).click();
+   await expect(page.getByRole('combobox', { name: 'Página do histórico de peso' })).toHaveValue('2');
+   await expect(table.locator('tbody tr').first().getByRole('cell').first()).toContainText('81');
+   await expect(page.getByRole('progressbar', { name: 'Progresso até a meta de peso' })).toHaveAttribute('aria-valuenow', '50');
+   await page.getByRole('button', { name: 'Página anterior de pesos' }).click();
+   await page.getByRole('combobox', { name: 'Página do histórico de peso' }).selectOption('11');
+   await expect(table.locator('tbody tr')).toHaveCount(1);
+   await expect(table.locator('tbody tr').first().getByRole('cell').first()).toContainText('90');
+   await expect(page.getByRole('button', { name: 'Próxima página de pesos' })).toBeDisabled();
    await assertTablesFit(page);
    await assertChartsFit(page);
    await page.getByRole('button', { name: 'Definir meta', exact: true }).click();
@@ -201,4 +236,12 @@ test('dark theme preserves readable charts and the profile controls', async ({ p
    await page.locator('a[href="/dashboard"]:visible').last().click();
    await assertChartsFit(page);
    await page.screenshot({ path: `test-results/review-${info.project.name}-dark-dashboard.png`, fullPage: true });
+   await page.locator('a[href="/workouts"]:visible').last().click();
+   await page.locator('button[aria-expanded="false"]').first().click();
+   await assertTablesFit(page);
+   await page.getByRole('table').first().screenshot({ path: `test-results/table-${info.project.name}-dark-workouts.png` });
+   await page.locator('a[href="/logs"]:visible').last().click();
+   await page.locator('button[aria-expanded="false"]').first().click();
+   await assertTablesFit(page);
+   await page.getByRole('table').first().screenshot({ path: `test-results/table-${info.project.name}-dark-series.png` });
 });

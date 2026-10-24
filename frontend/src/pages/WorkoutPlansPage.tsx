@@ -172,30 +172,33 @@ export default function WorkoutPlansPage() {
                      </CardHeader>
                      {expandedPlan === plan.id && (
                         <CardContent id={`plan-${plan.id}`} className="animate-fade-in-down border-t border-border/60 pt-4 sm:pt-5">
-                           <Table aria-label={`Exercícios de ${plan.name}`}>
+                           <Table aria-label={`Exercícios de ${plan.name}`} mobileLayout="cards">
                               <TableHeader><TableRow><TableHead className="w-8">#</TableHead><TableHead>Exercício / planejamento</TableHead><TableHead className="w-12"><span className="sr-only">Detalhes</span></TableHead></TableRow></TableHeader>
                               <TableBody>
                               {plan.exercises.map((pe, i) => (
                                  <TableRow key={pe.id}>
-                                    <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                                    <TableCell>
-                                       <button type="button" className="min-h-11 w-full text-left font-medium break-words hover:text-primary" onClick={() => setProgressionExercise(pe.exercise)}>{pe.exercise.name}</button>
-                                       <Badge variant="outline" className="mb-2 text-xs">{muscleGroupLabels[pe.exercise.muscleGroup]}</Badge>
-                                       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                          <span>{pe.sets} séries × {pe.reps} reps</span>
-                                          {pe.weight != null && <span>• {pe.weight}kg</span>}
-                                          <span>• {formatRestDuration(pe.restSeconds)} de descanso</span>
+                                    <TableCell className="table-mobile-hidden text-muted-foreground tabular-nums">{i + 1}</TableCell>
+                                    <TableCell className="table-primary">
+                                       <button type="button" className="flex min-h-11 w-full items-start gap-2 text-left font-semibold [overflow-wrap:anywhere] hover:text-primary sm:items-center" onClick={() => setProgressionExercise(pe.exercise)}><span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs text-primary sm:hidden">{i + 1}</span><span className="min-w-0 flex-1">{pe.exercise.name}</span></button>
+                                       <Badge variant="outline" className="mt-1 text-xs">{muscleGroupLabels[pe.exercise.muscleGroup]}</Badge>
+                                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:flex sm:flex-wrap sm:gap-3">
+                                          <span className="rounded-lg bg-secondary/45 px-2.5 py-2 sm:bg-transparent sm:p-0"><span className="block font-semibold tabular-nums sm:inline">{pe.sets} × {pe.reps}</span><span className="text-muted-foreground sm:ml-1">séries × reps</span></span>
+                                          {pe.weight != null && <span className="rounded-lg bg-secondary/45 px-2.5 py-2 sm:bg-transparent sm:p-0"><span className="block font-semibold tabular-nums sm:inline">{pe.weight.toLocaleString('pt-BR')} kg</span><span className="text-muted-foreground sm:ml-1">carga</span></span>}
+                                          <span className="hidden text-muted-foreground sm:inline">{formatRestDuration(pe.restSeconds)} de descanso</span>
                                        </div>
                                     </TableCell>
-                                    <TableCell><Button
+                                    <TableCell className="table-actions"><div className="flex items-center justify-between gap-2">
+                                       <span className="text-xs text-muted-foreground sm:hidden">{formatRestDuration(pe.restSeconds)} de descanso</span>
+                                       <Button
                                        variant="ghost"
                                        size="icon"
-                                       className="shrink-0 hover:text-primary"
+                                       className="w-auto shrink-0 gap-2 bg-primary/7 px-3 text-primary sm:w-11 sm:bg-transparent sm:px-0"
                                        onClick={() => setSelectedExercise(pe.exercise)}
                                        aria-label={`Ver detalhes de ${pe.exercise.name}`}
                                     >
                                        <HelpCircle className="h-4 w-4" />
-                                    </Button></TableCell>
+                                       <span className="text-xs sm:hidden">Detalhes</span>
+                                    </Button></div></TableCell>
                                  </TableRow>
                               ))}
                               {plan.exercises.length === 0 && (

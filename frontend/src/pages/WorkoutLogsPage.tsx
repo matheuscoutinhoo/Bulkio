@@ -306,7 +306,7 @@ export default function WorkoutLogsPage() {
                               {log.exercises.length > 0 ? (
                                  <div className="space-y-3 mb-4">
                                     {log.exercises.map((logEx) => (
-                                       <div key={logEx.id} className="p-3 rounded-lg bg-secondary/30">
+                                       <div key={logEx.id} className="rounded-2xl border border-border/50 bg-card p-2.5 sm:p-4">
                                           <div className="flex items-start justify-between gap-2 mb-2">
                                              <div className="flex flex-wrap items-center gap-2 min-w-0">
                                                 <button
@@ -333,7 +333,7 @@ export default function WorkoutLogsPage() {
                                                 {logEx.sets.length} {logEx.sets.length === 1 ? 'série' : 'séries'}
                                              </Badge>
                                           </div>
-                                          <Table aria-label={`Séries de ${logEx.exercise.name}`} className="table-fixed [&_th]:px-1 [&_td]:px-1 sm:[&_th]:px-3 sm:[&_td]:px-3">
+                                          <Table aria-label={`Séries de ${logEx.exercise.name}`} className="table-fixed [&_th]:px-1.5 [&_td]:px-1.5 sm:[&_th]:px-3 sm:[&_td]:px-3">
                                              <TableHeader><TableRow><TableHead className="w-10 sm:w-16">Série</TableHead><TableHead className="text-right">Reps</TableHead><TableHead className="text-right">Carga (kg)</TableHead><TableHead className="w-14 sm:w-20"><span className="sr-only">Ações</span></TableHead></TableRow></TableHeader>
                                              <TableBody>
                                              {logEx.sets.map((set) => (
@@ -342,10 +342,10 @@ export default function WorkoutLogsPage() {
                                                       <TableCell colSpan={4}><EditSetForm set={set} onSave={(reps, weight) => handleUpdateSet(log, set.id, reps, weight)} onCancel={() => setEditingSet(null)} /></TableCell>
                                                    ) : (
                                                       <>
-                                                         <TableCell className="text-muted-foreground tabular-nums">{set.setNumber}</TableCell>
-                                                         <TableCell className="text-right font-medium tabular-nums">{set.reps}</TableCell>
-                                                         <TableCell className="text-right font-medium tabular-nums break-words">{formatKilograms(set.weight)}</TableCell>
-                                                         <TableCell><Button type="button" variant="ghost" size="icon" disabled={editingSet !== null || savingSet} onClick={() => setEditingSet(set.id)} aria-label={`Editar série ${set.setNumber} de ${logEx.exercise.name}`} className="text-primary">
+                                                         <TableCell className="tabular-nums"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 text-xs font-semibold text-primary">{set.setNumber}</span></TableCell>
+                                                         <TableCell className="text-right text-base font-semibold tabular-nums">{set.reps}</TableCell>
+                                                         <TableCell className="text-right text-base font-semibold tabular-nums break-words">{formatKilograms(set.weight)}</TableCell>
+                                                         <TableCell><Button type="button" variant="ghost" size="icon" disabled={editingSet !== null || savingSet} onClick={() => setEditingSet(set.id)} aria-label={`Editar série ${set.setNumber} de ${logEx.exercise.name}`} className="bg-primary/7 text-primary hover:bg-primary/15">
                                                             <Pencil className="h-4 w-4" aria-hidden="true" />
                                                          </Button></TableCell>
                                                       </>
