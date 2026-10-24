@@ -14,9 +14,9 @@ import {
    YAxis,
    CartesianGrid,
    Tooltip,
-   ResponsiveContainer,
 } from 'recharts';
 import { ErrorState, LoadingState } from '@/components/ui/feedback';
+import { ChartFrame } from '@/components/ui/chart-frame';
 
 interface ExerciseProgressionDialogProps {
    exercise: { id: string; name: string; muscleGroup: string } | null;
@@ -103,7 +103,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                <p className="text-xs text-muted-foreground mt-1">Complete treinos com este exercício para ver a progressão.</p>
             </div>
          ) : (
-            <div className="space-y-4 overflow-y-auto max-h-[65vh] sm:max-h-[70vh] pr-1">
+            <div className="min-w-0 space-y-5">
                {/* Progression highlight */}
                {data.length >= 2 && (
                   <div className={`rounded-lg p-3 sm:p-4 border ${weightDiff > 0
@@ -176,9 +176,8 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                {/* Weight progression chart */}
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Carga Máxima</h3>
-                  <div className="aspect-video w-full" role="img" aria-label={`Gráfico de evolução de carga para ${exercise.name}`}>
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <ChartFrame label={`Gráfico de evolução de carga para ${exercise.name}`} className="sm:h-72">
+                        <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
                            <defs>
                               <linearGradient id="gradMaxWeight" x1="0" y1="0" x2="0" y2="1">
                                  <stop offset="0%" stopColor={colors.gradientFrom} stopOpacity={0.8} />
@@ -200,14 +199,14 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               axisLine={false}
                               tickLine={false}
                               width={45}
-                              tickFormatter={(v) => `${v}kg`}
+                              tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })}
                            />
                            <Tooltip
                               content={({ active, payload }) => {
                                  if (!active || !payload?.length) return null;
                                  const d = payload[0].payload;
                                  return (
-                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                    <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
                                        <p className="text-muted-foreground text-xs">{d.fullDate || d.date}</p>
                                        <p className="font-semibold text-base">{payload[0].value}kg</p>
                                        <p className="text-muted-foreground text-xs">Carga máxima</p>
@@ -216,6 +215,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               }}
                            />
                            <Area
+                              isAnimationActive={false}
                               type="monotone"
                               dataKey="maxWeight"
                               stroke={colors.primary}
@@ -225,17 +225,15 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               activeDot={{ r: 5, strokeWidth: 2, stroke: colors.primary, fill: colors.tooltipBg }}
                            />
                         </AreaChart>
-                     </ResponsiveContainer>
-                  </div>
+                  </ChartFrame>
                </div>
 
                {/* Volume progression chart */}
                <div>
                   <h3 className="text-sm font-medium mb-2">Evolução de Volume Total</h3>
                   <p className="text-xs text-muted-foreground mb-2">Volume = Σ(repetições × carga) por sessão</p>
-                  <div className="aspect-video w-full" role="img" aria-label={`Gráfico de volume total para ${exercise.name}`}>
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <ChartFrame label={`Gráfico de volume total para ${exercise.name}`} className="sm:h-72">
+                        <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
                            <defs>
                               <linearGradient id="gradVolume" x1="0" y1="0" x2="0" y2="1">
                                  <stop offset="0%" stopColor={colors.gradientFromSecondary} stopOpacity={0.7} />
@@ -257,14 +255,14 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               axisLine={false}
                               tickLine={false}
                               width={55}
-                              tickFormatter={(v) => `${v}kg`}
+                              tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })}
                            />
                            <Tooltip
                               content={({ active, payload }) => {
                                  if (!active || !payload?.length) return null;
                                  const d = payload[0].payload;
                                  return (
-                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                    <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
                                        <p className="text-muted-foreground text-xs">{d.fullDate || d.date}</p>
                                        <p className="font-semibold text-base">{Number(payload[0].value).toLocaleString('pt-BR')}kg</p>
                                        <p className="text-muted-foreground text-xs">Volume total</p>
@@ -273,6 +271,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               }}
                            />
                            <Area
+                              isAnimationActive={false}
                               type="monotone"
                               dataKey="totalVolume"
                               stroke={colors.secondary}
@@ -282,8 +281,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                               activeDot={{ r: 5, strokeWidth: 2, stroke: colors.secondary, fill: colors.tooltipBg }}
                            />
                         </AreaChart>
-                     </ResponsiveContainer>
-                  </div>
+                  </ChartFrame>
                </div>
 
                {/* Volume progression message */}

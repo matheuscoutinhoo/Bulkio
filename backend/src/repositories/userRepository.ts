@@ -1,6 +1,18 @@
 import prisma from '../config/database';
 
 export const userRepository = {
+   findCredentialsById(id: string) {
+      return prisma.user.findUnique({ where: { id }, select: { id: true, password: true } });
+   },
+
+   changePassword(id: string, previousHash: string, password: string) {
+      return prisma.$transaction(async (tx) => {
+         const result = await tx.user.updateMany({ where: { id, password: previousHash }, data: { password } });
+         if (result.count === 1) await tx.refreshToken.deleteMany({ where: { userId: id } });
+         return result.count === 1;
+      });
+   },
+
    findByEmail(email: string) {
       return prisma.user.findUnique({
          where: { email },

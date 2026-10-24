@@ -13,6 +13,8 @@ vi.mock('../../repositories/userRepository', () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      findCredentialsById: vi.fn(),
+      changePassword: vi.fn(),
    },
 }));
 
@@ -46,6 +48,47 @@ describe('authService', () => {
       // Default: refresh token storage succeeds
       mockRefreshTokenRepo.create.mockResolvedValue({} as any);
       mockRefreshTokenRepo.deleteByHash.mockResolvedValue(null as any);
+   });
+
+   describe('changePassword', () => {
+      const data = { currentPassword: 'current-password', newPassword: 'replacement-password' };
+      beforeEach(() => {
+         mockUserRepo.findCredentialsById.mockResolvedValue({ id: 'user-1', password: 'old-hash' });
+         mockUserRepo.changePassword.mockResolvedValue(true);
+      });
+
+      it('verifies the current password and saves only a hash of the replacement', async () => {
+         mockBcrypt.compare.mockResolvedValueOnce(true as never).mockResolvedValueOnce(false as never);
+         mockBcrypt.hash.mockResolvedValueOnce('new-hash' as never);
+         await authService.changePassword('user-1', data);
+         expect(mockBcrypt.compare).toHaveBeenNthCalledWith(1, data.currentPassword, 'old-hash');
+         expect(mockUserRepo.changePassword).toHaveBeenCalledWith('user-1', 'old-hash', 'new-hash');
+      });
+
+      it('rejects an incorrect current password without changing credentials', async () => {
+         mockBcrypt.compare.mockResolvedValueOnce(false as never);
+         await expect(authService.changePassword('user-1', data)).rejects.toThrow('Senha atual incorreta.');
+         expect(mockUserRepo.changePassword).not.toHaveBeenCalled();
+      });
+
+      it('rejects a replacement that matches the existing bcrypt hash', async () => {
+         mockBcrypt.compare.mockResolvedValueOnce(true as never).mockResolvedValueOnce(true as never);
+         await expect(authService.changePassword('user-1', data)).rejects.toThrow('Escolha uma senha diferente');
+         expect(mockUserRepo.changePassword).not.toHaveBeenCalled();
+      });
+
+      it('rejects a concurrent password change instead of overwriting it', async () => {
+         mockBcrypt.compare.mockResolvedValueOnce(true as never).mockResolvedValueOnce(false as never);
+         mockBcrypt.hash.mockResolvedValueOnce('new-hash' as never);
+         mockUserRepo.changePassword.mockResolvedValue(false);
+         await expect(authService.changePassword('user-1', data)).rejects.toThrow('alterada em outra sessão');
+      });
+
+      it('rejects a missing user', async () => {
+         mockUserRepo.findCredentialsById.mockResolvedValue(null);
+         await expect(authService.changePassword('user-1', data)).rejects.toThrow('User not found');
+         expect(mockUserRepo.changePassword).not.toHaveBeenCalled();
+      });
    });
 
    // ========== register ==========

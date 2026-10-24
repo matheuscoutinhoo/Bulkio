@@ -12,13 +12,15 @@ import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-   ResponsiveContainer, ReferenceLine,
+   ReferenceLine,
 } from 'recharts';
 import { useChartColors } from '@/lib/useChartColors';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
+import { ChartFrame } from '@/components/ui/chart-frame';
+import { SectionOverview, OverviewMetric } from '@/components/ui/section-overview';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -132,6 +134,11 @@ export default function BodyWeightPage() {
    const bmi = latestWeight && user?.height
       ? latestWeight / ((user.height / 100) ** 2)
       : null;
+   const goalStart = user?.initialWeight ?? oldestWeight;
+   const goalProgress = latestWeight != null && goalStart != null && user?.targetWeight != null && user.targetWeight !== goalStart
+      ? Math.max(0, Math.min(100, (latestWeight - goalStart) / (user.targetWeight - goalStart) * 100))
+      : null;
+   const goalDistance = latestWeight != null && user?.targetWeight != null ? Math.abs(latestWeight - user.targetWeight) : null;
 
    const getBmiLabel = (value: number) => {
       if (value < 18.5) return { label: 'Abaixo do peso', color: 'text-warning' };
@@ -143,6 +150,28 @@ export default function BodyWeightPage() {
    return (
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Peso corporal" description="Acompanhe tendências com contexto e mantenha sua meta sempre visível." actions={<Button variant="outline" onClick={() => setShowGoals(true)}><Target className="h-4 w-4" /> Definir meta</Button>} />
+
+         {!loading && !loadError && <SectionOverview icon={Target} eyebrow="Uma medida de cada vez" title={user?.targetWeight ? 'Seu objetivo, sempre à vista' : 'Construa seu histórico de evolução'} description={goalDistance != null ? `Diferença para a meta: ${goalDistance.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg. Observe a tendência ao longo do tempo.` : 'Registre seu peso com frequência e defina uma meta para acompanhar seu caminho.'}>
+            <OverviewMetric value={latestWeight != null ? `${latestWeight.toLocaleString('pt-BR')} kg` : '—'} label="peso mais recente" />
+            <OverviewMetric value={user?.targetWeight != null ? `${user.targetWeight.toLocaleString('pt-BR')} kg` : '—'} label="sua meta" />
+         </SectionOverview>}
+
+         {goalProgress != null && <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 text-xs"><span className="font-medium">Do peso inicial à sua meta</span><span className="font-semibold text-primary">{Math.round(goalProgress)}%</span></div>
+            <div role="progressbar" aria-label="Progresso até a meta de peso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(goalProgress)} className="h-2 overflow-hidden rounded-full bg-primary/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-primary transition-[width]" style={{ width: `${goalProgress}%` }} /></div>
+         </div>}
+
+         <Card className="border-primary/20">
+            <CardContent className="p-5 sm:p-6">
+               <form onSubmit={handleAddWeight} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                  <div className="form-field flex-1">
+                     <Label htmlFor="new-weight">Qual é seu peso hoje?</Label>
+                     <div className="relative"><Input id="new-weight" type="number" step="0.1" placeholder="Ex: 75,5" value={newWeight} onChange={(event) => setNewWeight(event.target.value)} required min="20" max="500" inputMode="decimal" className="pr-12" /><span className="pointer-events-none absolute right-4 top-3 text-sm text-muted-foreground">kg</span></div>
+                  </div>
+                  <Button type="submit" disabled={!newWeight || submitting}><Plus className="h-4 w-4" />{submitting ? 'Registrando…' : 'Registrar peso'}</Button>
+               </form>
+            </CardContent>
+         </Card>
 
          {/* Stats */}
          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5 stagger-children">
@@ -213,32 +242,6 @@ export default function BodyWeightPage() {
             </Card>
          </div>
 
-         {/* Add weight form */}
-         <Card>
-            <CardContent className="p-5 sm:p-6">
-               <form onSubmit={handleAddWeight} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                  <div className="form-field flex-1">
-                     <Label htmlFor="new-weight">Peso de hoje (kg)</Label>
-                     <Input
-                        id="new-weight"
-                        type="number"
-                        step="0.1"
-                        placeholder="Ex: 75.5"
-                        value={newWeight}
-                        onChange={(e) => setNewWeight(e.target.value)}
-                        required
-                        min="20"
-                        max="500"
-                        inputMode="decimal"
-                     />
-                  </div>
-                  <Button type="submit" disabled={!newWeight || submitting}>
-                     <Plus className="h-4 w-4" /> {submitting ? 'Registrando…' : 'Registrar peso'}
-                  </Button>
-               </form>
-            </CardContent>
-         </Card>
-
          {/* Chart */}
          {chartData.length > 1 && (
             <Card>
@@ -246,13 +249,8 @@ export default function BodyWeightPage() {
                   <CardTitle className="text-base sm:text-lg">Evolução do Peso</CardTitle>
                </CardHeader>
                <CardContent>
-                  <div
-                     className="w-full aspect-video min-h-45 max-h-75"
-                     role="img"
-                     aria-label="Gráfico da evolução do peso corporal"
-                  >
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData}>
+                  <ChartFrame label="Gráfico da evolução do peso corporal em kg">
+                        <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
                            <defs>
                               <linearGradient id="gradBodyWeight" x1="0" y1="0" x2="0" y2="1">
                                  <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.8} />
@@ -261,31 +259,31 @@ export default function BodyWeightPage() {
                               </linearGradient>
                            </defs>
                            <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
-                           <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} />
-                           <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={45} tickFormatter={(v) => `${v}kg`} />
+                           <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} padding={{ left: 8, right: 8 }} />
+                           <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={48} tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} />
                            <Tooltip
                               content={({ active, payload, label }) => {
                                  if (!active || !payload?.length) return null;
                                  return (
-                                    <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                    <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
                                        <p className="text-muted-foreground text-xs">{label}</p>
                                        <p className="font-semibold text-base">{payload[0].value}kg</p>
                                     </div>
                                  );
                               }}
                            />
-                           <Area type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradBodyWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
+                           <Area isAnimationActive={false} type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradBodyWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
                            {user?.targetWeight && (
                               <ReferenceLine
                                  y={user.targetWeight}
                                  stroke="#22c55e"
                                  strokeDasharray="6 4"
-                                 label={{ value: 'Meta', fill: '#22c55e', fontSize: 12 }}
+                                 ifOverflow="extendDomain"
+                                 label={{ value: 'Meta', position: 'insideTopRight', fill: '#22c55e', fontSize: 12 }}
                               />
                            )}
                         </AreaChart>
-                     </ResponsiveContainer>
-                  </div>
+                  </ChartFrame>
                </CardContent>
             </Card>
          )}
@@ -313,7 +311,7 @@ export default function BodyWeightPage() {
                         {records.map((record) => (
                            <div
                               key={record.id}
-                              className="grid grid-cols-[1fr_1fr_auto] gap-4 items-center px-4 py-3 hover:bg-secondary/20 transition-colors"
+                              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2 items-center px-1 py-3 hover:bg-secondary/20 transition-colors sm:gap-4 sm:px-4"
                            >
                               <span className="font-medium">{record.weight}kg</span>
                               <span className="text-sm text-muted-foreground">

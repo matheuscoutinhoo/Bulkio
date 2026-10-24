@@ -11,6 +11,7 @@ Aplicação web para criar fichas de musculação, registrar treinos e acompanha
 - controle de peso corporal e metas;
 - dashboard com volume, sequência de treinos, recordes, mapa de atividade e corpo 3D rotacionável com intensidade por grupo muscular;
 - autenticação com access token e refresh token em cookie `httpOnly`;
+- alteração de senha no perfil, com verificação da senha atual e revogação de refresh tokens;
 - tema claro/escuro e suporte a instalação como PWA.
 
 ## Stack
@@ -86,10 +87,23 @@ Os antigos arquivos SQLite não são usados pela aplicação. Se houver dados lo
 ## Testes e qualidade
 
 ```bash
-npm test                  # testes unitários do backend
+npm test                  # testes unitários de backend e frontend
 npm run lint              # lint de backend e frontend
 npm run build             # build completo
 ```
+
+Os testes de usabilidade usam dados fictícios locais e Chromium em 320, 390,
+768 e 1440 pixels. Verificam limites e rótulos dos gráficos, interação por
+toque, seleção do corpo 3D, início de treino e alteração de senha:
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
+```
+
+As capturas de revisão ficam em `frontend/test-results/`. Os testes do navegador
+simulam as respostas da API; não acessam contas nem alteram dados de produção.
 
 Os testes de integração usam um PostgreSQL isolado na porta `5433`:
 

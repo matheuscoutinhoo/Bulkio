@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WorkoutLogsPage from './WorkoutLogsPage';
 import { workoutLogApi, type WorkoutLog } from '@/services/workoutLogService';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('@/services/workoutLogService', () => ({ workoutLogApi: { getAll: vi.fn(), update: vi.fn() } }));
 vi.mock('@/components/exercises/ExerciseDetailModal', () => ({ ExerciseDetailModal: () => null }));
@@ -23,7 +24,7 @@ const log: WorkoutLog = {
 };
 
 async function openEditor() {
-   render(<WorkoutLogsPage />);
+   render(<MemoryRouter><WorkoutLogsPage /></MemoryRouter>);
    fireEvent.click(await screen.findByRole('button', { expanded: false }));
    fireEvent.click(screen.getByRole('button', { name: 'Editar série 2 de Supino' }));
 }

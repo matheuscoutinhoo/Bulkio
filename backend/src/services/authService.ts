@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { userRepository } from '../repositories/userRepository';
 import { refreshTokenRepository } from '../repositories/refreshTokenRepository';
-import { ConflictError, UnauthorizedError } from '../utils/errors';
-import { RegisterInput, LoginInput, UpdateProfileInput } from '../models/schemas';
+import { ConflictError, UnauthorizedError, ValidationError } from '../utils/errors';
+import { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput } from '../models/schemas';
 import { AuthTokens, JwtPayload } from '../models/types';
 
 function generateTokens(payload: JwtPayload): AuthTokens {
@@ -30,6 +30,21 @@ async function storeRefreshToken(refreshToken: string, userId: string): Promise<
 }
 
 export const authService = {
+   async changePassword(userId: string, data: ChangePasswordInput) {
+      const user = await userRepository.findCredentialsById(userId);
+      if (!user) throw new UnauthorizedError('User not found');
+      if (!await bcrypt.compare(data.currentPassword, user.password)) {
+         throw new ValidationError('Senha atual incorreta.');
+      }
+      if (await bcrypt.compare(data.newPassword, user.password)) {
+         throw new ValidationError('Escolha uma senha diferente da atual.');
+      }
+      const hash = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
+      if (!await userRepository.changePassword(userId, user.password, hash)) {
+         throw new ConflictError('Sua senha foi alterada em outra sessão. Entre novamente.');
+      }
+   },
+
    async register(data: RegisterInput) {
       const existingEmail = await userRepository.findByEmail(data.email);
       if (existingEmail) throw new ConflictError('Email already registered');

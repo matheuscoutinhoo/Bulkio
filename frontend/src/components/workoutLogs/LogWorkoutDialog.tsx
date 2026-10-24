@@ -12,7 +12,7 @@ import { getApiErrorMessage } from '@/lib/api';
 interface LogWorkoutDialogProps {
    open: boolean;
    onClose: () => void;
-   onCreated: () => void;
+   onCreated: (logId: string) => void;
 }
 
 export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogProps) {
@@ -47,7 +47,7 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
       setSubmitting(true);
       try {
          const now = new Date().toISOString();
-         await workoutLogApi.create({
+         const response = await workoutLogApi.create({
             workoutPlanId: selectedPlan,
             date: now,
             startTime: now,
@@ -56,8 +56,8 @@ export function LogWorkoutDialog({ open, onClose, onCreated }: LogWorkoutDialogP
             exercises: [],
          });
          handleClose();
-         onCreated();
-         toast.success('Treino iniciado', 'Abra o treino no histórico para registrar suas séries.');
+         onCreated(response.data.data.id);
+         toast.success('Treino iniciado', 'Registre suas séries conforme avança.');
       } catch (err: unknown) {
          setError(getApiErrorMessage(err, 'Não foi possível iniciar o treino.'));
       } finally {

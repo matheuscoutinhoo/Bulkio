@@ -34,3 +34,8 @@ node scripts/build-muscle-model.mjs
 O cache padrão é `.tmp/muscle-model`; um caminho alternativo pode ser passado
 como primeiro argumento. O GLB e a licença são versionados; o build normal da
 aplicação não executa este script nem depende da disponibilidade do GitHub.
+
+As fronteiras são classificadas por triângulo. A região de panturrilha usa
+também a orientação da superfície para não selecionar a canela. O toque usa
+somente o triângulo visível mais próximo; regiões neutras bloqueiam seleções
+através do corpo. Movimentos de rotação, rolagem e multitoque não selecionam grupos.

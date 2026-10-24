@@ -8,13 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Mail, Calendar, Pencil, Trash2, LogOut, Check, X } from 'lucide-react';
+import { User, Mail, Calendar, Pencil, Trash2, LogOut, Check, X, ShieldCheck, LockKeyhole, Sun, Moon, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
 import { toast } from '@/stores/toastStore';
 import { getApiErrorMessage } from '@/lib/api';
 import { ErrorState } from '@/components/ui/feedback';
+import { SectionOverview } from '@/components/ui/section-overview';
+import { ChangePasswordDialog } from '@/components/profile/ChangePasswordDialog';
+import { useThemeStore } from '@/stores/themeStore';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -28,6 +31,8 @@ export default function ProfilePage() {
    const [loading, setLoading] = useState(true);
    const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
    const [loadError, setLoadError] = useState(false);
+   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+   const { theme, toggleTheme } = useThemeStore();
 
    // Username editing
    const [editingUsername, setEditingUsername] = useState(false);
@@ -150,8 +155,12 @@ export default function ProfilePage() {
       : '-';
 
    return (
-      <div className="mx-auto max-w-2xl space-y-6 sm:space-y-8 animate-fade-in-up">
+      <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Perfil" description="Gerencie suas informações pessoais e preferências da conta." />
+
+         <SectionOverview icon={User} eyebrow="Seu espaço no Bulkio" title={user?.username || 'Sua conta'} description={user?.goal ? `Seu objetivo atual: ${goalLabels[user.goal] || user.goal}. Personalize sua experiência e mantenha sua conta protegida.` : 'Sua rotina, suas metas e suas preferências em um só lugar.'} />
+
+         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
 
          {/* User info card */}
          <Card>
@@ -164,7 +173,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
                {/* Username */}
                <div className="flex items-center justify-between">
-                  <div className="form-field flex-1">
+                  <div className="form-field min-w-0 flex-1">
                      <Label htmlFor={editingUsername ? 'profile-username' : undefined} className="text-muted-foreground text-xs uppercase tracking-wide">Nome de usuário</Label>
                      {editingUsername ? (
                         <div className="flex items-center gap-2">
@@ -205,7 +214,7 @@ export default function ProfilePage() {
                         </div>
                      ) : (
                         <div className="flex items-center gap-2">
-                           <p className="text-base font-medium">{user?.username}</p>
+                           <p className="min-w-0 break-words text-base font-medium">{user?.username}</p>
                            <Button
                               type="button"
                               variant="ghost"
@@ -230,7 +239,7 @@ export default function ProfilePage() {
                   <Label className="text-muted-foreground text-xs uppercase tracking-wide">Email</Label>
                   <div className="flex items-center gap-2 min-w-0">
                      <Mail className="h-4 w-4 text-blue-500 shrink-0" />
-                     <p className="text-sm sm:text-base truncate">{user?.email}</p>
+                     <p className="min-w-0 break-all text-sm sm:text-base">{user?.email}</p>
                   </div>
                </div>
 
@@ -257,10 +266,20 @@ export default function ProfilePage() {
             </CardContent>
          </Card>
 
+         <div className="space-y-6">
+            <Card className="border-primary/20">
+               <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><ShieldCheck className="h-5 w-5 text-primary" />Segurança</CardTitle><p className="text-sm text-muted-foreground">Cuide do acesso à sua conta.</p></CardHeader>
+               <CardContent><button type="button" onClick={() => setShowPasswordDialog(true)} className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border/60 bg-background/60 p-3.5 text-left transition-colors hover:border-primary/35 hover:bg-primary/5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><LockKeyhole className="h-5 w-5" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Alterar senha</span><span className="mt-1 block text-xs text-muted-foreground">Verifique a senha atual e escolha uma nova.</span></span><ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" /></button></CardContent>
+            </Card>
+            <Card>
+               <CardHeader><CardTitle className="text-lg">Aparência</CardTitle></CardHeader>
+               <CardContent><button type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'} className="flex min-h-14 w-full items-center justify-between gap-3 rounded-xl bg-secondary/35 p-3.5 text-left"><span><span className="block text-sm font-semibold">{theme === 'dark' ? 'Modo escuro' : 'Modo claro'}</span><span className="mt-1 block text-xs text-muted-foreground">Toque para alternar o tema.</span></span>{theme === 'dark' ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}</button></CardContent>
+            </Card>
+
          {/* Actions card */}
          <Card className="border-destructive/15">
             <CardHeader>
-               <CardTitle className="text-lg">Ações</CardTitle>
+               <CardTitle className="text-lg">Sua conta</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
@@ -268,8 +287,8 @@ export default function ProfilePage() {
                   Sair da conta
                </Button>
                <Button
-                  variant="destructive"
-                  className="w-full justify-start"
+                  variant="ghost"
+                  className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => setShowDeleteDialog(true)}
                >
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -277,6 +296,10 @@ export default function ProfilePage() {
                </Button>
             </CardContent>
          </Card>
+         </div>
+         </div>
+
+         {showPasswordDialog && <ChangePasswordDialog onClose={() => setShowPasswordDialog(false)} />}
 
          {/* Delete account confirmation dialog */}
          <Dialog open={showDeleteDialog} onClose={() => { setShowDeleteDialog(false); setDeleteConfirmation(''); }}>

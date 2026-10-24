@@ -12,6 +12,7 @@ vi.mock('../../services/authService', () => ({
       getProfile: vi.fn(),
       updateProfile: vi.fn(),
       deleteAccount: vi.fn(),
+      changePassword: vi.fn(),
    },
 }));
 
@@ -22,6 +23,17 @@ const mockService = vi.mocked(authService);
 describe('authController', () => {
    beforeEach(() => {
       vi.clearAllMocks();
+   });
+
+   it('changes the password for the authenticated user and clears the refresh cookie', async () => {
+      mockService.changePassword.mockResolvedValue(undefined);
+      const body = { currentPassword: 'old-password', newPassword: 'new-password' };
+      const req = mockRequest({ user: { userId: 'u1', email: 'test@example.test' }, body });
+      const res = mockResponse();
+      await authController.changePassword(req, res, mockNext());
+      expect(mockService.changePassword).toHaveBeenCalledWith('u1', body);
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.objectContaining({ httpOnly: true, sameSite: 'strict' }));
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, data: null }));
    });
 
    // ========== register ==========

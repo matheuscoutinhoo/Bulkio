@@ -217,10 +217,28 @@ select {
   background-color: var(--color-muted-foreground);
 }
 
-/* ── Remove Recharts click/focus outlines ── */
-.recharts-wrapper,
-.recharts-surface {
-  outline: none !important;
+/* Keep touch gestures in charts from selecting an entire SVG or its labels. */
+.chart-frame,
+.chart-frame * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chart-frame {
+  touch-action: pan-y pinch-zoom;
+}
+
+.chart-frame .recharts-wrapper:focus:not(:focus-visible),
+.chart-frame .recharts-surface:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.chart-frame .recharts-surface:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -2px;
+  border-radius: 0.5rem;
 }
 
 /* ── Animations ── */

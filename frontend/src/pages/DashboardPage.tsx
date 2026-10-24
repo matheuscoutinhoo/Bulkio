@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Flame, Trophy, Dumbbell, Activity, Scale } from 'lucide-react';
 import {
-   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
    AreaChart, Area,
 } from 'recharts';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
@@ -14,6 +14,7 @@ import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { useChartColors } from '@/lib/useChartColors';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState } from '@/components/ui/feedback';
+import { ChartFrame } from '@/components/ui/chart-frame';
 
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -162,13 +163,8 @@ export default function DashboardPage() {
                </CardHeader>
                <CardContent>
                   {bodyWeightData.length > 0 ? (
-                     <div
-                        className="w-full aspect-video min-h-45 max-h-75"
-                        role="img"
-                        aria-label="Evolução do peso corporal"
-                     >
-                        <ResponsiveContainer width="100%" height="100%">
-                           <AreaChart data={bodyWeightData}>
+                     <ChartFrame label="Evolução do peso corporal em kg">
+                           <AreaChart data={bodyWeightData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
                               <defs>
                                  <linearGradient id="gradDashWeight" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor={chart.gradientFrom} stopOpacity={0.8} />
@@ -177,23 +173,22 @@ export default function DashboardPage() {
                                  </linearGradient>
                               </defs>
                               <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.6} />
-                              <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} />
-                              <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={40} tickFormatter={(v) => `${v}kg`} />
+                              <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} padding={{ left: 8, right: 8 }} />
+                              <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={48} tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} />
                               <Tooltip
                                  content={({ active, payload, label }) => {
                                     if (!active || !payload?.length) return null;
                                     return (
-                                       <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
                                           <p className="text-muted-foreground text-xs">{label}</p>
                                           <p className="font-semibold text-base">{payload[0].value}kg</p>
                                        </div>
                                     );
                                  }}
                               />
-                              <Area type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
+                              <Area isAnimationActive={false} type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
                            </AreaChart>
-                        </ResponsiveContainer>
-                     </div>
+                     </ChartFrame>
                   ) : (
                      <EmptyState compact icon={Scale} title="Sem registros de peso" description="Registre seu peso para acompanhar a tendência aqui." />
                   )}
@@ -208,29 +203,24 @@ export default function DashboardPage() {
                      <p className="text-xs text-muted-foreground mt-0.5">Séries nos últimos 30 dias</p>
                   </CardHeader>
                   <CardContent>
-                     <div
-                        className="w-full aspect-5/2 min-h-45 max-h-75"
-                        role="img"
-                        aria-label="Volume de séries por grupo muscular nos últimos 30 dias"
-                     >
-                        <ResponsiveContainer width="100%" height="100%">
-                           <BarChart data={muscleData} barCategoryGap="25%">
+                     <ChartFrame label="Volume de séries por grupo muscular nos últimos 30 dias" height={Math.max(240, muscleData.length * 36 + 40)}>
+                           <BarChart data={muscleData} layout="vertical" barCategoryGap="25%" margin={{ top: 8, right: 20, left: 0, bottom: 8 }}>
                               <defs>
                                  <linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor={chart.secondary} stopOpacity={0.95} />
                                     <stop offset="100%" stopColor={chart.primary} stopOpacity={0.7} />
                                  </linearGradient>
                               </defs>
-                              <CartesianGrid horizontal={true} vertical={false} stroke={chart.grid} strokeOpacity={0.5} />
-                              <XAxis dataKey="name" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval={0} height={32} />
-                              <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                              <CartesianGrid horizontal={false} vertical stroke={chart.grid} strokeOpacity={0.5} />
+                              <XAxis type="number" allowDecimals={false} tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
+                              <YAxis type="category" dataKey="name" width={104} interval={0} tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} />
                               <Tooltip
                                  cursor={{ fill: chart.grid, opacity: 0.15 }}
                                  content={({ active, payload }) => {
                                     if (!active || !payload?.length) return null;
                                     const d = payload[0].payload;
                                     return (
-                                       <div className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
+                                       <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
                                           <p className="font-semibold">{d.name}</p>
                                           <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
                                              <span>{d.sets} séries</span>
@@ -241,10 +231,9 @@ export default function DashboardPage() {
                                     );
                                  }}
                               />
-                              <Bar dataKey="sets" fill="url(#gradBar)" radius={[6, 6, 0, 0]} maxBarSize={48} activeBar={false} />
+                              <Bar isAnimationActive={false} dataKey="sets" fill="url(#gradBar)" radius={[0, 6, 6, 0]} maxBarSize={24} activeBar={false} />
                            </BarChart>
-                        </ResponsiveContainer>
-                     </div>
+                     </ChartFrame>
                   </CardContent>
                </Card>
             )}

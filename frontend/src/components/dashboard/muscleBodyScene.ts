@@ -1,10 +1,11 @@
 import {
    Color, DirectionalLight, Float32BufferAttribute, HemisphereLight, Mesh, MeshStandardMaterial,
-   OrthographicCamera, Raycaster, Scene, Vector2, WebGLRenderer,
+   OrthographicCamera, Scene, WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { UNTRAINED_COLOR, type MuscleEntry } from './muscleDistribution';
+import { BodyTapTracker, pickMuscleRegion } from './musclePicking';
 
 export type BodyView = 'front' | 'back';
 export interface MuscleScene {
@@ -93,8 +94,9 @@ export function createMuscleScene(
       }
       for (const mesh of meshes) {
          const material = mesh.material as MeshStandardMaterial;
+         material.color.set(selected && regionWeights.has(selected) && selected !== material.name ? '#9b98a6' : '#ffffff');
          material.emissive = new Color(selected === material.name ? '#7c3aed' : '#000000');
-         material.emissiveIntensity = selected === material.name ? 0.15 : 0;
+         material.emissiveIntensity = selected === material.name ? 0.35 : 0;
       }
       render();
    };
@@ -104,27 +106,19 @@ export function createMuscleScene(
    controls.addEventListener('change', render);
    resize();
 
-   const raycaster = new Raycaster();
-   const pointer = new Vector2();
-   let start: { x: number; y: number } | null = null;
-   const pointerDown = (event: PointerEvent) => { start = { x: event.clientX, y: event.clientY }; };
-   const pointerCancel = () => { start = null; };
+   const taps = new BodyTapTracker();
+   const pointerDown = (event: PointerEvent) => taps.down(event);
+   const pointerMove = (event: PointerEvent) => taps.move(event);
+   const pointerCancel = (event: PointerEvent) => taps.cancel(event);
    const pointerUp = (event: PointerEvent) => {
-      if (!start) return;
-      const distance = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-      start = null;
-      if (distance > 6) return;
-      const bounds = canvas.getBoundingClientRect();
-      pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
-      raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObjects(meshes, false)[0];
-      const group = hit ? ((hit.object as Mesh).material as MeshStandardMaterial).name : null;
-      onSelect(group && group !== 'NEUTRAL' ? group : null);
+      if (taps.up(event)) onSelect(pickMuscleRegion(meshes, camera, { x: event.clientX, y: event.clientY }, canvas.getBoundingClientRect()));
    };
    const contextLost = (event: Event) => { event.preventDefault(); onError(); };
    canvas.addEventListener('pointerdown', pointerDown);
+   canvas.addEventListener('pointermove', pointerMove);
    canvas.addEventListener('pointerup', pointerUp);
    canvas.addEventListener('pointercancel', pointerCancel);
+   canvas.addEventListener('lostpointercapture', pointerCancel);
    canvas.addEventListener('webglcontextlost', contextLost);
 
    void (async () => {
@@ -190,8 +184,10 @@ export function createMuscleScene(
          observer.disconnect();
          controls.dispose();
          canvas.removeEventListener('pointerdown', pointerDown);
+         canvas.removeEventListener('pointermove', pointerMove);
          canvas.removeEventListener('pointerup', pointerUp);
          canvas.removeEventListener('pointercancel', pointerCancel);
+         canvas.removeEventListener('lostpointercapture', pointerCancel);
          canvas.removeEventListener('webglcontextlost', contextLost);
          // glTF primitives share their position/normal buffers.
          new Set(meshes.map(mesh => mesh.geometry)).forEach(geometry => geometry.dispose());

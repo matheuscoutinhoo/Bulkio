@@ -13,6 +13,12 @@ const REFRESH_COOKIE_OPTIONS: CookieOptions = {
 };
 
 export const authController = {
+   changePassword: asyncHandler(async (req: Request, res: Response) => {
+      await authService.changePassword(req.user!.userId, req.body);
+      res.clearCookie('refreshToken', { ...REFRESH_COOKIE_OPTIONS, maxAge: undefined });
+      res.json(createResponse(null, 'Senha alterada. Entre novamente com a nova senha.'));
+   }),
+
    register: asyncHandler(async (req: Request, res: Response) => {
       const result = await authService.register(req.body);
       res.cookie('refreshToken', result.refreshToken, REFRESH_COOKIE_OPTIONS);

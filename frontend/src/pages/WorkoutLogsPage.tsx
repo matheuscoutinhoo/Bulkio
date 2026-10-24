@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { workoutLogApi, type WorkoutLog } from '@/services/workoutLogService';
 import { workoutPlanApi, type WorkoutPlanExercise } from '@/services/workoutPlanService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle, History, Pencil } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Check, Trash2, Clock, CheckCircle, HelpCircle, History, Pencil, Search, Dumbbell } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
 import { LogWorkoutDialog } from '@/components/workoutLogs/LogWorkoutDialog';
@@ -20,12 +21,16 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
+import { SectionOverview, OverviewMetric } from '@/components/ui/section-overview';
+import { Input } from '@/components/ui/input';
+import { normalizeSearch } from '@/lib/search';
 
 export default function WorkoutLogsPage() {
+   const [searchParams] = useSearchParams();
    const [logs, setLogs] = useState<WorkoutLog[]>([]);
    const [loading, setLoading] = useState(true);
    const [loadError, setLoadError] = useState(false);
-   const [expandedLog, setExpandedLog] = useState<string | null>(null);
+   const [expandedLog, setExpandedLog] = useState<string | null>(() => searchParams.get('workout'));
    const [showCreate, setShowCreate] = useState(false);
    const [page, setPage] = useState(1);
    const [totalPages, setTotalPages] = useState(1);
@@ -40,6 +45,11 @@ export default function WorkoutLogsPage() {
    const [editingSet, setEditingSet] = useState<string | null>(null);
    const [loadingPlan, setLoadingPlan] = useState(false);
    const [savingSet, setSavingSet] = useState(false);
+   const [search, setSearch] = useState('');
+   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'complete'>('all');
+   const visibleLogs = logs.filter(log => (statusFilter === 'all' || log.isComplete === (statusFilter === 'complete'))
+      && normalizeSearch([log.workoutPlan?.name, log.notes, format(new Date(log.date), 'dd/MM/yyyy'), ...log.exercises.map(item => item.exercise.name)].join(' ')).includes(normalizeSearch(search)))
+      .sort((a, b) => Number(a.isComplete) - Number(b.isComplete));
 
    const fetchLogs = useCallback(async (silent = false) => {
       if (!silent) setLoading(true);
@@ -191,6 +201,20 @@ export default function WorkoutLogsPage() {
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Histórico de treinos" description="Registre séries, acompanhe sessões em andamento e consulte sua evolução." actions={<Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" /> Registrar treino</Button>} />
 
+         {!loading && !loadError && logs.length > 0 && <>
+            <SectionOverview icon={Dumbbell} eyebrow="Diário de treino" title="Cada série conta" description="Retome um treino em andamento ou veja como foi sua última sessão. Repetições e cargas podem ser ajustadas diretamente em cada série.">
+               <OverviewMetric value={logs.filter(log => !log.isComplete).length} label="em andamento nesta página" />
+               <OverviewMetric value={logs.filter(log => log.isComplete).length} label="concluídos nesta página" />
+            </SectionOverview>
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+               <div className="flex rounded-xl border border-border/60 bg-secondary/30 p-1" role="group" aria-label="Filtrar treinos por status">
+                  {([['all', 'Todos'], ['active', 'Em andamento'], ['complete', 'Concluídos']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={statusFilter === value} onClick={() => setStatusFilter(value)} className={`min-h-11 flex-1 rounded-lg px-3 text-xs font-semibold transition-colors sm:text-sm ${statusFilter === value ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>{label}</button>)}
+               </div>
+               <div className="relative w-full xl:max-w-sm"><Search className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" /><Input aria-label="Buscar treinos nesta página" className="pl-10" placeholder="Buscar ficha, exercício ou data" value={search} onChange={event => setSearch(event.target.value)} /></div>
+            </div>
+            {totalPages > 1 && <p className="text-xs text-muted-foreground">Busca e filtros aplicados aos treinos desta página.</p>}
+         </>}
+
          {loading ? (
             <LoadingState label="Carregando seu histórico" />
          ) : loadError ? (
@@ -204,8 +228,9 @@ export default function WorkoutLogsPage() {
          ) : (
             <>
                <div className="space-y-4">
-                  {logs.map((log) => (
-                     <Card key={log.id} className="overflow-hidden">
+                  {visibleLogs.length === 0 && <EmptyState compact icon={Search} title="Nenhum treino encontrado" description="Tente outro termo ou selecione um status diferente." actionLabel="Limpar filtros" onAction={() => { setSearch(''); setStatusFilter('all'); }} />}
+                  {visibleLogs.map((log) => (
+                     <Card key={log.id} className={`overflow-hidden ${!log.isComplete ? 'border-primary/35 bg-primary/[0.025]' : ''}`}>
                         <CardHeader>
                            <div className="flex min-w-0 items-center justify-between gap-2">
                               <button
@@ -406,7 +431,7 @@ export default function WorkoutLogsPage() {
          <LogWorkoutDialog
             open={showCreate}
             onClose={() => setShowCreate(false)}
-            onCreated={fetchLogs}
+            onCreated={(logId) => { setExpandedLog(logId); void fetchLogs(); }}
          />
 
          <ExerciseDetailModal

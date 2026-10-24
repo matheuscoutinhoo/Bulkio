@@ -41,7 +41,7 @@ for (const target of ['caucasian-male-young', 'universal-male-young-maxmuscle-av
 
 // Anatomical regions in the source's fixed A-pose. These are schematic surface
 // regions, not inferred recruitment of secondary muscles from workout data.
-function muscleRegion([signedX, y, z]) {
+function muscleRegion([signedX, y, z], normal) {
    const x = Math.abs(signedX);
    if (y > 6.65) return 'NEUTRAL';
    if (y > 0.5 && x > 2.05 + Math.max(0, 4.8 - y) * 0.12) {
@@ -58,7 +58,8 @@ function muscleRegion([signedX, y, z]) {
    if (y > -1.0 && z < -0.12) return 'GLUTES';
    if (y > -0.35 && x < 0.35) return 'NEUTRAL';
    if (y > -3.45) return 'LEGS';
-   if (y > -7.25) return z < 0.25 ? 'CALVES' : 'NEUTRAL';
+   // The calf is posterior. A depth threshold alone also labels the inner shin.
+   if (y > -7.25) return z < 0.25 && normal[2] < -0.08 ? 'CALVES' : 'NEUTRAL';
    return 'NEUTRAL';
 }
 
@@ -68,11 +69,18 @@ const positions = used.flatMap(index => vertices[index].map((v, axis) => (v - (a
 const groups = new Map();
 const triangles = [];
 for (const face of faces) {
-   const center = [0, 1, 2].map(axis => face.reduce((sum, index) => sum + vertices[index][axis], 0) / face.length);
-   const group = muscleRegion(center);
-   if (!groups.has(group)) groups.set(group, []);
    for (let i = 1; i < face.length - 1; i++) {
-      const triangle = [face[0], face[i], face[i + 1]].map(index => remap.get(index));
+      const source = [face[0], face[i], face[i + 1]];
+      const [a, b, c] = source.map(index => vertices[index]);
+      const ab = b.map((value, axis) => value - a[axis]);
+      const ac = c.map((value, axis) => value - a[axis]);
+      const cross = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]];
+      const length = Math.hypot(...cross) || 1;
+      const center = a.map((value, axis) => (value + b[axis] + c[axis]) / 3);
+      // Classify each triangle individually so small anatomical boundaries don't inherit an entire quad.
+      const group = muscleRegion(center, cross.map(value => value / length));
+      if (!groups.has(group)) groups.set(group, []);
+      const triangle = source.map(index => remap.get(index));
       groups.get(group).push(...triangle);
       triangles.push(...triangle);
    }
