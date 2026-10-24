@@ -7,7 +7,7 @@ export const bodyWeightRepository = {
             where: { userId },
             skip: (page - 1) * limit,
             take: limit,
-            orderBy: { date: 'desc' },
+            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
          }),
          prisma.bodyWeight.count({ where: { userId } }),
       ]);

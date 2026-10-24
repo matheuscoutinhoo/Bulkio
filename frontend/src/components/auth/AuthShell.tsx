@@ -13,16 +13,16 @@ export function AuthShell({ children }: { children: ReactNode }) {
                <div><p className="text-xl font-bold tracking-[-0.03em]">Bulkio</p><p className="text-xs text-violet-200/75">Treino & progresso</p></div>
             </div>
             <div className="relative max-w-lg">
-               <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Evolua com consistência</p>
-               <h1 className="text-4xl font-bold leading-[1.08] tracking-[-0.04em] xl:text-5xl">Seu treino mais claro.<br />Seu progresso mais visível.</h1>
-               <p className="mt-5 max-w-md text-base leading-relaxed text-violet-100/70">Planeje séries, acompanhe cargas e transforme cada sessão em dados que ajudam você a avançar.</p>
+               <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Registro de treinos</p>
+               <h1 className="text-4xl font-bold leading-[1.08] tracking-[-0.04em] xl:text-5xl">Treinos, cargas<br />e peso corporal.</h1>
+               <p className="mt-5 max-w-md text-base leading-relaxed text-violet-100/70">Fichas de exercícios, séries registradas e histórico de medidas da sua conta.</p>
                <div className="mt-8 grid gap-3 text-sm text-violet-50/85">
                   <div className="flex items-center gap-3"><Activity className="h-5 w-5 text-orange-300" /> Progresso e volume em um único painel</div>
                   <div className="flex items-center gap-3"><Sparkles className="h-5 w-5 text-violet-300" /> Fichas organizadas para sua rotina</div>
                   <div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-emerald-300" /> Seus dados protegidos na sua conta</div>
                </div>
             </div>
-            <p className="relative text-xs text-violet-200/50">Treine com intenção. Meça o que importa.</p>
+            <p className="relative text-xs text-violet-200/50">Bulkio · Registro e histórico de treinos</p>
          </section>
          <section className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 sm:py-12 lg:py-16">
             <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent lg:hidden" aria-hidden="true" />

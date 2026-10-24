@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import { Mesh, MeshBasicMaterial, OrthographicCamera, PlaneGeometry, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { BodyTapTracker, pickMuscleRegion } from './musclePicking';
+import { getMuscleFocus } from './muscleFocus';
+import { BODY_MUSCLE_GROUPS } from './muscleDistribution';
 
 const bounds = { left: 40, top: 80, width: 400, height: 460 };
 function camera(back = false) {
@@ -45,6 +47,24 @@ describe('visible muscle picking', () => {
          const model = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
          meshes = [];
          model.scene.traverse(object => { if (object instanceof Mesh) meshes.push(object); });
+      });
+
+      it.each(BODY_MUSCLE_GROUPS)('keeps the entire selected %s region inside the focused view on narrow screens', group => {
+         const focus = getMuscleFocus(group)!;
+         const view = new OrthographicCamera(-0.72, 0.72, 1.15, -1.15, 0.1, 30);
+         view.position.set(Math.sin(focus.azimuth) * 5, focus.targetY, Math.cos(focus.azimuth) * 5);
+         view.lookAt(0, focus.targetY, 0);
+         view.zoom = focus.zoom;
+         view.updateProjectionMatrix();
+         view.updateMatrixWorld(true);
+         const mesh = meshes.find(item => (item.material as MeshBasicMaterial).name === group)!;
+         const position = mesh.geometry.getAttribute('position');
+         const index = mesh.geometry.getIndex()!;
+         for (let i = 0; i < index.count; i++) {
+            const point = new Vector3().fromBufferAttribute(position, index.getX(i)).applyMatrix4(mesh.matrixWorld).project(view);
+            expect(Math.abs(point.x)).toBeLessThanOrEqual(1);
+            expect(Math.abs(point.y)).toBeLessThanOrEqual(1);
+         }
       });
 
       it.each([

@@ -8,8 +8,11 @@ Aplicação web para criar fichas de musculação, registrar treinos e acompanha
 - criação, edição, duplicação e exclusão de fichas de treino;
 - registro de séries, repetições, carga, duração e observações;
 - histórico e progressão por exercício;
+- progressão com todo o histórico de séries salvas, incluindo sessões em andamento;
 - controle de peso corporal e metas;
+- metas de peso calculadas a partir do primeiro registro, com todo o histórico de medidas;
 - dashboard com volume, sequência de treinos, recordes, mapa de atividade e corpo 3D rotacionável com intensidade por grupo muscular;
+- lista de grupos com séries registradas nos últimos 30 dias e enquadramento automático do grupo selecionado no corpo 3D;
 - autenticação com access token e refresh token em cookie `httpOnly`;
 - alteração de senha no perfil, com verificação da senha atual e revogação de refresh tokens;
 - tema claro/escuro e suporte a instalação como PWA.

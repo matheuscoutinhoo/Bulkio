@@ -163,6 +163,25 @@ describe('Dashboard Integration', () => {
          expect(res.body.data).toEqual([]);
       });
 
+      it('includes saved sets in ongoing sessions and history older than 30 sessions', async () => {
+         for (let i = 0; i < 31; i++) {
+            await request(app)
+               .post('/api/v1/workout-logs')
+               .set('Authorization', `Bearer ${accessToken}`)
+               .send({
+                  date: new Date(Date.UTC(2026, 0, i + 1, 12)).toISOString(),
+                  isComplete: i < 30,
+                  exercises: [{ exerciseId: exercises[0].id, order: 0, sets: [{ setNumber: 1, reps: 10, weight: 60 + i }] }],
+               }).expect(201);
+         }
+         const res = await request(app)
+            .get(`/api/v1/dashboard/exercise-progression/${exercises[0].id}`)
+            .set('Authorization', `Bearer ${accessToken}`).expect(200);
+         expect(res.body.data).toHaveLength(31);
+         expect(res.body.data[0].maxWeight).toBe(60);
+         expect(res.body.data.at(-1).maxWeight).toBe(90);
+      });
+
       it('should return 401 without auth', async () => {
          await request(app)
             .get(`/api/v1/dashboard/exercise-progression/${exercises[0].id}`)

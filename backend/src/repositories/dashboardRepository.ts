@@ -28,18 +28,18 @@ export const dashboardRepository = {
       });
    },
 
-   getExerciseHistory(userId: string, exerciseId: string, limit: number = 20) {
+   getExerciseHistory(userId: string, exerciseId: string) {
       return prisma.workoutLogExercise.findMany({
          where: {
             exerciseId,
-            workoutLog: { userId, isComplete: true },
+            workoutLog: { userId },
+            sets: { some: {} },
          },
          include: {
             sets: { orderBy: { setNumber: 'asc' } },
             workoutLog: { select: { date: true } },
          },
-         orderBy: { workoutLog: { date: 'desc' } },
-         take: limit,
+         orderBy: [{ workoutLog: { date: 'desc' } }, { id: 'desc' }],
       });
    },
 
@@ -66,11 +66,10 @@ export const dashboardRepository = {
       });
    },
 
-   getBodyWeightHistory(userId: string, limit: number = 30) {
+   getBodyWeightHistory(userId: string) {
       return prisma.bodyWeight.findMany({
          where: { userId },
-         orderBy: { date: 'desc' },
-         take: limit,
+         orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       });
    },
 

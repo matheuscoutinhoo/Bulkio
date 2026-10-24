@@ -21,6 +21,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
 import { ChartFrame } from '@/components/ui/chart-frame';
 import { SectionOverview, OverviewMetric } from '@/components/ui/section-overview';
+import { getWeightProgress } from '@/lib/weightProgress';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -45,10 +47,10 @@ export default function BodyWeightPage() {
       setLoadError(false);
       try {
          const [recordsResponse, profileResponse] = await Promise.all([
-            bodyWeightApi.getAll({ limit: 100 }),
+            bodyWeightApi.getHistory(),
             authApi.getProfile(),
          ]);
-         setRecords(recordsResponse.data.data);
+         setRecords(recordsResponse);
          setUser(profileResponse.data.data);
       } catch (err) {
          console.error(err);
@@ -106,7 +108,7 @@ export default function BodyWeightPage() {
 
       if (data.initialWeight && records.length === 0) {
          await bodyWeightApi.create({ weight: data.initialWeight });
-         fetchRecords();
+         await fetchRecords();
       }
       toast.success('Meta atualizada');
    };
@@ -115,6 +117,7 @@ export default function BodyWeightPage() {
       .reverse()
       .map((r) => ({
          date: format(new Date(r.date), 'dd/MM', { locale: ptBR }),
+         fullDate: format(new Date(r.date), 'dd/MM/yyyy', { locale: ptBR }),
          weight: r.weight,
       }));
 
@@ -134,10 +137,7 @@ export default function BodyWeightPage() {
    const bmi = latestWeight && user?.height
       ? latestWeight / ((user.height / 100) ** 2)
       : null;
-   const goalStart = user?.initialWeight ?? oldestWeight;
-   const goalProgress = latestWeight != null && goalStart != null && user?.targetWeight != null && user.targetWeight !== goalStart
-      ? Math.max(0, Math.min(100, (latestWeight - goalStart) / (user.targetWeight - goalStart) * 100))
-      : null;
+   const { baseline: goalStart, baselineDate, progress: goalProgress } = getWeightProgress(records, user?.initialWeight, user?.targetWeight);
    const goalDistance = latestWeight != null && user?.targetWeight != null ? Math.abs(latestWeight - user.targetWeight) : null;
 
    const getBmiLabel = (value: number) => {
@@ -149,16 +149,17 @@ export default function BodyWeightPage() {
 
    return (
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
-         <PageHeader title="Peso corporal" description="Acompanhe tendências com contexto e mantenha sua meta sempre visível." actions={<Button variant="outline" onClick={() => setShowGoals(true)}><Target className="h-4 w-4" /> Definir meta</Button>} />
+         <PageHeader title="Peso corporal" description="Registros de peso, variação e meta." actions={<Button variant="outline" disabled={loading || loadError} onClick={() => setShowGoals(true)}><Target className="h-4 w-4" /> Definir meta</Button>} />
 
-         {!loading && !loadError && <SectionOverview icon={Target} eyebrow="Uma medida de cada vez" title={user?.targetWeight ? 'Seu objetivo, sempre à vista' : 'Construa seu histórico de evolução'} description={goalDistance != null ? `Diferença para a meta: ${goalDistance.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg. Observe a tendência ao longo do tempo.` : 'Registre seu peso com frequência e defina uma meta para acompanhar seu caminho.'}>
+         {!loading && !loadError && <SectionOverview icon={Target} eyebrow="Resumo" title="Peso e meta" description={goalDistance != null ? `Diferença entre o último registro e a meta: ${goalDistance.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg.` : 'A meta pode ser definida a partir do histórico de peso registrado.'}>
             <OverviewMetric value={latestWeight != null ? `${latestWeight.toLocaleString('pt-BR')} kg` : '—'} label="peso mais recente" />
             <OverviewMetric value={user?.targetWeight != null ? `${user.targetWeight.toLocaleString('pt-BR')} kg` : '—'} label="sua meta" />
          </SectionOverview>}
 
          {goalProgress != null && <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:p-5">
-            <div className="mb-3 flex items-center justify-between gap-3 text-xs"><span className="font-medium">Do peso inicial à sua meta</span><span className="font-semibold text-primary">{Math.round(goalProgress)}%</span></div>
+            <div className="mb-3 flex items-center justify-between gap-3 text-xs"><span className="font-medium">Progresso até a meta</span><span className="font-semibold text-primary">{Math.round(goalProgress)}%</span></div>
             <div role="progressbar" aria-label="Progresso até a meta de peso" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(goalProgress)} className="h-2 overflow-hidden rounded-full bg-primary/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-400 to-primary transition-[width]" style={{ width: `${goalProgress}%` }} /></div>
+            <p className="mt-2 text-xs text-muted-foreground">Base: {goalStart?.toLocaleString('pt-BR')} kg{baselineDate ? `, primeiro registro em ${format(new Date(baselineDate), 'dd/MM/yyyy')}` : ', peso inicial informado'}.</p>
          </div>}
 
          <Card className="border-primary/20">
@@ -262,11 +263,11 @@ export default function BodyWeightPage() {
                            <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} padding={{ left: 8, right: 8 }} />
                            <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={48} tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} />
                            <Tooltip
-                              content={({ active, payload, label }) => {
+                              content={({ active, payload }) => {
                                  if (!active || !payload?.length) return null;
                                  return (
                                     <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
-                                       <p className="text-muted-foreground text-xs">{label}</p>
+                                       <p className="text-muted-foreground text-xs">{payload[0].payload.fullDate}</p>
                                        <p className="font-semibold text-base">{payload[0].value}kg</p>
                                     </div>
                                  );
@@ -301,30 +302,23 @@ export default function BodyWeightPage() {
                ) : records.length === 0 ? (
                   <EmptyState compact icon={ChartNoAxesColumnIncreasing} title="Nenhum peso registrado" description="Adicione seu peso de hoje para começar a visualizar a tendência." />
                ) : (
-                  <div>
-                     <div className="grid grid-cols-[1fr_1fr_auto] gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wide text-gradient">
-                        <span>Peso</span>
-                        <span>Data</span>
-                        <span className="w-8" />
-                     </div>
-                     <div className="divide-y divide-border/60">
+                  <Table aria-label="Histórico de peso corporal">
+                     <TableHeader><TableRow><TableHead className="text-right">Peso</TableHead><TableHead>Data</TableHead><TableHead className="w-12"><span className="sr-only">Ações</span></TableHead></TableRow></TableHeader>
+                     <TableBody>
                         {records.map((record) => (
-                           <div
-                              key={record.id}
-                              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2 items-center px-1 py-3 hover:bg-secondary/20 transition-colors sm:gap-4 sm:px-4"
-                           >
-                              <span className="font-medium">{record.weight}kg</span>
-                              <span className="text-sm text-muted-foreground">
+                           <TableRow key={record.id}>
+                              <TableCell className="text-right font-medium tabular-nums whitespace-nowrap">{record.weight.toLocaleString('pt-BR')} kg</TableCell>
+                              <TableCell className="text-muted-foreground">
                                  <span className="sm:hidden">{format(new Date(record.date), 'dd/MM/yyyy')}</span>
                                  <span className="hidden sm:inline">{format(new Date(record.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
-                              </span>
-                              <Button variant="ghost" size="icon" className="h-10 w-10 hover:text-destructive" onClick={() => setDeleteTarget(record.id)} aria-label={`Excluir registro de ${record.weight}kg`}>
+                              </TableCell>
+                              <TableCell><Button variant="ghost" size="icon" className="hover:text-destructive" onClick={() => setDeleteTarget(record.id)} aria-label={`Excluir registro de ${record.weight}kg`}>
                                  <Trash2 className="h-3 w-3" />
-                              </Button>
-                           </div>
+                              </Button></TableCell>
+                           </TableRow>
                         ))}
-                     </div>
-                  </div>
+                     </TableBody>
+                  </Table>
                )}
             </CardContent>
          </Card>
@@ -334,7 +328,7 @@ export default function BodyWeightPage() {
             onClose={() => setShowGoals(false)}
             onSave={handleSaveGoals}
             defaultValues={user ?? undefined}
-            latestWeight={records[0]?.weight}
+            recordedStartWeight={oldestWeight}
          />
          <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} title="Excluir registro de peso?" description="Este ponto será removido do histórico e dos gráficos. Esta ação não pode ser desfeita." />
       </div>

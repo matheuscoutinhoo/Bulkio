@@ -15,6 +15,12 @@ export const plans = ['Peito e ombros', 'Costas e bíceps', 'Pernas e panturrilh
 }));
 const weights = Array.from({ length: 12 }, (_, index) => ({ id: `weight-${index}`, weight: Number((84 - index * 0.35).toFixed(1)), date: new Date(Date.UTC(2026, 9, 1 + index * 2, 12)).toISOString() }));
 const distribution = { CHEST: 18, BACK: 15, SHOULDERS: 10, BICEPS: 8, TRICEPS: 9, FOREARMS: 4, ABS: 6, TRAPS: 3, GLUTES: 12, LEGS: 20, CALVES: 7 };
+export const dashboardStats = {
+   weeklyWorkouts: { current: 4, previous: 3 }, streak: 3, totalVolume: 42580, muscleDistribution: distribution,
+   bodyWeight: { current: weights.at(-1), history: weights, target: 72, initial: 84, goal: 'CUT' },
+   yearlyActivity: { '2026-10-20': 1, '2026-10-22': 1, '2026-10-23': 1, '2026-10-24': 1 },
+   personalRecords: [{ id: 'pr-1', weight: 80, reps: 8, date: '2026-10-24T12:00:00Z', exercise: exercises[0] }],
+};
 
 export const test = base.extend({
    page: async ({ page }, runTest) => {
@@ -38,12 +44,7 @@ export const test = base.extend({
          else if (path === '/auth/profile') data = user;
          else if (path === '/auth/password') {
             if (request.postDataJSON().currentPassword !== 'test-current-password') return route.fulfill({ status: 400, json: { success: false, data: null, message: 'Senha atual incorreta.' } });
-         } else if (path === '/dashboard/stats') data = {
-            weeklyWorkouts: { current: 4, previous: 3 }, streak: 3, totalVolume: 42580, muscleDistribution: distribution,
-            bodyWeight: { current: weights.at(-1), history: weights, target: 72, initial: 84, goal: 'CUT' },
-            yearlyActivity: { '2026-10-20': 1, '2026-10-22': 1, '2026-10-23': 1, '2026-10-24': 1 },
-            personalRecords: [{ id: 'pr-1', weight: 80, reps: 8, date: '2026-10-24T12:00:00Z', exercise: exercises[0] }],
-         };
+         } else if (path === '/dashboard/stats') data = dashboardStats;
          else if (path.startsWith('/dashboard/exercise-progression/')) data = weights.map((item, index) => ({ date: item.date, maxWeight: 40 + index * 2.5, totalVolume: 1200 + index * 150, sets: [{ setNumber: 1, reps: 10, weight: 40 + index * 2.5 }] }));
          else if (path === '/workouts') data = plans;
          else if (path.startsWith('/workouts/')) data = plans.find(plan => plan.id === path.split('/').at(-1));

@@ -44,8 +44,8 @@ export default function RegisterPage() {
       <AuthShell>
          <Card className="border-border/70 bg-card/90 shadow-xl shadow-primary/5 backdrop-blur">
             <CardHeader className="text-center sm:text-left">
-               <CardTitle className="text-2xl sm:text-3xl">Crie sua conta</CardTitle>
-               <CardDescription className="text-sm leading-relaxed">Comece a organizar seus treinos e acompanhar sua evolução.</CardDescription>
+               <CardTitle className="text-2xl sm:text-3xl">Criar conta</CardTitle>
+               <CardDescription className="text-sm leading-relaxed">Informe seus dados de cadastro.</CardDescription>
             </CardHeader>
             <CardContent>
                <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">

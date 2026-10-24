@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Pencil, HelpCircle, ClipboardList, Search, Play, Layers } from 'lucide-react';
 import { ExerciseDetailModal } from '@/components/exercises/ExerciseDetailModal';
 import { ExerciseProgressionDialog } from '@/components/exercises/ExerciseProgressionDialog';
-import { ScrollText } from '@/components/ui/scroll-text';
 import { CreateWorkoutPlanDialog } from '@/components/workoutPlans/CreateWorkoutPlanDialog';
 import { muscleGroupLabels } from '@/lib/exerciseLabels';
 import { PageHeader } from '@/components/ui/page-header';
@@ -17,6 +16,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
 import { formatRestDuration } from '@/lib/workoutForm';
 import { SectionOverview, OverviewMetric } from '@/components/ui/section-overview';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { normalizeSearch } from '@/lib/search';
 
@@ -97,7 +97,7 @@ export default function WorkoutPlansPage() {
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader
             title="Fichas de treino"
-            description={loading ? 'Organize sua rotina por objetivo e grupo muscular.' : `${plans.length} ${plans.length === 1 ? 'ficha ativa' : 'fichas ativas'} para organizar sua rotina.`}
+            description={loading ? 'Fichas e exercícios cadastrados.' : `${plans.length} ${plans.length === 1 ? 'ficha cadastrada' : 'fichas cadastradas'}.`}
             actions={<>
                <Button onClick={() => setShowCreate(true)}>
                   <Plus className="h-4 w-4" /> Nova ficha
@@ -106,7 +106,7 @@ export default function WorkoutPlansPage() {
          />
 
          {!loading && !loadError && plans.length > 0 && <>
-            <SectionOverview icon={ClipboardList} eyebrow="Sua biblioteca" title="Seu próximo treino começa aqui" description="Escolha uma ficha, confira os exercícios e comece a treinar em um toque.">
+            <SectionOverview icon={ClipboardList} eyebrow="Rotina de treino" title="Fichas cadastradas" description="Exercícios, séries e intervalos de cada ficha. O botão Treinar agora inicia uma sessão no histórico.">
                <OverviewMetric value={plans.length} label="fichas disponíveis" />
                <OverviewMetric value={new Set(plans.flatMap(plan => plan.exercises.map(item => item.exerciseId))).size} label="exercícios na rotina" />
             </SectionOverview>
@@ -172,31 +172,22 @@ export default function WorkoutPlansPage() {
                      </CardHeader>
                      {expandedPlan === plan.id && (
                         <CardContent id={`plan-${plan.id}`} className="animate-fade-in-down border-t border-border/60 pt-4 sm:pt-5">
-                           <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wide text-gradient hidden sm:grid">
-                              <span className="w-6">#</span>
-                              <span>Exercício</span>
-                              <span>Grupo</span>
-                              <span className="w-7" />
-                           </div>
-                           <div className="divide-y divide-border/50">
+                           <Table aria-label={`Exercícios de ${plan.name}`}>
+                              <TableHeader><TableRow><TableHead className="w-8">#</TableHead><TableHead>Exercício / planejamento</TableHead><TableHead className="w-12"><span className="sr-only">Detalhes</span></TableHead></TableRow></TableHeader>
+                              <TableBody>
                               {plan.exercises.map((pe, i) => (
-                                 <div
-                                    key={pe.id}
-                                    className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto] sm:items-center gap-2 sm:gap-3 px-3 py-3 hover:bg-secondary/20 transition-colors"
-                                 >
-                                    <span className="text-sm text-muted-foreground w-6 hidden sm:inline">{i + 1}.</span>
-                                    <div className="flex-1 min-w-0">
-                                       <button type="button" className="min-h-11 w-full text-left" onClick={() => setProgressionExercise(pe.exercise)}><ScrollText className="font-medium text-sm hover:text-primary transition-colors">{pe.exercise.name}</ScrollText></button>
+                                 <TableRow key={pe.id}>
+                                    <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
+                                    <TableCell>
+                                       <button type="button" className="min-h-11 w-full text-left font-medium break-words hover:text-primary" onClick={() => setProgressionExercise(pe.exercise)}>{pe.exercise.name}</button>
+                                       <Badge variant="outline" className="mb-2 text-xs">{muscleGroupLabels[pe.exercise.muscleGroup]}</Badge>
                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                           <span>{pe.sets} séries × {pe.reps} reps</span>
                                           {pe.weight != null && <span>• {pe.weight}kg</span>}
                                           <span>• {formatRestDuration(pe.restSeconds)} de descanso</span>
                                        </div>
-                                    </div>
-                                    <Badge variant="outline" className="text-xs w-fit">
-                                       {muscleGroupLabels[pe.exercise.muscleGroup]}
-                                    </Badge>
-                                    <Button
+                                    </TableCell>
+                                    <TableCell><Button
                                        variant="ghost"
                                        size="icon"
                                        className="shrink-0 hover:text-primary"
@@ -204,15 +195,16 @@ export default function WorkoutPlansPage() {
                                        aria-label={`Ver detalhes de ${pe.exercise.name}`}
                                     >
                                        <HelpCircle className="h-4 w-4" />
-                                    </Button>
-                                 </div>
+                                    </Button></TableCell>
+                                 </TableRow>
                               ))}
                               {plan.exercises.length === 0 && (
-                                 <p className="text-sm text-muted-foreground text-center py-4">
+                                 <TableRow><TableCell colSpan={3} className="text-muted-foreground text-center py-4">
                                     Nenhum exercício adicionado
-                                 </p>
+                                 </TableCell></TableRow>
                               )}
-                           </div>
+                              </TableBody>
+                           </Table>
                         </CardContent>
                      )}
                      <CardFooter className="flex-col items-stretch gap-4 border-t border-border/50 bg-secondary/15 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pt-4">

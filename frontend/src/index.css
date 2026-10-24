@@ -230,15 +230,14 @@ select {
   touch-action: pan-y pinch-zoom;
 }
 
-.chart-frame .recharts-wrapper:focus:not(:focus-visible),
-.chart-frame .recharts-surface:focus:not(:focus-visible) {
-  outline: none;
-}
-
+.chart-frame .recharts-wrapper,
+.chart-frame .recharts-surface,
+.chart-frame .recharts-wrapper:focus,
+.chart-frame .recharts-surface:focus,
+.chart-frame .recharts-wrapper:focus-visible,
 .chart-frame .recharts-surface:focus-visible {
-  outline: 2px solid var(--color-ring);
-  outline-offset: -2px;
-  border-radius: 0.5rem;
+  outline: none;
+  box-shadow: none;
 }
 
 /* ── Animations ── */

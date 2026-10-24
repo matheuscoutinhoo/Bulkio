@@ -11,10 +11,10 @@ interface GoalDialogProps {
    onClose: () => void;
    onSave: (data: { goal: string; initialWeight: string; targetWeight: string; height: string }) => Promise<void>;
    defaultValues?: { goal?: string | null; initialWeight?: number | null; targetWeight?: number | null; height?: number | null };
-   latestWeight?: number;
+   recordedStartWeight?: number;
 }
 
-export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight }: GoalDialogProps) {
+export function GoalDialog({ open, onClose, onSave, defaultValues, recordedStartWeight }: GoalDialogProps) {
    const [form, setForm] = useState({ goal: '', initialWeight: '', targetWeight: '', height: '' });
    const [submitting, setSubmitting] = useState(false);
    const [error, setError] = useState('');
@@ -24,13 +24,12 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
          setError('');
          setForm({
             goal: defaultValues?.goal || '',
-            initialWeight: defaultValues?.initialWeight?.toString()
-               || latestWeight?.toString() || '',
+            initialWeight: (recordedStartWeight ?? defaultValues?.initialWeight)?.toString() || '',
             targetWeight: defaultValues?.targetWeight?.toString() || '',
             height: defaultValues?.height?.toString() || '',
          });
       }
-   }, [open, defaultValues, latestWeight]);
+   }, [open, defaultValues, recordedStartWeight]);
 
    const handleClose = () => {
       setForm({ goal: '', initialWeight: '', targetWeight: '', height: '' });
@@ -74,9 +73,12 @@ export function GoalDialog({ open, onClose, onSave, defaultValues, latestWeight 
                         id="initial-weight"
                         type="number"
                         step="0.1"
+                        readOnly={recordedStartWeight != null}
+                        aria-describedby={recordedStartWeight != null ? 'initial-weight-help' : undefined}
                         value={form.initialWeight}
                         onChange={(e) => setForm({ ...form, initialWeight: e.target.value })}
                      />
+                     {recordedStartWeight != null && <p id="initial-weight-help" className="text-xs text-muted-foreground">Usa o primeiro peso do histórico registrado.</p>}
                   </div>
                   <div className="form-field">
                      <Label htmlFor="target-weight">Peso alvo (kg)</Label>

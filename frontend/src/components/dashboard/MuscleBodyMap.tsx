@@ -20,6 +20,7 @@ export function MuscleBodyMap({ distribution }: Props) {
    const helpId = useId();
    const titleId = useId();
    const selectedEntry = entries.find(entry => entry.group === selected);
+   const trainedEntries = entries.filter(entry => entry.sets > 0);
 
    useEffect(() => {
       let cancelled = false;
@@ -53,7 +54,7 @@ export function MuscleBodyMap({ distribution }: Props) {
          <CardHeader className="sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
                <CardTitle id={titleId} className="text-base sm:text-lg">Distribuição Muscular (30d)</CardTitle>
-               <p className="text-sm text-muted-foreground">Seu treino, visto de todos os ângulos.</p>
+               <p className="text-sm text-muted-foreground">Séries registradas por grupo nos últimos 30 dias.</p>
             </div>
             <span className="w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-foreground">
                {total.toLocaleString('pt-BR')} {total === 1 ? 'série registrada' : 'séries registradas'}
@@ -112,7 +113,7 @@ export function MuscleBodyMap({ distribution }: Props) {
                      <span>Grupo muscular</span><span>Séries · %</span>
                   </div>
                   <ul className="grid grid-cols-1 gap-1 min-[480px]:grid-cols-2 sm:grid-cols-1" aria-label="Séries por grupo muscular">
-                     {entries.map(entry => (
+                     {trainedEntries.map(entry => (
                         <li key={entry.group}>
                            <button
                               type="button"
@@ -129,6 +130,7 @@ export function MuscleBodyMap({ distribution }: Props) {
                         </li>
                      ))}
                   </ul>
+                  {trainedEntries.length === 0 && <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Nenhum grupo com séries registradas neste período.</p>}
                   <div role="status" aria-live="polite" aria-atomic="true" className="mt-3 min-h-14 rounded-lg bg-secondary/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
                      {selectedEntry ? <><span className="font-semibold text-foreground">{selectedEntry.name}</span> · {selectedEntry.sets} séries nos últimos 30 dias.{!selectedEntry.mapped && ' Categoria sem região específica no mapa.'}</>
                         : total === 0 ? 'Sem dados de treino. Conclua um treino para visualizar os grupos mais trabalhados.'

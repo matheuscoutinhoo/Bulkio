@@ -6,6 +6,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { UNTRAINED_COLOR, type MuscleEntry } from './muscleDistribution';
 import { BodyTapTracker, pickMuscleRegion } from './musclePicking';
+import { getMuscleFocus } from './muscleFocus';
 
 export type BodyView = 'front' | 'back';
 export interface MuscleScene {
@@ -50,6 +51,7 @@ export function createMuscleScene(
 
    let disposed = false;
    let frame = 0;
+   let movementFrame = 0;
    const meshes: Mesh[] = [];
    const regionWeights = new Map<string, Float32Array>();
    let vertexColors: Float32BufferAttribute | null = null;
@@ -62,6 +64,34 @@ export function createMuscleScene(
          frame = 0;
          if (!disposed) renderer.render(scene, camera);
       });
+   };
+   const stopMovement = () => { cancelAnimationFrame(movementFrame); movementFrame = 0; host.setAttribute('aria-busy', 'false'); };
+   const moveTo = (azimuth: number, targetY: number, zoom: number) => {
+      stopMovement();
+      const startAngle = controls.getAzimuthalAngle();
+      const angleDelta = Math.atan2(Math.sin(azimuth - startAngle), Math.cos(azimuth - startAngle));
+      const startTarget = controls.target.y;
+      const startZoom = camera.zoom;
+      const startElevation = camera.position.y - controls.target.y;
+      const started = performance.now();
+      const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420;
+      host.setAttribute('aria-busy', 'true');
+      const step = (now: number) => {
+         if (disposed) return;
+         const progress = duration ? Math.min(1, (now - started) / duration) : 1;
+         const eased = 1 - (1 - progress) ** 3;
+         const angle = startAngle + angleDelta * eased;
+         const center = startTarget + (targetY - startTarget) * eased;
+         controls.target.set(0, center, 0);
+         camera.position.set(Math.sin(angle) * 5, center + startElevation * (1 - eased), Math.cos(angle) * 5);
+         camera.zoom = startZoom + (zoom - startZoom) * eased;
+         camera.updateProjectionMatrix();
+         controls.update();
+         render();
+         movementFrame = progress < 1 ? requestAnimationFrame(step) : 0;
+         if (progress === 1) host.setAttribute('aria-busy', 'false');
+      };
+      step(started);
    };
    const resize = () => {
       const { width, height } = host.getBoundingClientRect();
@@ -104,6 +134,7 @@ export function createMuscleScene(
    const observer = new ResizeObserver(resize);
    observer.observe(host);
    controls.addEventListener('change', render);
+   controls.addEventListener('start', stopMovement);
    resize();
 
    const taps = new BodyTapTracker();
@@ -167,20 +198,22 @@ export function createMuscleScene(
    return {
       update(nextEntries, nextSelected) {
          entries = nextEntries;
+         const changed = selected !== nextSelected;
          selected = nextSelected;
          updateColors();
+         const focus = getMuscleFocus(selected);
+         if (changed && focus) moveTo(focus.azimuth, focus.targetY, focus.zoom);
+         else if (changed && !selected) moveTo(0, 0, 1);
       },
       view(view) {
-         camera.position.set(0, 0, view === 'front' ? 5 : -5);
-         controls.target.set(0, 0, 0);
-         controls.update();
-         render();
+         moveTo(view === 'front' ? 0 : Math.PI, 0, 1);
       },
-      rotate(angle) { controls.rotateLeft(angle); controls.update(); },
+      rotate(angle) { stopMovement(); controls.rotateLeft(angle); controls.update(); },
       dispose() {
          disposed = true;
          abort.abort();
          cancelAnimationFrame(frame);
+         stopMovement();
          observer.disconnect();
          controls.dispose();
          canvas.removeEventListener('pointerdown', pointerDown);

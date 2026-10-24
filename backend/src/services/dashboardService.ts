@@ -44,7 +44,7 @@ export const dashboardService = {
          dashboardRepository.getMuscleGroupVolume(userId, historyStart, now),
          dashboardRepository.getStreak(userId),
          dashboardRepository.getTotalVolume(userId, historyStart, now),
-         dashboardRepository.getBodyWeightHistory(userId, 30),
+         dashboardRepository.getBodyWeightHistory(userId),
          personalRecordRepository.findAllByUser(userId),
          userRepository.findById(userId),
          dashboardRepository.getYearlyWorkoutDays(userId, toZonedTime(now, timeZone).getFullYear(), timeZone),
@@ -96,7 +96,7 @@ export const dashboardService = {
    },
 
    async getExerciseProgression(userId: string, exerciseId: string) {
-      const history = await dashboardRepository.getExerciseHistory(userId, exerciseId, 30);
+      const history = await dashboardRepository.getExerciseHistory(userId, exerciseId);
 
       return history.map((entry) => ({
          date: entry.workoutLog.date,

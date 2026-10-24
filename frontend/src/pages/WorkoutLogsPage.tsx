@@ -22,6 +22,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/ui/feedback';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from '@/stores/toastStore';
 import { SectionOverview, OverviewMetric } from '@/components/ui/section-overview';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { normalizeSearch } from '@/lib/search';
 
@@ -199,10 +200,10 @@ export default function WorkoutLogsPage() {
 
    return (
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
-         <PageHeader title="Histórico de treinos" description="Registre séries, acompanhe sessões em andamento e consulte sua evolução." actions={<Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" /> Registrar treino</Button>} />
+         <PageHeader title="Histórico de treinos" description="Sessões em andamento e concluídas, com séries, repetições e cargas." actions={<Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" /> Registrar treino</Button>} />
 
          {!loading && !loadError && logs.length > 0 && <>
-            <SectionOverview icon={Dumbbell} eyebrow="Diário de treino" title="Cada série conta" description="Retome um treino em andamento ou veja como foi sua última sessão. Repetições e cargas podem ser ajustadas diretamente em cada série.">
+            <SectionOverview icon={Dumbbell} eyebrow="Resumo" title="Sessões registradas" description="Repetições e cargas podem ser editadas em cada série, inclusive nos treinos concluídos.">
                <OverviewMetric value={logs.filter(log => !log.isComplete).length} label="em andamento nesta página" />
                <OverviewMetric value={logs.filter(log => log.isComplete).length} label="concluídos nesta página" />
             </SectionOverview>
@@ -332,30 +333,27 @@ export default function WorkoutLogsPage() {
                                                 {logEx.sets.length} {logEx.sets.length === 1 ? 'série' : 'séries'}
                                              </Badge>
                                           </div>
-                                          <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-1 py-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">
-                                             <span>Série</span>
-                                             <span>Reps</span>
-                                             <span>Carga (kg)</span>
-                                             <span className="sr-only">Ações</span>
-                                          </div>
-                                          <div className="divide-y divide-border/50">
+                                          <Table aria-label={`Séries de ${logEx.exercise.name}`} className="table-fixed [&_th]:px-1 [&_td]:px-1 sm:[&_th]:px-3 sm:[&_td]:px-3">
+                                             <TableHeader><TableRow><TableHead className="w-10 sm:w-16">Série</TableHead><TableHead className="text-right">Reps</TableHead><TableHead className="text-right">Carga (kg)</TableHead><TableHead className="w-14 sm:w-20"><span className="sr-only">Ações</span></TableHead></TableRow></TableHeader>
+                                             <TableBody>
                                              {logEx.sets.map((set) => (
-                                                <div key={set.id} className="py-1">
+                                                <TableRow key={set.id}>
                                                    {editingSet === set.id ? (
-                                                      <EditSetForm set={set} onSave={(reps, weight) => handleUpdateSet(log, set.id, reps, weight)} onCancel={() => setEditingSet(null)} />
+                                                      <TableCell colSpan={4}><EditSetForm set={set} onSave={(reps, weight) => handleUpdateSet(log, set.id, reps, weight)} onCancel={() => setEditingSet(null)} /></TableCell>
                                                    ) : (
-                                                      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-1 text-sm tabular-nums">
-                                                         <span className="text-muted-foreground">{set.setNumber}</span>
-                                                         <span className="font-medium">{set.reps}</span>
-                                                         <span className="font-medium break-words">{formatKilograms(set.weight)}</span>
-                                                         <Button type="button" variant="ghost" size="icon" disabled={editingSet !== null || savingSet} onClick={() => setEditingSet(set.id)} aria-label={`Editar série ${set.setNumber} de ${logEx.exercise.name}`} className="text-primary">
+                                                      <>
+                                                         <TableCell className="text-muted-foreground tabular-nums">{set.setNumber}</TableCell>
+                                                         <TableCell className="text-right font-medium tabular-nums">{set.reps}</TableCell>
+                                                         <TableCell className="text-right font-medium tabular-nums break-words">{formatKilograms(set.weight)}</TableCell>
+                                                         <TableCell><Button type="button" variant="ghost" size="icon" disabled={editingSet !== null || savingSet} onClick={() => setEditingSet(set.id)} aria-label={`Editar série ${set.setNumber} de ${logEx.exercise.name}`} className="text-primary">
                                                             <Pencil className="h-4 w-4" aria-hidden="true" />
-                                                         </Button>
-                                                      </div>
+                                                         </Button></TableCell>
+                                                      </>
                                                    )}
-                                                </div>
+                                                </TableRow>
                                              ))}
-                                          </div>
+                                             </TableBody>
+                                          </Table>
                                        </div>
                                     ))}
                                  </div>

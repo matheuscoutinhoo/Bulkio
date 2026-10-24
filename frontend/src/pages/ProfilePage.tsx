@@ -158,7 +158,7 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Perfil" description="Gerencie suas informações pessoais e preferências da conta." />
 
-         <SectionOverview icon={User} eyebrow="Seu espaço no Bulkio" title={user?.username || 'Sua conta'} description={user?.goal ? `Seu objetivo atual: ${goalLabels[user.goal] || user.goal}. Personalize sua experiência e mantenha sua conta protegida.` : 'Sua rotina, suas metas e suas preferências em um só lugar.'} />
+         <SectionOverview icon={User} eyebrow="Conta" title={user?.username || 'Dados da conta'} description={user?.goal ? `Objetivo definido: ${goalLabels[user.goal] || user.goal}.` : 'Informações pessoais, preferências e senha.'} />
 
          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
 

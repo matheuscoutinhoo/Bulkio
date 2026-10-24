@@ -37,8 +37,8 @@ export default function LoginPage() {
       <AuthShell>
          <Card className="border-border/70 bg-card/90 shadow-xl shadow-primary/5 backdrop-blur">
             <CardHeader className="text-center sm:text-left">
-               <CardTitle className="text-2xl sm:text-3xl">Bem-vindo de volta</CardTitle>
-               <CardDescription className="text-sm leading-relaxed">Entre para continuar acompanhando seus treinos.</CardDescription>
+               <CardTitle className="text-2xl sm:text-3xl">Entrar</CardTitle>
+               <CardDescription className="text-sm leading-relaxed">Acesse sua conta com e-mail e senha.</CardDescription>
             </CardHeader>
             <CardContent>
                <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">

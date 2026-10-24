@@ -48,7 +48,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
 
    const chartData = data.map((d) => ({
       date: format(new Date(d.date), 'dd/MM', { locale: ptBR }),
-      fullDate: format(new Date(d.date), "dd 'de' MMMM", { locale: ptBR }),
+      fullDate: format(new Date(d.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
       maxWeight: d.maxWeight,
       totalVolume: d.totalVolume,
       sets: d.sets.length,
@@ -90,7 +90,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
                   {muscleGroupLabels[exercise.muscleGroup]}
                </Badge>
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">Progressão de carga ao longo do tempo</p>
+            <p className="text-sm text-muted-foreground">Histórico de cargas e volume das séries registradas, incluindo treinos em andamento.</p>
          </DialogHeader>
 
          {loading ? (
@@ -100,7 +100,7 @@ export function ExerciseProgressionDialog({ exercise, open, onClose }: ExerciseP
          ) : data.length === 0 ? (
             <div className="text-center py-12">
                <p className="text-muted-foreground">Nenhum treino registrado para este exercício.</p>
-               <p className="text-xs text-muted-foreground mt-1">Complete treinos com este exercício para ver a progressão.</p>
+               <p className="text-xs text-muted-foreground mt-1">Registre séries deste exercício para consultar as cargas.</p>
             </div>
          ) : (
             <div className="min-w-0 space-y-5">

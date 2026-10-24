@@ -15,6 +15,7 @@ import { useChartColors } from '@/lib/useChartColors';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState } from '@/components/ui/feedback';
 import { ChartFrame } from '@/components/ui/chart-frame';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 export default function DashboardPage() {
    const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -66,7 +67,7 @@ export default function DashboardPage() {
 
    if (error || !stats) return <ErrorState message="Não foi possível carregar seu painel." onRetry={loadStats} />;
 
-   const muscleDataRaw = Object.entries(stats.muscleDistribution).map(([key, value]) => ({
+   const muscleDataRaw = Object.entries(stats.muscleDistribution).filter(([, value]) => Number.isFinite(value) && value > 0).map(([key, value]) => ({
       name: muscleGroupLabels[key] || key,
       sets: value,
    }));
@@ -80,6 +81,7 @@ export default function DashboardPage() {
 
    const bodyWeightData = stats.bodyWeight.history.map((bw) => ({
       date: new Date(bw.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      fullDate: new Date(bw.date).toLocaleDateString('pt-BR'),
       weight: bw.weight,
    }));
 
@@ -87,7 +89,7 @@ export default function DashboardPage() {
 
    return (
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
-         <PageHeader title="Seu progresso" description="Uma visão clara da sua consistência, volume e evolução recente." />
+         <PageHeader title="Resumo" description="Treinos, volume por grupo muscular e histórico de peso." />
 
          {/* Stats cards */}
          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 stagger-children">
@@ -176,11 +178,11 @@ export default function DashboardPage() {
                               <XAxis dataKey="date" tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={30} padding={{ left: 8, right: 8 }} />
                               <YAxis tick={{ fill: chart.axis, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} width={48} tickFormatter={(v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} />
                               <Tooltip
-                                 content={({ active, payload, label }) => {
+                                 content={({ active, payload }) => {
                                     if (!active || !payload?.length) return null;
                                     return (
                                        <div role="status" aria-live="polite" className="rounded-xl border bg-background px-3.5 py-2.5 text-sm shadow-lg">
-                                          <p className="text-muted-foreground text-xs">{label}</p>
+                                          <p className="text-muted-foreground text-xs">{payload[0].payload.fullDate}</p>
                                           <p className="font-semibold text-base">{payload[0].value}kg</p>
                                        </div>
                                     );
@@ -250,25 +252,23 @@ export default function DashboardPage() {
                   </CardTitle>
                </CardHeader>
                <CardContent>
-                  <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wide text-gradient hidden sm:grid">
-                     <span>Exercício</span>
-                     <span>Carga</span>
-                     <span>Reps</span>
-                  </div>
-                  <div className="divide-y divide-border/50">
+                  <Table aria-label="Recordes pessoais">
+                     <TableHeader><TableRow><TableHead>Exercício</TableHead><TableHead className="text-right">Carga</TableHead><TableHead className="text-right">Reps</TableHead></TableRow></TableHeader>
+                     <TableBody>
                      {stats.personalRecords.map((pr) => (
-                        <div key={pr.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] gap-3 sm:gap-4 items-center px-4 py-3 hover:bg-secondary/20 transition-colors">
-                           <div className="min-w-0">
-                              <button type="button" className="block max-w-full truncate text-left text-sm font-medium hover:text-primary" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</button>
+                        <TableRow key={pr.id}>
+                           <TableCell className="w-full">
+                              <button type="button" className="min-h-11 text-left text-sm font-medium break-words hover:text-primary" onClick={() => setSelectedExercise(pr.exercise)}>{pr.exercise.name}</button>
                               <Badge variant="secondary" className="mt-1 text-xs">
                                  {muscleGroupLabels[pr.exercise.muscleGroup] || pr.exercise.muscleGroup}
                               </Badge>
-                           </div>
-                           <p className="text-lg font-bold text-gradient whitespace-nowrap">{pr.weight}kg</p>
-                           <p className="text-sm text-muted-foreground hidden sm:block">{pr.reps} reps</p>
-                        </div>
+                           </TableCell>
+                           <TableCell className="text-right font-semibold tabular-nums whitespace-nowrap">{pr.weight.toLocaleString('pt-BR')} kg</TableCell>
+                           <TableCell className="text-right tabular-nums">{pr.reps}</TableCell>
+                        </TableRow>
                      ))}
-                  </div>
+                     </TableBody>
+                  </Table>
                </CardContent>
             </Card>
          )}
