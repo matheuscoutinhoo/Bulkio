@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OnboardingStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -16,6 +22,7 @@ model User {
   initialWeight Float?
   targetWeight  Float?
   height        Float? // Height in cm for BMI calculation
+  onboardingStatus OnboardingStatus @default(PENDING)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

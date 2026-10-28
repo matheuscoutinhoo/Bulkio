@@ -27,7 +27,7 @@ export default function LoginPage() {
          const response = await authApi.login(data);
          const { user, accessToken } = response.data.data;
          setAuth(user, accessToken);
-         navigate('/dashboard');
+         navigate(user.onboardingStatus === 'PENDING' ? '/onboarding' : '/dashboard');
       } catch (err: unknown) {
          setError(getApiErrorMessage(err, 'Não foi possível entrar. Verifique seus dados e tente novamente.'));
       }

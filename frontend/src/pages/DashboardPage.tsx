@@ -16,8 +16,11 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState } from '@/components/ui/feedback';
 import { ChartFrame } from '@/components/ui/chart-frame';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function DashboardPage() {
+   const user = useAuthStore(state => state.user);
    const [stats, setStats] = useState<DashboardStats | null>(null);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState(false);
@@ -90,6 +93,7 @@ export default function DashboardPage() {
    return (
       <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
          <PageHeader title="Resumo" description="Treinos, volume por grupo muscular e histórico de peso." />
+         {user?.onboardingStatus === 'SKIPPED' && (!user.height || !user.initialWeight || !user.goal) && <div className="flex flex-col gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-muted-foreground">Altura, peso e objetivo podem ser preenchidos na configuração inicial.</p><Link to="/onboarding" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Retomar configuração</Link></div>}
 
          {/* Stats cards */}
          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 stagger-children">
@@ -188,7 +192,7 @@ export default function DashboardPage() {
                                     );
                                  }}
                               />
-                              <Area isAnimationActive={false} type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
+                              <Area isAnimationActive={false} type="monotone" dataKey="weight" stroke={chart.primary} strokeWidth={2} fill="url(#gradDashWeight)" dot={bodyWeightData.length === 1 ? { r: 4, fill: chart.primary } : false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.primary, fill: chart.tooltipBg }} />
                            </AreaChart>
                      </ChartFrame>
                   ) : (

@@ -1,7 +1,14 @@
 import { test as base, expect } from '@playwright/test';
 import type { CreateWorkoutLogData, UpdateWorkoutLogData, WorkoutLog } from '../src/services/workoutLogService';
+import type { OnboardingData, UpdateProfileData } from '../src/services/authService';
 
-export const user = { id: 'test-user', username: 'Matheus', email: 'matheus@example.test', goal: 'CUT', initialWeight: 84, targetWeight: 72, height: 176, createdAt: '2026-01-01T12:00:00Z' };
+export interface TestAccount {
+   id: string; username: string; email: string; goal: string | null;
+   initialWeight: number | null; targetWeight: number | null; height: number | null;
+   onboardingStatus: 'PENDING' | 'COMPLETED' | 'SKIPPED'; createdAt: string;
+}
+interface TestWeight { id: string; weight: number; date: string; createdAt?: string }
+export const user: TestAccount = { id: 'test-user', username: 'Matheus', email: 'matheus@example.test', goal: 'CUT', initialWeight: 84, targetWeight: 72, height: 176, onboardingStatus: 'COMPLETED', createdAt: '2026-01-01T12:00:00Z' };
 export const exercises = [
    { id: 'ex-1', name: 'Supino reto com barra', muscleGroup: 'CHEST', type: 'COMPOUND', equipment: 'BARBELL' },
    { id: 'ex-2', name: 'Desenvolvimento de ombros com halteres', muscleGroup: 'SHOULDERS', type: 'COMPOUND', equipment: 'DUMBBELL' },
@@ -31,13 +38,18 @@ function loggedExercises(items: CreateWorkoutLogData['exercises'], prefix: strin
    }));
 }
 
-export const test = base.extend({
-   page: async ({ page }, runTest) => {
-      await page.addInitScript(account => {
-         localStorage.setItem('bulkio-auth', JSON.stringify({ state: { user: account, isAuthenticated: true }, version: 0 }));
-         localStorage.setItem('bulkio-theme', JSON.stringify({ state: { theme: 'light' }, version: 0 }));
-      }, user);
-      let logs: WorkoutLog[] = [false, true, true].map((isComplete, index) => ({
+export const test = base.extend<{ account: TestAccount; authenticated: boolean; weightRecords: TestWeight[] }>({
+   account: [user, { option: true }],
+   authenticated: [true, { option: true }],
+   weightRecords: [weights, { option: true }],
+   page: async ({ page, account, authenticated, weightRecords }, runTest) => {
+      await page.addInitScript(({ account, authenticated }) => {
+         if (authenticated && !localStorage.getItem('bulkio-auth')) localStorage.setItem('bulkio-auth', JSON.stringify({ state: { user: account, isAuthenticated: true }, version: 0 }));
+         if (!localStorage.getItem('bulkio-theme')) localStorage.setItem('bulkio-theme', JSON.stringify({ state: { theme: 'light' }, version: 0 }));
+      }, { account, authenticated });
+      let profile = { ...account };
+      const bodyWeights = [...weightRecords];
+      let logs: WorkoutLog[] = (account.onboardingStatus === 'PENDING' ? [] : [false, true, true]).map((isComplete, index) => ({
          id: `log-${index}`, date: `2026-10-${24 - index}T12:00:00Z`, startTime: `2026-10-${24 - index}T12:00:00Z`, endTime: isComplete ? `2026-10-${24 - index}T13:00:00Z` : undefined,
          isComplete, workoutPlan: { id: plans[index].id, name: plans[index].name }, createdAt: '2026-10-24T12:00:00Z',
          exercises: plans[index].exercises.map(item => ({ id: `le-${index}-${item.exerciseId}`, exerciseId: item.exerciseId, order: item.order, exercise: item.exercise, sets: [
@@ -51,15 +63,39 @@ export const test = base.extend({
          let data: unknown = null;
          let status = 200;
          if (path === '/auth/refresh') data = { accessToken: 'local-test-token' };
-         else if (path === '/auth/profile') data = user;
+         else if (path === '/auth/register' || path === '/auth/login') {
+            if (path === '/auth/register') {
+               const fields = request.postDataJSON() as { username: string; email: string };
+               profile = { ...profile, username: fields.username, email: fields.email };
+            }
+            data = { user: profile, accessToken: 'local-test-token' };
+         }
+         else if (path === '/auth/profile') {
+            if (request.method() === 'PATCH') profile = { ...profile, ...(request.postDataJSON() as UpdateProfileData) };
+            data = profile;
+         }
+         else if (path === '/auth/onboarding') {
+            const fields = request.postDataJSON() as OnboardingData;
+            if (!bodyWeights.length) bodyWeights.push({ id: 'initial-weight', weight: fields.weight, date: new Date().toISOString(), createdAt: new Date().toISOString() });
+            profile = { ...profile, height: fields.height, goal: fields.goal, targetWeight: fields.targetWeight, initialWeight: profile.initialWeight ?? bodyWeights[0].weight, onboardingStatus: 'COMPLETED' };
+            data = profile;
+         }
+         else if (path === '/auth/onboarding/skip') {
+            if (profile.onboardingStatus === 'PENDING') profile.onboardingStatus = 'SKIPPED';
+            data = profile;
+         }
          else if (path === '/auth/password') {
             if (request.postDataJSON().currentPassword !== 'test-current-password') return route.fulfill({ status: 400, json: { success: false, data: null, message: 'Senha atual incorreta.' } });
-         } else if (path === '/dashboard/stats') data = dashboardStats;
+         } else if (path === '/dashboard/stats') data = {
+            ...dashboardStats,
+            ...(account.onboardingStatus === 'PENDING' ? { weeklyWorkouts: { current: 0, previous: 0 }, streak: 0, totalVolume: 0, muscleDistribution: {}, yearlyActivity: {}, personalRecords: [] } : {}),
+            bodyWeight: { history: [...bodyWeights].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)), current: [...bodyWeights].sort((a, b) => Date.parse(b.date) - Date.parse(a.date))[0] ?? null, target: profile.targetWeight, initial: profile.initialWeight, goal: profile.goal },
+         };
          else if (path.startsWith('/dashboard/exercise-progression/')) data = weights.map((item, index) => ({ date: item.date, maxWeight: 40 + index * 2.5, totalVolume: 1200 + index * 150, sets: [{ setNumber: 1, reps: 10, weight: 40 + index * 2.5 }] }));
          else if (path === '/exercises') data = exercises;
-         else if (path === '/workouts') data = plans;
+         else if (path === '/workouts') data = account.onboardingStatus === 'PENDING' ? [] : plans;
          else if (path.startsWith('/workouts/')) data = plans.find(plan => plan.id === path.split('/').at(-1));
-         else if (path === '/body-weight') data = [...weights].reverse();
+         else if (path === '/body-weight') data = [...bodyWeights].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
          else if (path === '/workout-logs' && request.method() === 'POST') {
             const body = request.postDataJSON() as CreateWorkoutLogData;
             const plan = plans.find(item => item.id === body.workoutPlanId);

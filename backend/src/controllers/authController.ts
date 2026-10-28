@@ -67,6 +67,16 @@ export const authController = {
       res.json(createResponse(user, 'Profile updated'));
    }),
 
+   completeOnboarding: asyncHandler(async (req: Request, res: Response) => {
+      const user = await authService.completeOnboarding(req.user!.userId, req.body);
+      res.json(createResponse(user, 'Configuração inicial salva'));
+   }),
+
+   skipOnboarding: asyncHandler(async (req: Request, res: Response) => {
+      const user = await authService.skipOnboarding(req.user!.userId);
+      res.json(createResponse(user));
+   }),
+
    deleteAccount: asyncHandler(async (req: Request, res: Response) => {
       await authService.deleteAccount(req.user!.userId);
       res.clearCookie('refreshToken');

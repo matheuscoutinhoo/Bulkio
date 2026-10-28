@@ -5,7 +5,7 @@ import { config } from '../config';
 import { userRepository } from '../repositories/userRepository';
 import { refreshTokenRepository } from '../repositories/refreshTokenRepository';
 import { ConflictError, UnauthorizedError, ValidationError } from '../utils/errors';
-import { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput } from '../models/schemas';
+import { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput, CompleteOnboardingInput } from '../models/schemas';
 import { AuthTokens, JwtPayload } from '../models/types';
 
 function generateTokens(payload: JwtPayload): AuthTokens {
@@ -67,6 +67,7 @@ export const authService = {
             id: user.id,
             email: user.email,
             username: user.username,
+            onboardingStatus: user.onboardingStatus,
             createdAt: user.createdAt,
          },
          ...tokens,
@@ -95,6 +96,7 @@ export const authService = {
             initialWeight: user.initialWeight,
             targetWeight: user.targetWeight,
             height: user.height,
+            onboardingStatus: user.onboardingStatus,
             createdAt: user.createdAt,
          },
          ...tokens,
@@ -150,6 +152,16 @@ export const authService = {
          }
       }
       return userRepository.update(userId, data);
+   },
+
+   async completeOnboarding(userId: string, data: CompleteOnboardingInput) {
+      return userRepository.completeOnboarding(userId, data);
+   },
+
+   async skipOnboarding(userId: string) {
+      const user = await userRepository.skipOnboarding(userId);
+      if (!user) throw new UnauthorizedError('User not found');
+      return user;
    },
 
    async deleteAccount(userId: string) {

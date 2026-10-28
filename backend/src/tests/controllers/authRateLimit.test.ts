@@ -15,6 +15,8 @@ vi.mock('../../controllers/authController', () => {
          logout: handler,
          getProfile: handler,
          updateProfile: handler,
+         completeOnboarding: handler,
+         skipOnboarding: handler,
          deleteAccount: handler,
          changePassword: handler,
       },

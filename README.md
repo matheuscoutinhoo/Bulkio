@@ -15,6 +15,7 @@ Aplicação web para criar fichas de musculação, registrar treinos e acompanha
 - dashboard com volume, sequência de treinos, recordes, mapa de atividade e corpo 3D rotacionável com intensidade por grupo muscular;
 - lista de grupos com séries registradas nos últimos 30 dias e enquadramento automático do grupo selecionado no corpo 3D;
 - autenticação com access token e refresh token em cookie `httpOnly`;
+- onboarding para novas contas com apresentação do app, altura, peso e objetivo, rascunho por usuário e retomada pelo perfil;
 - alteração de senha no perfil, com verificação da senha atual e revogação de refresh tokens;
 - tema claro/escuro e suporte a instalação como PWA.
 

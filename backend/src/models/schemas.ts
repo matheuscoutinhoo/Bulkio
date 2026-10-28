@@ -40,6 +40,13 @@ export const updateProfileSchema = z.object({
    height: z.number().positive().max(300).optional().nullable(),
 });
 
+export const completeOnboardingSchema = z.object({
+   height: z.number().min(50).max(300),
+   weight: z.number().min(20).max(500),
+   goal: z.enum(['BULK', 'CUT', 'MAINTAIN']),
+   targetWeight: z.number().min(20).max(500).nullable().optional(),
+});
+
 // ========== WORKOUT PLAN ==========
 export const workoutPlanExerciseSchema = z.object({
    exerciseId: z.string().uuid(),
@@ -151,6 +158,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type CompleteOnboardingInput = z.infer<typeof completeOnboardingSchema>;
 export type CreateWorkoutPlanInput = z.infer<typeof createWorkoutPlanSchema>;
 export type UpdateWorkoutPlanInput = z.infer<typeof updateWorkoutPlanSchema>;
 export type CreateWorkoutLogInput = z.infer<typeof createWorkoutLogSchema>;

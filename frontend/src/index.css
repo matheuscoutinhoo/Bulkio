@@ -250,6 +250,14 @@ select {
   color: var(--grad-from);
 }
 
+.dark .onboarding-shell .text-primary {
+  color: var(--grad-from);
+}
+
+.dark .onboarding-shell .onboarding-progress-filled {
+  background-color: var(--grad-from);
+}
+
 @media (max-width: 639px) {
   .data-table--cards {
     overflow: visible;

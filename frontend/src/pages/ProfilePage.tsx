@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Mail, Calendar, Pencil, Trash2, LogOut, Check, X, ShieldCheck, LockKeyhole, Sun, Moon, ChevronRight } from 'lucide-react';
+import { User, Mail, Calendar, Pencil, Trash2, LogOut, Check, X, ShieldCheck, LockKeyhole, Sun, Moon, ChevronRight, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
@@ -18,6 +18,7 @@ import { ErrorState } from '@/components/ui/feedback';
 import { SectionOverview } from '@/components/ui/section-overview';
 import { ChangePasswordDialog } from '@/components/profile/ChangePasswordDialog';
 import { useThemeStore } from '@/stores/themeStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 
 const goalLabels: Record<string, string> = {
    BULK: 'Ganho de Massa',
@@ -49,10 +50,11 @@ export default function ProfilePage() {
       authApi.getProfile()
          .then((res) => {
             setProfile(res.data.data);
+            setUser(res.data.data);
          })
          .catch(() => setLoadError(true))
          .finally(() => setLoading(false));
-   }, []);
+   }, [setUser]);
 
    const handleStartEditing = () => {
       setNewUsername(user?.username || '');
@@ -120,6 +122,7 @@ export default function ProfilePage() {
       setDeleting(true);
       try {
          await authApi.deleteAccount();
+         if (user) useOnboardingStore.getState().clearDraft(user.id);
          logout();
          navigate('/login');
       } catch (err) {
@@ -267,6 +270,10 @@ export default function ProfilePage() {
          </Card>
 
          <div className="space-y-6">
+            <Card>
+               <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><BookOpen className="h-5 w-5 text-primary" />Configuração inicial</CardTitle></CardHeader>
+               <CardContent><button type="button" onClick={() => navigate('/onboarding')} className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border/60 bg-background/60 p-3.5 text-left hover:border-primary/35"><BookOpen className="h-5 w-5 shrink-0 text-primary" /><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Rever guia e dados iniciais</span><span className="mt-1 block text-xs text-muted-foreground">Funções do app, altura, peso e objetivo.</span></span><ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" /></button></CardContent>
+            </Card>
             <Card className="border-primary/20">
                <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><ShieldCheck className="h-5 w-5 text-primary" />Segurança</CardTitle><p className="text-sm text-muted-foreground">Cuide do acesso à sua conta.</p></CardHeader>
                <CardContent><button type="button" onClick={() => setShowPasswordDialog(true)} className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border/60 bg-background/60 p-3.5 text-left transition-colors hover:border-primary/35 hover:bg-primary/5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><LockKeyhole className="h-5 w-5" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Alterar senha</span><span className="mt-1 block text-xs text-muted-foreground">Verifique a senha atual e escolha uma nova.</span></span><ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" /></button></CardContent>

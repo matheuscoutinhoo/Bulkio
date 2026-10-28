@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { authController } from '../controllers/authController';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/errorHandler';
-import { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema } from '../models/schemas';
+import { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema, completeOnboardingSchema } from '../models/schemas';
 
 const router = Router();
 
@@ -24,6 +24,8 @@ router.post('/refresh', authController.refresh);
 router.post('/logout', authController.logout);
 router.get('/profile', authenticate, authController.getProfile);
 router.patch('/profile', authenticate, validate(updateProfileSchema), authController.updateProfile);
+router.post('/onboarding', authenticate, validate(completeOnboardingSchema), authController.completeOnboarding);
+router.post('/onboarding/skip', authenticate, authController.skipOnboarding);
 const passwordLimiter = rateLimit({
    windowMs: 15 * 60 * 1000,
    max: 5,

@@ -10,6 +10,7 @@ interface User {
    initialWeight?: number | null;
    targetWeight?: number | null;
    height?: number | null;
+   onboardingStatus?: 'PENDING' | 'COMPLETED' | 'SKIPPED';
 }
 
 interface AuthState {

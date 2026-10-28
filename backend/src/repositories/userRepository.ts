@@ -1,4 +1,10 @@
 import prisma from '../config/database';
+import type { CompleteOnboardingInput } from '../models/schemas';
+
+const profileFields = {
+   id: true, email: true, username: true, goal: true, initialWeight: true,
+   targetWeight: true, height: true, onboardingStatus: true, createdAt: true, updatedAt: true,
+} as const;
 
 export const userRepository = {
    findCredentialsById(id: string) {
@@ -25,6 +31,7 @@ export const userRepository = {
             initialWeight: true,
             targetWeight: true,
             height: true,
+            onboardingStatus: true,
             createdAt: true,
          },
       });
@@ -43,17 +50,7 @@ export const userRepository = {
    findById(id: string) {
       return prisma.user.findUnique({
          where: { id },
-         select: {
-            id: true,
-            email: true,
-            username: true,
-            goal: true,
-            initialWeight: true,
-            targetWeight: true,
-            height: true,
-            createdAt: true,
-            updatedAt: true,
-         },
+         select: profileFields,
       });
    },
 
@@ -65,18 +62,33 @@ export const userRepository = {
       return prisma.user.update({
          where: { id },
          data,
-         select: {
-            id: true,
-            email: true,
-            username: true,
-            goal: true,
-            initialWeight: true,
-            targetWeight: true,
-            height: true,
-            createdAt: true,
-            updatedAt: true,
-         },
+         select: profileFields,
       });
+   },
+
+   completeOnboarding(id: string, data: CompleteOnboardingInput) {
+      return prisma.$transaction(async (tx) => {
+         // Lock the user row before checking history so simultaneous completions
+         // and retries cannot create multiple starting measurements.
+         const profile = await tx.user.update({
+            where: { id },
+            data: { height: data.height, goal: data.goal, targetWeight: data.targetWeight ?? null, onboardingStatus: 'COMPLETED' },
+            select: profileFields,
+         });
+         const firstWeight = await tx.bodyWeight.findFirst({
+            where: { userId: id }, orderBy: [{ date: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+         });
+         if (!firstWeight) await tx.bodyWeight.create({ data: { userId: id, weight: data.weight } });
+         if (profile.initialWeight != null) return profile;
+         return tx.user.update({
+            where: { id }, data: { initialWeight: firstWeight?.weight ?? data.weight }, select: profileFields,
+         });
+      });
+   },
+
+   async skipOnboarding(id: string) {
+      await prisma.user.updateMany({ where: { id, onboardingStatus: 'PENDING' }, data: { onboardingStatus: 'SKIPPED' } });
+      return prisma.user.findUnique({ where: { id }, select: profileFields });
    },
 
    delete(id: string) {

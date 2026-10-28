@@ -28,7 +28,7 @@ export default function RegisterPage() {
          const response = await authApi.register({ username: data.username, email: data.email, password: data.password });
          const { user, accessToken } = response.data.data;
          setAuth(user, accessToken);
-         navigate('/dashboard');
+         navigate('/onboarding');
       } catch (err: unknown) {
          setError(getApiErrorMessage(err, 'Não foi possível criar a conta. Tente novamente.'));
       }
